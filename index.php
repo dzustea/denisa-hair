@@ -18,7 +18,7 @@ $csrf = csrf_token();
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Denisa Hair — kadeřnictví Záříčí</title>
 <meta name="description" content="Moderní dámské, pánské a dětské kadeřnictví v Záříčí. Objednejte se online u kadeřnice Denisy Hrabalové.">
-<meta name="theme-color" content="#FBF8F4">
+<meta name="theme-color" content="#F5F0E9">
 
 <meta property="og:title" content="Denisa Hair — kadeřnictví Záříčí">
 <meta property="og:description" content="Moderní dámské, pánské a dětské kadeřnictví v Záříčí.">
@@ -38,21 +38,21 @@ tailwind.config = {
   theme: {
     extend: {
       colors: {
-        cream: '#FBF8F4',   // pozadí stránky
-        shell: '#FFFFFF',   // karty
-        sand:  '#F3EBE3',   // vnitřní plochy, inputy
-        cocoa: '#2C2521',   // hlavní text
-        stone: '#665A53',   // vedlejší text
-        rose:  '#9B5442',   // akcent
-        blush: '#EFDDD5',   // jemný akcentový nádech
+        cream: '#F5F0E9',   // pozadí stránky
+        shell: '#FCFAF6',   // karty
+        sand:  '#E9DFD3',   // vnitřní plochy, inputy
+        cocoa: '#241E1A',   // hlavní text
+        stone: '#5E534B',   // vedlejší text
+        rose:  '#8F4C3B',   // akcent
+        blush: '#E9D6CB',   // jemný akcentový nádech
       },
       fontFamily: {
         sans: ['Ubuntu', 'system-ui', 'sans-serif'],
       },
       screens: { xs: '480px' },
       boxShadow: {
-        soft:  '0 2px 8px rgba(44,37,33,.05)',
-        lift:  '0 14px 34px -12px rgba(44,37,33,.18)',
+        soft:  '0 2px 8px rgba(36,30,26,.05)',
+        lift:  '0 14px 34px -12px rgba(36,30,26,.18)',
       },
     }
   }
@@ -62,9 +62,9 @@ tailwind.config = {
 <style>
   :root{
     color-scheme: light;
-    --cream:#FBF8F4; --shell:#FFFFFF; --sand:#F3EBE3;
-    --cocoa:#2C2521; --stone:#665A53; --rose:#9B5442; --blush:#EFDDD5;
-    --line:#E7DDD4;
+    --cream:#F5F0E9; --shell:#FCFAF6; --sand:#E9DFD3;
+    --cocoa:#241E1A; --stone:#5E534B; --rose:#8F4C3B; --blush:#E9D6CB;
+    --line:#DDD0C2;
     --ease:cubic-bezier(.22,1,.36,1);
   }
 
@@ -95,12 +95,12 @@ tailwind.config = {
   .card{ transition:transform .45s var(--ease), box-shadow .45s var(--ease), border-color .45s ease; }
   .card:hover{
     transform:translateY(-4px);
-    box-shadow:0 14px 34px -12px rgba(44,37,33,.18);
+    box-shadow:0 14px 34px -12px rgba(36,30,26,.18);
     border-color:var(--blush);
   }
 
   /* Fotky v galerii */
-  .ph{ background:linear-gradient(150deg,#F0E5DC 0%,#E6D6CB 55%,#DCC8BB 100%); }
+  .ph{ background:linear-gradient(150deg,#E9DCD1 0%,#DECDC0 55%,#D3BEAF 100%); }
   .zoom{ transition:transform 1s var(--ease); }
   .zoomwrap:hover .zoom{ transform:scale(1.05); }
 
@@ -446,7 +446,7 @@ tailwind.config = {
         <div>
           <label for="service" class="block text-[15px] font-medium">Služba <span class="text-rose">*</span></label>
           <select id="service" name="service" required aria-describedby="err-service"
-                  class="mt-2 w-full appearance-none rounded-2xl border border-[color:var(--line)] bg-sand bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20fill=%22none%22%20stroke=%22%239B5442%22%20stroke-width=%222%22%20viewBox=%220%200%2024%2024%22%3E%3Cpath%20d=%22m6%209%206%206%206-6%22/%3E%3C/svg%3E')] bg-[length:18px_18px] bg-[right_1rem_center] bg-no-repeat px-4 py-3.5 pr-11 text-[16px] transition-colors focus:border-rose focus:bg-shell focus:outline-none">
+                  class="mt-2 w-full appearance-none rounded-2xl border border-[color:var(--line)] bg-sand bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20fill=%22none%22%20stroke=%22%238F4C3B%22%20stroke-width=%222%22%20viewBox=%220%200%2024%2024%22%3E%3Cpath%20d=%22m6%209%206%206%206-6%22/%3E%3C/svg%3E')] bg-[length:18px_18px] bg-[right_1rem_center] bg-no-repeat px-4 py-3.5 pr-11 text-[16px] transition-colors focus:border-rose focus:bg-shell focus:outline-none">
             <option value="">Vyberte službu…</option>
             <?php foreach (SERVICES as $key => $label): ?>
               <option value="<?= e($key) ?>"><?= e($label) ?></option>
@@ -758,6 +758,5 @@ tailwind.config = {
   });
 })();
 </script>
-<script src="assets/calendar.js" defer></script>
 </body>
 </html>

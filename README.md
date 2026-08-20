@@ -222,9 +222,17 @@ ani displayové písmo.
 
 Linka mezi prvky je `#E7DDD4`.
 
-Administrace používá stejnou paletu **o stupeň sytější** (pozadí `#EFE7DE`,
-karty `#FBF7F3`, linka `#D3C4B4`). Je to pracovní nástroj, kde se čte hodně
-údajů, takže plochy jsou tmavší a hrany výraznější než na webu.
+Administrace používá stejnou paletu **o dva stupně sytější** (pozadí `#EBE3D9`,
+karty `#F7F2EC`, linka `#CDBCA9`). Je to pracovní nástroj, kde se čte hodně
+údajů — plochy drží tvar i při dlouhém čtení.
+
+Rozvržení administrace staví na seskupených kartách (`.group-card`): jedna
+plocha rozdělená vlasovými předěly místo mnoha orámovaných krabiček. Stav se
+filtruje segmentovým přepínačem a filtry se uplatní hned při změně.
+
+Seznam rezervací zůstává `<table>` — jsou to tabulková data, čtečky je tak
+přečtou po sloupcích a řazení hlásí `aria-sort`. Mění se jen vzhled: žádné
+mřížkování, jen vlasové předěly mezi řádky a tiché ovládací prvky.
 
 ### Typografie
 

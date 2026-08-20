@@ -79,4 +79,30 @@ function render_booking_calendar(array $opts = []): void
         <p class="mt-4 hidden rounded-xl bg-blush px-4 py-3 text-[15px] text-cocoa" data-cal-summary role="status" aria-live="polite"></p>
     </div>
     <?php
+    render_calendar_script();
+}
+
+/**
+ * Vloží chování kalendáře přímo do stránky.
+ *
+ * Skript je jeden soubor (`assets/calendar.js`) — sdílený zdroj pravdy —
+ * ale posílá se rovnou v HTML. Odpadá tím druhý požadavek a hlavně
+ * závislost na tom, jestli hosting statické soubory vůbec publikuje.
+ * Na Vercelu je to zrovna past: starší formát `vercel.json` s `builds`
+ * vystaví jen to, na co má builder, takže `/assets/*.js` končilo na 404.
+ */
+function render_calendar_script(): void
+{
+    static $printed = false;
+    if ($printed) {
+        return;   // na stránce může být kalendářů víc, skript stačí jeden
+    }
+    $printed = true;
+
+    $js = @file_get_contents(__DIR__ . '/assets/calendar.js');
+    if ($js === false) {
+        return;
+    }
+
+    echo "\n<script>\n", $js, "\n</script>\n";
 }

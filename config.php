@@ -422,9 +422,17 @@ function taken_slots(PDO $pdo, string $from, string $to): array
 
     $out = [];
     foreach ($stmt->fetchAll() as $row) {
-        $day  = (string) $row['appointment_date'];
-        $time = substr((string) $row['appointment_time'], 0, 5);
-        $out[$day][] = $time;
+        $day = (string) $row['appointment_date'];
+
+        // Rezervace z doby před hodinovými sloty mají libovolný čas
+        // (třeba 16:38). Zaokrouhlíme dolů na celou hodinu, ať i ty
+        // blokují blok, do kterého spadají.
+        $hour = (int) substr((string) $row['appointment_time'], 0, 2);
+        $slot = sprintf('%02d:00', $hour);
+
+        if (in_array($slot, booking_slots(), true) && !in_array($slot, $out[$day] ?? [], true)) {
+            $out[$day][] = $slot;
+        }
     }
     return $out;
 }
