@@ -50,7 +50,59 @@ s `password_verify()`.
 ### Požadavky
 
 - PHP 8.0+ s rozšířeními `pdo_mysql` a `mbstring`
-- MySQL 5.7+ / MariaDB 10.3+
+- MySQL 5.7+ / MariaDB 10.3+ (nebo TiDB Cloud)
+
+---
+
+## Nasazení na Vercel + TiDB Cloud
+
+Vercel PHP nepodporuje oficiálně — jede přes komunitní runtime
+[`vercel-php`](https://github.com/vercel-community/php). Databáze musí být
+externí, protože Vercel MySQL nenabízí.
+
+### 1. Databáze — TiDB Cloud Starter (zdarma)
+
+MySQL-kompatibilní, free kvóta 5 GiB a 50 milionů RU měsíčně, bez platební
+karty. Pro serverless se hodí líp než klasická MySQL, protože zvládá spoustu
+krátkých spojení.
+
+1. Založ účet na [tidbcloud.com](https://tidbcloud.com) a vytvoř cluster typu
+   **Starter** (region vyber evropský, např. `eu-central-1`).
+2. V **SQL Editoru** spusť celý obsah `schema.sql`.
+3. V **Connect** si vypiš údaje: `host`, `port` (4000), `user`
+   (ve tvaru `xxxxx.root`), `password`.
+
+### 2. Proměnné prostředí na Vercelu
+
+V projektu → **Settings → Environment Variables**:
+
+| Proměnná | Hodnota |
+|---|---|
+| `DB_HOST` | `gateway01.eu-central-1.prod.aws.tidbcloud.com` |
+| `DB_PORT` | `4000` |
+| `DB_NAME` | `denisa_hair` |
+| `DB_USER` | `xxxxx.root` |
+| `DB_PASS` | heslo z TiDB Cloud |
+
+TLS se zapne samo — CA certifikát je v `certs/isrgrootx1.pem` a `config.php`
+ho použije, jakmile `DB_HOST` není `localhost`.
+
+### 3. Deploy
+
+Naimportuj repozitář na [vercel.com/new](https://vercel.com/new). Framework
+Preset nech na **Other**, build command prázdný. `vercel.json` udělá zbytek.
+
+### Na co si dát pozor
+
+- **Session jsou v databázi**, ne v souborech — jinak by přihlášení do
+  administrace na serverless náhodně vypadávalo. Zajišťuje to
+  `DbSessionHandler` v `config.php` a tabulka `sessions`.
+- **Hned po prvním přihlášení změň heslo** v `/admin/setup.php`. Výchozí
+  `denisa2026` je v tomto repozitáři veřejně čitelné.
+- `vercel-php` je komunitní projekt. Když build spadne na verzi runtime,
+  zkontroluj aktuální číslo v jeho README a uprav `vercel.json`.
+- Kdyby to zlobilo, klasický PHP hosting spolkne tenhle projekt bez jediné
+  změny kódu — stačí FTP a import `schema.sql`.
 
 ---
 
