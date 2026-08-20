@@ -288,7 +288,6 @@ Klíčové body:
 | Adresu, texty, otevírací dobu | `index.php` (sekce Hero, O mně, Patička) |
 | Nabídku služeb na webu | pole `$cards` v `index.php` |
 | Rozsah a délku slotů | konstanty `SLOT_FIRST_HOUR`, `SLOT_LAST_HOUR` v `config.php` |
-| Text běžícího pásu | pole `$ticker` v `index.php` |
 | Položky formuláře „Služba“ | konstanta `SERVICES` v `config.php` **+** `ENUM` sloupce `service` v DB |
 | Stavy rezervací | konstanta `STATUSES` v `config.php` **+** `ENUM` sloupce `status` v DB |
 | Barvy a fonty webu | blok `tailwind.config` + `:root` v `index.php` |
