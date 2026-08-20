@@ -1,0 +1,17 @@
+# Lokální konfigurace s hesly — nikdy do gitu
+config.local.php
+.env
+.env.local
+
+# Nástroje
+.vercel/
+node_modules/
+vendor/
+
+# Systém
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Dočasné náhledy
+_preview*.html
