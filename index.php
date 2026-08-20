@@ -7,9 +7,9 @@
  */
 declare(strict_types=1);
 require __DIR__ . '/config.php';
+require_once __DIR__ . '/booking-calendar.php';
 
-$csrf  = csrf_token();
-$today = date('Y-m-d');
+$csrf = csrf_token();
 ?>
 <!DOCTYPE html>
 <html lang="cs" class="scroll-smooth">
@@ -455,19 +455,18 @@ tailwind.config = {
           <p id="err-service" class="mt-1.5 hidden text-[14px] text-rose" role="alert"></p>
         </div>
 
-        <div>
-          <label for="appointment_date" class="block text-[15px] font-medium">Datum <span class="text-rose">*</span></label>
-          <input id="appointment_date" name="appointment_date" type="date" required min="<?= e($today) ?>"
-                 aria-describedby="err-appointment_date"
-                 class="mt-2 w-full rounded-2xl border border-[color:var(--line)] bg-sand px-4 py-3.5 text-[16px] transition-colors focus:border-rose focus:bg-shell focus:outline-none">
+        <div class="sm:col-span-2">
+          <p class="text-[15px] font-medium">Termín <span class="text-rose">*</span></p>
+          <p class="mt-1 text-[13px] text-stone">
+            Vyberte den a pak volný čas. Objednávám po hodinových blocích od 9:00 do 17:00.
+          </p>
+          <div class="mt-3">
+            <?php render_booking_calendar([
+                'id'       => 'cal-web',
+                'endpoint' => 'availability.php',
+            ]); ?>
+          </div>
           <p id="err-appointment_date" class="mt-1.5 hidden text-[14px] text-rose" role="alert"></p>
-        </div>
-
-        <div>
-          <label for="appointment_time" class="block text-[15px] font-medium">Čas <span class="text-rose">*</span></label>
-          <input id="appointment_time" name="appointment_time" type="time" required step="900"
-                 aria-describedby="err-appointment_time"
-                 class="mt-2 w-full rounded-2xl border border-[color:var(--line)] bg-sand px-4 py-3.5 text-[16px] transition-colors focus:border-rose focus:bg-shell focus:outline-none">
           <p id="err-appointment_time" class="mt-1.5 hidden text-[14px] text-rose" role="alert"></p>
         </div>
 
@@ -655,6 +654,8 @@ tailwind.config = {
     });
   };
 
+  const calendar = form.querySelector('[data-calendar]');
+
   const showFieldErrors = (errors) => {
     let first = null;
     Object.entries(errors).forEach(([field, message]) => {
@@ -667,8 +668,27 @@ tailwind.config = {
         if (!first) first = input;
       }
     });
-    if (first) first.focus();   // fokus na první chybné pole
+
+    if (!first) return;
+
+    // Termín je ve skrytých polích — fokus by nikam nevedl, tak
+    // uživatele nasměrujeme na samotný kalendář.
+    if (first.type === 'hidden') {
+      if (calendar) calendar.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else {
+      first.focus();
+    }
   };
+
+  // Výběr v kalendáři schová případnou chybu u termínu.
+  if (calendar) {
+    calendar.addEventListener('calendar:change', () => {
+      ['appointment_date', 'appointment_time'].forEach(f => {
+        const box = document.getElementById('err-' + f);
+        if (box) box.classList.add('hidden');
+      });
+    });
+  }
 
   /* Klientská validace — server ji vždy zopakuje. */
   const validate = (data) => {
@@ -677,8 +697,8 @@ tailwind.config = {
     if (!data.phone || data.phone.replace(/\D/g, '').length < 9) errors.phone = 'Zadejte platné telefonní číslo.';
     if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(data.email)) errors.email = 'E-mail nemá správný tvar.';
     if (!data.service)          errors.service = 'Vyberte prosím službu.';
-    if (!data.appointment_date) errors.appointment_date = 'Vyberte prosím datum.';
-    if (!data.appointment_time) errors.appointment_time = 'Vyberte prosím čas.';
+    if (!data.appointment_date) errors.appointment_date = 'Vyberte prosím den v kalendáři.';
+    else if (!data.appointment_time) errors.appointment_time = 'Vyberte prosím čas.';
     return errors;
   };
 
@@ -710,6 +730,9 @@ tailwind.config = {
 
       if (result.success) {
         form.reset();
+        // form.reset() skrytá pole vyčistí, ale kalendář o tom neví —
+        // řekneme mu, ať se překreslí i s nově obsazeným slotem.
+        if (calendar && typeof calendar.reset === 'function') calendar.reset();
         showStatus('success', result.message);
       } else {
         if (result.errors) showFieldErrors(result.errors);
@@ -735,5 +758,6 @@ tailwind.config = {
   });
 })();
 </script>
+<script src="assets/calendar.js" defer></script>
 </body>
 </html>

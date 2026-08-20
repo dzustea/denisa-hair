@@ -70,21 +70,34 @@ if (!array_key_exists($service, SERVICES)) {
     $errors['service'] = 'Vyberte prosím službu.';
 }
 
-// Datum musí být reálné a ne v minulosti
+/*
+ * Termín. Klientský kalendář sice nabízí jen platné volby, ale request
+ * může přijít odkudkoli — proto se tady kontroluje všechno znovu:
+ * formát, povolený slot, minulost i obsazenost.
+ */
 $dateObj = DateTimeImmutable::createFromFormat('!Y-m-d', $date);
 if (!$dateObj || $dateObj->format('Y-m-d') !== $date) {
-    $errors['appointment_date'] = 'Vyberte prosím platné datum.';
+    $errors['appointment_date'] = 'Vyberte prosím platný den.';
 } elseif ($dateObj < new DateTimeImmutable('today')) {
-    $errors['appointment_date'] = 'Datum nemůže být v minulosti.';
+    $errors['appointment_date'] = 'Termín nemůže být v minulosti.';
 } elseif ($dateObj > new DateTimeImmutable('+1 year')) {
     $errors['appointment_date'] = 'Termín zvolte prosím do jednoho roku.';
 }
 
-// Čas ve tvaru HH:MM (prohlížeč může poslat i HH:MM:SS)
-if (!preg_match('/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/', $time)) {
-    $errors['appointment_time'] = 'Vyberte prosím platný čas.';
-} elseif (strlen($time) === 5) {
-    $time .= ':00';
+// Čas musí odpovídat některému z hodinových slotů (9:00–17:00).
+if (!is_valid_slot($time)) {
+    $errors['appointment_time'] = 'Vyberte prosím čas z nabídnutých termínů.';
+} else {
+    $time = substr($time, 0, 5) . ':00';
+}
+
+// Uplynulé hodiny dnešního dne. Slot je obsazený až do svého konce,
+// takže v 14:30 už nelze objednat blok 14:00–15:00.
+if (!isset($errors['appointment_date']) && !isset($errors['appointment_time'])) {
+    $slotEnd = new DateTimeImmutable($date . ' ' . slot_end(substr($time, 0, 5)));
+    if ($slotEnd <= new DateTimeImmutable('now')) {
+        $errors['appointment_time'] = 'Tento čas už proběhl. Vyberte prosím jiný.';
+    }
 }
 
 if ($errors) {
@@ -118,7 +131,21 @@ try {
     }
 
     /* -----------------------------------------------------------
-     * 6) Uložení (prepared statement — ochrana proti SQL injection)
+     * 6) Je slot pořád volný?
+     *
+     * Kalendář v prohlížeči mohl mít starší data — mezitím si někdo
+     * mohl stejný blok zabrat. Kontrolujeme těsně před zápisem.
+     * ----------------------------------------------------------- */
+    if (!slot_is_free($pdo, $date, $time)) {
+        json_response([
+            'success' => false,
+            'message' => 'Tento termín je bohužel právě obsazený. Vyberte prosím jiný čas.',
+            'errors'  => ['appointment_time' => 'Termín je obsazený.'],
+        ], 409);
+    }
+
+    /* -----------------------------------------------------------
+     * 7) Uložení (prepared statement — ochrana proti SQL injection)
      * ----------------------------------------------------------- */
     $stmt = $pdo->prepare(
         'INSERT INTO bookings
@@ -147,17 +174,14 @@ try {
 }
 
 /* ---------------------------------------------------------------
- * 7) Hotovo
+ * 8) Hotovo
  * --------------------------------------------------------------- */
-$niceDate = $dateObj->format('j. n. Y');
-$niceTime = substr($time, 0, 5);
-
 json_response([
     'success' => true,
     'message' => sprintf(
         'Děkuji, %s! Vaši rezervaci na %s v %s jsem přijala a co nejdřív se vám ozvu s potvrzením.',
         $name,
-        $niceDate,
-        $niceTime
+        $dateObj->format('j. n. Y'),
+        slot_label(substr($time, 0, 5))
     ),
 ]);

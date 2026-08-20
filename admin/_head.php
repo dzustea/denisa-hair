@@ -23,21 +23,24 @@ $pageTitle = $pageTitle ?? 'Administrace';
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
+/* Administrace používá stejnou paletu jako web, jen o stupeň sytější.
+   Je to pracovní nástroj — plochy jsou tmavší a linky výraznější,
+   aby text a ovládací prvky víc vystoupily. */
 tailwind.config = { theme: { extend: {
   colors: {
-    cream: '#FBF8F4',
-    shell: '#FFFFFF',
-    sand:  '#F3EBE3',
-    cocoa: '#2C2521',
-    stone: '#665A53',
-    rose:  '#9B5442',
-    blush: '#EFDDD5',
+    cream: '#EFE7DE',   // web #FBF8F4
+    shell: '#FBF7F3',   // web #FFFFFF
+    sand:  '#E4D8CB',   // web #F3EBE3
+    cocoa: '#241E1B',   // web #2C2521
+    stone: '#5A4E47',   // web #665A53
+    rose:  '#8F4A38',   // web #9B5442
+    blush: '#E5CCC0',   // web #EFDDD5
   },
   fontFamily: { sans: ['Ubuntu', 'system-ui', 'sans-serif'] },
   screens: { xs: '480px' },
   boxShadow: {
-    soft: '0 2px 8px rgba(44,37,33,.05)',
-    lift: '0 14px 34px -12px rgba(44,37,33,.18)',
+    soft: '0 2px 10px rgba(36,30,27,.08)',
+    lift: '0 14px 34px -12px rgba(36,30,27,.22)',
   },
 }}}
 </script>
@@ -45,9 +48,9 @@ tailwind.config = { theme: { extend: {
 <style>
   :root{
     color-scheme: light;
-    --cream:#FBF8F4; --shell:#FFFFFF; --sand:#F3EBE3;
-    --cocoa:#2C2521; --stone:#665A53; --rose:#9B5442; --blush:#EFDDD5;
-    --line:#E7DDD4;
+    --cream:#EFE7DE; --shell:#FBF7F3; --sand:#E4D8CB;
+    --cocoa:#241E1B; --stone:#5A4E47; --rose:#8F4A38; --blush:#E5CCC0;
+    --line:#D3C4B4;   /* výraznější linka než na webu (#E7DDD4) */
     --ease:cubic-bezier(.22,1,.36,1);
   }
 
@@ -79,19 +82,19 @@ tailwind.config = { theme: { extend: {
     .rtable thead{ display:none; }
 
     .rtable tr{
-      border:1px solid #E7DDD4; border-radius:1.5rem;
-      background:#FFFFFF; padding:1.15rem 1.25rem;
-      box-shadow:0 2px 8px rgba(44,37,33,.05);
+      border:1px solid #D3C4B4; border-radius:1.5rem;
+      background:#FBF7F3; padding:1.15rem 1.25rem;
+      box-shadow:0 2px 8px rgba(36,30,27,.08);
     }
     .rtable tr + tr{ margin-top:.85rem; }
 
     .rtable td{ padding:.65rem 0; border:0; }
-    .rtable td + td{ border-top:1px solid #F0E8E0; }
+    .rtable td + td{ border-top:1px solid #E2D5C6; }
 
     .rtable td[data-label]::before{
       content:attr(data-label);
       display:block; margin-bottom:.3rem;
-      font-size:.8125rem; color:#665A53;
+      font-size:.8125rem; color:#5A4E47;
     }
   }
 

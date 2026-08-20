@@ -12,6 +12,9 @@ HTML5 · Tailwind CSS · Vanilla JS (fetch) · PHP 8 · MySQL (PDO)
 ├── config.php            připojení k DB (PDO), session, CSRF, číselníky
 ├── index.php             veřejný web + rezervační formulář
 ├── process-booking.php   AJAX endpoint pro odeslání rezervace
+├── availability.php      JSON s obsazenými sloty pro kalendář
+├── booking-calendar.php  sdílená komponenta výběru termínu
+├── assets/calendar.js    chování kalendáře (web i administrace)
 ├── schema.sql            inicializace databáze
 ├── health.php            dočasná diagnostika nasazení (po zprovoznění smaž)
 ├── assets/img/           místo pro fotky (galerie, portrét)
@@ -134,6 +137,71 @@ Co ta hláška typicky znamená:
 
 ---
 
+## Kalendář a výběr termínu
+
+Termín se vybírá jedním komponentem, který používá veřejný web i administrace.
+
+### Jak to drží pohromadě
+
+| Soubor | Role |
+|---|---|
+| `booking-calendar.php` | funkce `render_booking_calendar()` — vykreslí kostru a dvě skrytá pole |
+| `assets/calendar.js` | obsluha všech elementů `[data-calendar]` na stránce |
+| `availability.php` | JSON s obsazenými sloty pro zvolený měsíc |
+| `config.php` | číselník slotů + `slot_is_free()`, `taken_slots()`, `is_valid_slot()` |
+
+Vložení do stránky:
+
+```php
+require_once __DIR__ . '/booking-calendar.php';
+render_booking_calendar(['id' => 'cal-web', 'endpoint' => 'availability.php']);
+```
+
+`id` je prefix skrytých polí (`cal-web-date`, `cal-web-time`), takže na jedné
+stránce může být kalendářů víc. Z administrace se `endpoint` nastavuje na
+`../availability.php`.
+
+### Sloty
+
+Den je rozdělený na **hodinové bloky od 9:00 do 17:00** — 09:00–10:00 až
+16:00–17:00, celkem osm. V databázi se ukládá jen začátek bloku do sloupce
+`appointment_time`; konec z něj plyne. Schéma se kvůli tomu nemuselo měnit.
+
+Obsazený začátek blokuje celý blok: rezervace ve 14:00 znepřístupní
+14:00–15:00 a nejbližší volný termín je až od 15:00. Zrušené rezervace se
+nepočítají, jejich blok se uvolní.
+
+Den, který nemá jediný volný blok, je v mřížce nedostupný.
+
+### Minulost
+
+Ošetřená na obou stranách:
+
+- **V prohlížeči** — dny před dneškem nejdou rozkliknout, tlačítko na
+  předchozí měsíc je v aktuálním měsíci zakázané a u dnešního dne se skryjí
+  bloky, které už skončily.
+- **V PHP** — `process-booking.php` i akce `create` v `admin/api.php`
+  kontrolují datum, platnost slotu i to, jestli blok už neproběhl. Bloky se
+  posuzují podle konce: ve 14:30 už blok 14:00–15:00 objednat nelze.
+
+Kontroly v PHP nejsou zdvojení kódu pro jistotu — požadavek může přijít
+odkudkoli mimo formulář, takže server nesmí věřit ničemu, co dostane.
+
+### Souběh dvou rezervací
+
+Těsně před zápisem se ověřuje `slot_is_free()`. Kdyby si mezitím stejný blok
+zabral někdo jiný, vrátí se stav `409` a hláška o obsazeném termínu.
+Zbývá teoretické okno mezi kontrolou a zápisem — na provoz jednoho salonu
+to stačí. Kdyby to někdy vadilo, řešením je unikátní index nad
+`(appointment_date, appointment_time)` a odchycení duplicity.
+
+### Administrace
+
+Panel **„Zapsat rezervaci z telefonu"** používá stejný kalendář. Uloží
+rezervaci rovnou se stavem `potvrzená` — domluva po telefonu už proběhla.
+
+---
+
 ## Vizuální styl
 
 Světlý, teplý a klidný — takový, jaký se hodí do salonu. Krémové pozadí,
@@ -153,6 +221,10 @@ ani displayové písmo.
 | `blush` | `#EFDDD5` | jemný akcentový nádech |
 
 Linka mezi prvky je `#E7DDD4`.
+
+Administrace používá stejnou paletu **o stupeň sytější** (pozadí `#EFE7DE`,
+karty `#FBF7F3`, linka `#D3C4B4`). Je to pracovní nástroj, kde se čte hodně
+údajů, takže plochy jsou tmavší a hrany výraznější než na webu.
 
 ### Typografie
 
@@ -215,6 +287,7 @@ Klíčové body:
 |---|---|
 | Adresu, texty, otevírací dobu | `index.php` (sekce Hero, O mně, Patička) |
 | Nabídku služeb na webu | pole `$cards` v `index.php` |
+| Rozsah a délku slotů | konstanty `SLOT_FIRST_HOUR`, `SLOT_LAST_HOUR` v `config.php` |
 | Text běžícího pásu | pole `$ticker` v `index.php` |
 | Položky formuláře „Služba“ | konstanta `SERVICES` v `config.php` **+** `ENUM` sloupce `service` v DB |
 | Stavy rezervací | konstanta `STATUSES` v `config.php` **+** `ENUM` sloupce `status` v DB |

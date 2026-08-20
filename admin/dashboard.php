@@ -4,6 +4,7 @@
  */
 declare(strict_types=1);
 require __DIR__ . '/../config.php';
+require_once __DIR__ . '/../booking-calendar.php';
 
 start_session();
 require_login();
@@ -160,8 +161,83 @@ $adminName = $_SESSION['admin_name'] ?? 'Administrace';
     <?php endforeach; ?>
   </section>
 
+  <!-- ============================== NOVÁ REZERVACE ============================== -->
+  <section class="rv is-in mt-10 overflow-hidden rounded-2xl border border-[color:var(--line)] bg-shell" style="--d:200ms" aria-label="Nová rezervace">
+    <details id="new-booking">
+      <summary class="flex cursor-pointer items-center justify-between gap-4 p-5 text-[16px] font-medium sm:p-6">
+        <span class="flex items-center gap-3">
+          <span class="flex h-9 w-9 items-center justify-center rounded-full bg-blush text-rose" aria-hidden="true">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 5v14M5 12h14" stroke-linecap="round"/>
+            </svg>
+          </span>
+          Zapsat rezervaci z telefonu
+        </span>
+        <svg class="h-4 w-4 shrink-0 text-stone transition-transform" data-chevron viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="m6 9 6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </summary>
+
+      <form id="admin-booking-form" novalidate class="border-t border-[color:var(--line)] p-5 sm:p-6">
+        <div class="grid gap-5 lg:grid-cols-2">
+
+          <div class="space-y-5">
+            <div>
+              <label for="nb-name" class="block text-[15px] font-medium">Jméno a příjmení <span class="text-rose">*</span></label>
+              <input id="nb-name" name="name" type="text" required maxlength="100" autocomplete="off"
+                     class="mt-2 w-full rounded-2xl border border-[color:var(--line)] bg-sand px-4 py-3.5 text-[16px] transition-colors focus:border-rose focus:bg-shell focus:outline-none">
+            </div>
+
+            <div>
+              <label for="nb-phone" class="block text-[15px] font-medium">Telefon <span class="text-rose">*</span></label>
+              <input id="nb-phone" name="phone" type="tel" required maxlength="30" spellcheck="false" inputmode="tel"
+                     class="mt-2 w-full rounded-2xl border border-[color:var(--line)] bg-sand px-4 py-3.5 text-[16px] transition-colors focus:border-rose focus:bg-shell focus:outline-none">
+            </div>
+
+            <div>
+              <label for="nb-service" class="block text-[15px] font-medium">Služba <span class="text-rose">*</span></label>
+              <select id="nb-service" name="service" required
+                      class="mt-2 w-full rounded-2xl border border-[color:var(--line)] bg-sand px-4 py-3.5 text-[16px] transition-colors focus:border-rose focus:bg-shell focus:outline-none">
+                <option value="">Vyberte službu…</option>
+                <?php foreach (SERVICES as $key => $label): ?>
+                  <option value="<?= e($key) ?>"><?= e($label) ?></option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+
+            <div>
+              <label for="nb-note" class="block text-[15px] font-medium">Poznámka</label>
+              <textarea id="nb-note" name="note" rows="3" maxlength="1000"
+                        class="mt-2 w-full resize-y rounded-2xl border border-[color:var(--line)] bg-sand px-4 py-3.5 text-[16px] transition-colors focus:border-rose focus:bg-shell focus:outline-none"></textarea>
+            </div>
+          </div>
+
+          <div>
+            <p class="text-[15px] font-medium">Termín <span class="text-rose">*</span></p>
+            <div class="mt-2">
+              <?php render_booking_calendar([
+                  'id'       => 'cal-admin',
+                  'endpoint' => '../availability.php',
+              ]); ?>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-6 flex flex-col items-start gap-4 border-t border-[color:var(--line)] pt-5 sm:flex-row sm:items-center sm:justify-between">
+          <p id="nb-status" class="text-[15px] text-stone" role="status" aria-live="polite">
+            Rezervace se uloží rovnou jako potvrzená.
+          </p>
+          <button type="submit" id="nb-submit"
+                  class="inline-flex w-full items-center justify-center gap-2 rounded-full bg-rose px-7 py-4 text-[16px] font-medium text-white transition-colors hover:bg-cocoa disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto">
+            <span data-nb-label>Uložit rezervaci</span>
+          </button>
+        </div>
+      </form>
+    </details>
+  </section>
+
   <!-- ============================== FILTRY ============================== -->
-  <section class="rv is-in mt-10 rounded-2xl border border-[color:var(--line)] bg-shell p-5 sm:p-6" style="--d:240ms" aria-label="Filtrování a řazení">
+  <section class="rv is-in mt-6 rounded-2xl border border-[color:var(--line)] bg-shell p-5 sm:p-6" style="--d:240ms" aria-label="Filtrování a řazení">
     <form method="get" class="grid gap-5 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_auto] lg:items-end">
 
       <div>
@@ -552,7 +628,66 @@ $adminName = $_SESSION['admin_name'] ?? 'Administrace';
       closeModal();
     }
   });
+
+  /* ---------- Ruční zápis rezervace ---------- */
+  const nbForm = document.getElementById('admin-booking-form');
+
+  if (nbForm) {
+    const nbBtn      = document.getElementById('nb-submit');
+    const nbLabel    = nbBtn.querySelector('[data-nb-label]');
+    const nbStatus   = document.getElementById('nb-status');
+    const nbCalendar = nbForm.querySelector('[data-calendar]');
+    const details    = document.getElementById('new-booking');
+    const chevron    = details.querySelector('[data-chevron]');
+
+    // Šipka se otočí podle toho, jestli je panel rozbalený.
+    details.addEventListener('toggle', () => {
+      chevron.style.transform = details.open ? 'rotate(180deg)' : '';
+    });
+
+    const nbSay = (text, ok = null) => {
+      nbStatus.textContent = text;
+      nbStatus.className = 'text-[15px] ' + (
+        ok === null ? 'text-stone' : ok ? 'text-emerald-700' : 'text-rose'
+      );
+    };
+
+    nbForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const data = Object.fromEntries(new FormData(nbForm).entries());
+
+      // Rychlá kontrola v prohlížeči; server ji stejně zopakuje.
+      if (!data.name || data.name.trim().length < 2) { nbSay('Zadejte jméno.', false); return; }
+      if (!data.phone || data.phone.replace(/\D/g, '').length < 9) { nbSay('Zadejte platné telefonní číslo.', false); return; }
+      if (!data.service) { nbSay('Vyberte službu.', false); return; }
+      if (!data.appointment_date || !data.appointment_time) { nbSay('Vyberte termín v kalendáři.', false); return; }
+
+      nbBtn.disabled = true;
+      nbLabel.textContent = 'Ukládám…';
+
+      try {
+        const result = await api({ action: 'create', ...data });
+
+        if (result.success) {
+          nbForm.reset();
+          if (nbCalendar && typeof nbCalendar.reset === 'function') nbCalendar.reset();
+          applyStats(result.stats);
+          nbSay('Uloženo. Obnovte stránku, ať se rezervace objeví v tabulce.', true);
+          toast(result.message);
+        } else {
+          nbSay(result.message || 'Uložení se nezdařilo.', false);
+        }
+      } catch (err) {
+        nbSay('Spojení se serverem selhalo.', false);
+      } finally {
+        nbBtn.disabled = false;
+        nbLabel.textContent = 'Uložit rezervaci';
+      }
+    });
+  }
 })();
 </script>
+<script src="../assets/calendar.js" defer></script>
 </body>
 </html>

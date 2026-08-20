@@ -358,3 +358,93 @@ const STATUSES = [
     'dokoncena' => 'Dokončená',
     'zrusena'   => 'Zrušená',
 ];
+
+/* ------------------------------------------------------------------
+ * 8) Časové sloty rezervací
+ *
+ * Den je rozdělený na hodinové sloty od 9:00 do 17:00 — poslední
+ * začíná v 16:00 a končí v 17:00. V databázi se ukládá jen začátek
+ * slotu (sloupec `appointment_time`), konec z něj plyne.
+ * ------------------------------------------------------------------ */
+const SLOT_FIRST_HOUR = 9;    // první slot začíná v 9:00
+const SLOT_LAST_HOUR  = 17;   // poslední slot v 17:00 končí
+const SLOT_MINUTES    = 60;   // délka slotu
+
+/**
+ * Povolené začátky slotů ve tvaru "HH:MM".
+ *
+ * @return list<string>
+ */
+function booking_slots(): array
+{
+    $slots = [];
+    for ($h = SLOT_FIRST_HOUR; $h < SLOT_LAST_HOUR; $h++) {
+        $slots[] = sprintf('%02d:00', $h);
+    }
+    return $slots;
+}
+
+/** Je "HH:MM" platný začátek slotu? */
+function is_valid_slot(string $time): bool
+{
+    return in_array(substr($time, 0, 5), booking_slots(), true);
+}
+
+/** Konec slotu pro daný začátek — "09:00" => "10:00". */
+function slot_end(string $start): string
+{
+    $h = (int) substr($start, 0, 2);
+    return sprintf('%02d:00', $h + (SLOT_MINUTES / 60));
+}
+
+/** Popis slotu pro výpis — "09:00 – 10:00". */
+function slot_label(string $start): string
+{
+    return substr($start, 0, 5) . ' – ' . slot_end($start);
+}
+
+/**
+ * Obsazené začátky slotů v daném rozsahu dat.
+ *
+ * Zrušené rezervace se nepočítají — jejich slot se uvolní.
+ *
+ * @return array<string, list<string>>  ['2026-08-21' => ['09:00', '14:00']]
+ */
+function taken_slots(PDO $pdo, string $from, string $to): array
+{
+    $stmt = $pdo->prepare(
+        'SELECT appointment_date, appointment_time
+           FROM bookings
+          WHERE appointment_date BETWEEN :from AND :to
+            AND status <> "zrusena"'
+    );
+    $stmt->execute([':from' => $from, ':to' => $to]);
+
+    $out = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $day  = (string) $row['appointment_date'];
+        $time = substr((string) $row['appointment_time'], 0, 5);
+        $out[$day][] = $time;
+    }
+    return $out;
+}
+
+/** Je slot volný? Volitelně ignoruje jednu rezervaci (při úpravě termínu). */
+function slot_is_free(PDO $pdo, string $date, string $time, ?int $ignoreId = null): bool
+{
+    $sql = 'SELECT COUNT(*) FROM bookings
+             WHERE appointment_date = :d
+               AND appointment_time = :t
+               AND status <> "zrusena"';
+    $params = [':d' => $date, ':t' => substr($time, 0, 5) . ':00'];
+
+    if ($ignoreId !== null) {
+        $sql .= ' AND id <> :id';
+        $params[':id'] = $ignoreId;
+    }
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+
+    return (int) $stmt->fetchColumn() === 0;
+}

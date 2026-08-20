@@ -86,6 +86,92 @@ try {
             ]);
         }
 
+        /* ---------------- Ruční zápis rezervace (telefon) ---------------- */
+        case 'create': {
+            $name    = trim((string) ($input['name'] ?? ''));
+            $phone   = trim((string) ($input['phone'] ?? ''));
+            $service = (string) ($input['service'] ?? '');
+            $date    = (string) ($input['appointment_date'] ?? '');
+            $time    = (string) ($input['appointment_time'] ?? '');
+            $note    = trim((string) ($input['note'] ?? ''));
+
+            $errors = [];
+
+            if (mb_strlen($name) < 2) {
+                $errors['name'] = 'Zadejte jméno.';
+            }
+            if (strlen((string) preg_replace('/\D/', '', $phone)) < 9) {
+                $errors['phone'] = 'Zadejte platné telefonní číslo.';
+            }
+            if (!array_key_exists($service, SERVICES)) {
+                $errors['service'] = 'Vyberte službu.';
+            }
+
+            // Termín — stejná pravidla jako na webu.
+            $dateObj = DateTimeImmutable::createFromFormat('!Y-m-d', $date);
+            if (!$dateObj || $dateObj->format('Y-m-d') !== $date) {
+                $errors['appointment_date'] = 'Vyberte den.';
+            } elseif ($dateObj < new DateTimeImmutable('today')) {
+                $errors['appointment_date'] = 'Termín nemůže být v minulosti.';
+            }
+
+            if (!is_valid_slot($time)) {
+                $errors['appointment_time'] = 'Vyberte čas z nabídnutých termínů.';
+            } else {
+                $time = substr($time, 0, 5) . ':00';
+            }
+
+            if (!isset($errors['appointment_date']) && !isset($errors['appointment_time'])) {
+                $slotEnd = new DateTimeImmutable($date . ' ' . slot_end(substr($time, 0, 5)));
+                if ($slotEnd <= new DateTimeImmutable('now')) {
+                    $errors['appointment_time'] = 'Tento čas už proběhl.';
+                }
+            }
+
+            if ($errors) {
+                json_response([
+                    'success' => false,
+                    'message' => 'Zkontrolujte prosím vyplněné údaje.',
+                    'errors'  => $errors,
+                ], 422);
+            }
+
+            if (!slot_is_free($pdo, $date, $time)) {
+                json_response([
+                    'success' => false,
+                    'message' => 'Tento termín je už obsazený. Vyberte jiný čas.',
+                    'errors'  => ['appointment_time' => 'Termín je obsazený.'],
+                ], 409);
+            }
+
+            // Rezervaci zapsanou ručně rovnou potvrzujeme — domluva
+            // po telefonu už proběhla.
+            $pdo->prepare(
+                'INSERT INTO bookings
+                    (name, phone, email, service, appointment_date, appointment_time, note, status)
+                 VALUES
+                    (:name, :phone, NULL, :service, :date, :time, :note, "potvrzena")'
+            )->execute([
+                ':name'    => mb_substr($name, 0, 100),
+                ':phone'   => mb_substr($phone, 0, 30),
+                ':service' => $service,
+                ':date'    => $date,
+                ':time'    => $time,
+                ':note'    => $note !== '' ? mb_substr($note, 0, 1000) : null,
+            ]);
+
+            json_response([
+                'success' => true,
+                'message' => sprintf(
+                    'Rezervace pro %s uložena na %s, %s.',
+                    $name,
+                    $dateObj->format('j. n. Y'),
+                    slot_label(substr($time, 0, 5))
+                ),
+                'stats'   => booking_stats($pdo),
+            ]);
+        }
+
         /* ---------------- Přepočet přehledových čísel ---------------- */
         case 'stats':
             json_response(['success' => true, 'stats' => booking_stats($pdo)]);
