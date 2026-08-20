@@ -2,8 +2,8 @@
 /**
  * index.php — veřejná prezentace salonu Denisa Hair
  *
- * Vizuál: tmavý „lilkový“ salon — hluboké aubergine pozadí, křídová
- * typografie Fraunces / Karla, korálové akcenty a hodně pohybu.
+ * Vizuál: světlý, teplý a klidný — krémové pozadí, kakaový text,
+ * terakotový akcent, měkce zaoblené tvary. Písmo Ubuntu v celé stránce.
  */
 declare(strict_types=1);
 require __DIR__ . '/config.php';
@@ -18,7 +18,7 @@ $today = date('Y-m-d');
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Denisa Hair — kadeřnictví Záříčí</title>
 <meta name="description" content="Moderní dámské, pánské a dětské kadeřnictví v Záříčí. Objednejte se online u kadeřnice Denisy Hrabalové.">
-<meta name="theme-color" content="#16111A">
+<meta name="theme-color" content="#FBF8F4">
 
 <meta property="og:title" content="Denisa Hair — kadeřnictví Záříčí">
 <meta property="og:description" content="Moderní dámské, pánské a dětské kadeřnictví v Záříčí.">
@@ -26,7 +26,11 @@ $today = date('Y-m-d');
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,400..700,0..100,0..1;1,9..144,400..600,0..100,0..1&family=Karla:ital,wght@0,300..700;1,400..600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+<!-- Označí, že JS běží. Teprve pak se obsah schová kvůli animaci —
+     bez JavaScriptu se stránka zobrazí normálně. -->
+<script>document.documentElement.classList.add('js');</script>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
@@ -34,20 +38,22 @@ tailwind.config = {
   theme: {
     extend: {
       colors: {
-        night:   '#16111A',   // hlavní pozadí
-        soot:    '#1F1824',   // vyvýšená plocha
-        ash:     '#2A2130',   // karta / input
-        chalk:   '#F7F2F4',   // hlavní text
-        dust:   '#B6A7B5',   // vedlejší text
-        flame:    '#E8825C',   // akcent (korálová)
-        blush:'#F2B79B',   // světlejší korál pro přechody
+        cream: '#FBF8F4',   // pozadí stránky
+        shell: '#FFFFFF',   // karty
+        sand:  '#F3EBE3',   // vnitřní plochy, inputy
+        cocoa: '#2C2521',   // hlavní text
+        stone: '#665A53',   // vedlejší text
+        rose:  '#9B5442',   // akcent
+        blush: '#EFDDD5',   // jemný akcentový nádech
       },
       fontFamily: {
-        display: ['Fraunces', 'Georgia', 'serif'],
-        sans:    ['Karla', 'system-ui', 'sans-serif'],
+        sans: ['Ubuntu', 'system-ui', 'sans-serif'],
       },
-      letterSpacing: { widest2: '0.16em' },
       screens: { xs: '480px' },
+      boxShadow: {
+        soft:  '0 2px 8px rgba(44,37,33,.05)',
+        lift:  '0 14px 34px -12px rgba(44,37,33,.18)',
+      },
     }
   }
 }
@@ -55,192 +61,108 @@ tailwind.config = {
 
 <style>
   :root{
-    color-scheme: dark;
-    --night:#16111A; --soot:#1F1824; --ash:#2A2130;
-    --chalk:#F7F2F4; --dust:#B6A7B5; --flame:#E8825C; --blush:#F2B79B;
-    --line: rgba(247,242,244,.14);
-    --ease: cubic-bezier(.22,1,.36,1);
+    color-scheme: light;
+    --cream:#FBF8F4; --shell:#FFFFFF; --sand:#F3EBE3;
+    --cocoa:#2C2521; --stone:#665A53; --rose:#9B5442; --blush:#EFDDD5;
+    --line:#E7DDD4;
+    --ease:cubic-bezier(.22,1,.36,1);
   }
 
-  html{ background:var(--night); }
-  body{ -webkit-font-smoothing:antialiased; overflow-x:clip; }
-
-  /* Fraunces má proměnné osy SOFT (měkkost zakončení) a WONK (rozvolněná
-     kurzíva). Nastavené takhle vypadá teple a ručně, ne jako výchozí patka. */
-  .font-display{
-    font-optical-sizing:auto;
-    font-variation-settings:"SOFT" 30, "WONK" 1;
-  }
+  html{ background:var(--cream); }
+  body{ -webkit-font-smoothing:antialiased; }
 
   a, button, input, select, textarea, summary{ touch-action:manipulation; }
-  h1,h2,h3{ text-wrap:balance; }
+  h1, h2, h3{ text-wrap:balance; letter-spacing:-0.02em; }
   p{ text-wrap:pretty; }
 
-  ::selection{ background:var(--flame); color:#16111A; }
+  ::selection{ background:var(--blush); color:var(--cocoa); }
 
   :where(a,button,input,select,textarea,summary):focus-visible{
-    outline:2px solid var(--blush); outline-offset:3px; border-radius:3px;
+    outline:2px solid var(--rose); outline-offset:3px; border-radius:6px;
   }
 
-  /* ---------- Atmosféra: zrno + kurzorové světlo ---------- */
-  .grain::after{
-    content:''; position:fixed; inset:0; z-index:60; pointer-events:none; opacity:.05;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
-    mix-blend-mode:overlay;
-  }
-  /* Světlo sledující kurzor — jen na zařízeních s myší */
-  #spotlight{
-    position:fixed; inset:0; z-index:0; pointer-events:none; opacity:0;
-    transition:opacity .8s ease;
-    background:radial-gradient(340px circle at var(--mx,50%) var(--my,0%),
-               rgba(232,130,92,.13), transparent 70%);
-  }
-  @media (hover:hover) and (pointer:fine){ #spotlight.on{ opacity:1; } }
-
-  /* ---------- Ukazatel odscrollování ---------- */
-  #progress{
-    position:fixed; top:0; left:0; height:2px; z-index:50; width:100%;
-    transform:scaleX(var(--p,0)); transform-origin:left;
-    background:linear-gradient(90deg,var(--flame),var(--blush));
-  }
-
-  /* ---------- Nadpisy: řádky vyjíždějí zpod masky ---------- */
-  .mask{ display:block; overflow:hidden; }
-  .mask > span{
-    display:block; transform:translateY(110%);
-    transition:transform 1s var(--ease);
+  /* Odkrývání obsahu při scrollu.
+     Schováváme jen když běží JavaScript (třída .js na <html>) — bez něj
+     nebo při jeho selhání je obsah normálně vidět, ne prázdná stránka. */
+  .js .rv{
+    opacity:0; transform:translateY(20px);
+    transition:opacity .7s ease-out, transform .8s var(--ease);
     transition-delay:var(--d,0ms);
   }
-  .is-in .mask > span{ transform:none; }
+  .js .is-in .rv, .js .rv.is-in{ opacity:1; transform:none; }
 
-  /* ---------- Obecné odhalení při scrollu ---------- */
-  .rv{
-    opacity:0; transform:translateY(26px);
-    transition:opacity .8s ease-out, transform .9s var(--ease);
-    transition-delay:var(--d,0ms);
+  /* Karta se při najetí jemně nadzvedne */
+  .card{ transition:transform .45s var(--ease), box-shadow .45s var(--ease), border-color .45s ease; }
+  .card:hover{
+    transform:translateY(-4px);
+    box-shadow:0 14px 34px -12px rgba(44,37,33,.18);
+    border-color:var(--blush);
   }
-  .is-in.rv, .is-in .rv{ opacity:1; transform:none; }
 
-  /* ---------- Linka, která se dokresluje ---------- */
-  .rule{ transform:scaleX(0); transform-origin:left; transition:transform 1.1s var(--ease) var(--d,0ms); }
-  .is-in .rule{ transform:scaleX(1); }
+  /* Fotky v galerii */
+  .ph{ background:linear-gradient(150deg,#F0E5DC 0%,#E6D6CB 55%,#DCC8BB 100%); }
+  .zoom{ transition:transform 1s var(--ease); }
+  .zoomwrap:hover .zoom{ transform:scale(1.05); }
 
-  /* ---------- Nekonečný pás se službami ---------- */
-  .marquee{ display:flex; width:max-content; animation:slide 34s linear infinite; }
-  .marquee:hover{ animation-play-state:paused; }
-  @keyframes slide{ to{ transform:translateX(-50%); } }
-
-  /* ---------- Odkazy s podtržením zleva ---------- */
+  /* Podtržení odkazu zleva */
   .ul{ position:relative; }
   .ul::after{
-    content:''; position:absolute; left:0; bottom:-5px; height:1px; width:100%;
-    background:var(--flame); transform:scaleX(0); transform-origin:right;
-    transition:transform .45s var(--ease);
+    content:''; position:absolute; left:0; bottom:2px; height:1.5px; width:100%;
+    background:var(--rose); transform:scaleX(0); transform-origin:right;
+    transition:transform .4s var(--ease);
   }
   .ul:hover::after, .ul:focus-visible::after{ transform:scaleX(1); transform-origin:left; }
 
-  /* ---------- Řádky služeb: korálový přejezd ---------- */
-  .svc{ position:relative; isolation:isolate; }
-  .svc::before{
-    content:''; position:absolute; inset:0; z-index:-1; transform:scaleY(0); transform-origin:bottom;
-    background:linear-gradient(100deg, rgba(232,130,92,.16), rgba(232,130,92,.04));
-    transition:transform .55s var(--ease);
-  }
-  .svc:hover::before, .svc:focus-within::before{ transform:scaleY(1); transform-origin:top; }
-  .svc:hover .svc-no{ color:var(--flame); transform:translateX(4px); }
-  .svc-no{ transition:color .4s ease, transform .5s var(--ease); }
-  .svc:hover .svc-arrow{ transform:translate(6px,-6px); opacity:1; }
-  .svc-arrow{ opacity:.35; transition:transform .5s var(--ease), opacity .4s ease; }
-
-  /* ---------- Galerie ---------- */
-  .tile{
-    background:
-      radial-gradient(120% 90% at 20% 10%, rgba(232,130,92,.20), transparent 60%),
-      linear-gradient(150deg,#33263A 0%,#251C2B 55%,#1A1420 100%);
-  }
-  .tile-in{ transition:transform 1.1s var(--ease); }
-  .tile-fig:hover .tile-in{ transform:scale(1.06); }
-
-  /* ---------- Tlačítko s korálovým přejezdem ---------- */
-  .btn-flame{ position:relative; overflow:hidden; isolation:isolate; }
-  .btn-flame::before{
-    content:''; position:absolute; inset:0; z-index:-1; transform:translateY(101%);
-    background:linear-gradient(180deg,var(--blush),var(--flame));
-    transition:transform .5s var(--ease);
-  }
-  .btn-flame:hover::before, .btn-flame:focus-visible::before{ transform:none; }
-  .btn-flame:hover, .btn-flame:focus-visible{ color:#16111A; border-color:transparent; }
-
-  /* ---------- Pulzující tečka u „objednávek“ ---------- */
-  .pulse::before{
-    content:''; position:absolute; inset:0; border-radius:9999px;
-    background:var(--flame); animation:ping 2.4s var(--ease) infinite;
-  }
-  @keyframes ping{ 0%{ transform:scale(1); opacity:.55 } 70%,100%{ transform:scale(2.6); opacity:0 } }
-
-  /* ---------- Vertikální popisek u okraje ---------- */
-  .vertical{ writing-mode:vertical-rl; text-orientation:mixed; }
-
-  /* ---------- Šipka „scrolluj“ ---------- */
-  @keyframes nudge{ 0%,100%{ transform:translateY(0); opacity:.5 } 50%{ transform:translateY(7px); opacity:1 } }
-  .nudge{ animation:nudge 2.2s ease-in-out infinite; }
-
-  /* ---------- Klidový režim ---------- */
   @media (prefers-reduced-motion: reduce){
     html{ scroll-behavior:auto; }
-    .mask > span, .rv, .rule{ transform:none !important; opacity:1 !important; transition:none !important; }
-    .marquee{ animation:none; }
-    .pulse::before, .nudge{ animation:none; }
-    #spotlight{ display:none; }
+    .js .rv{ opacity:1 !important; transform:none !important; transition:none !important; }
+    .card:hover{ transform:none; }
     *{ animation-duration:.01ms !important; transition-duration:.01ms !important; }
   }
 </style>
 </head>
 
-<body class="grain bg-night font-sans text-chalk antialiased">
+<body class="bg-cream font-sans text-cocoa antialiased">
 
-<div id="progress" aria-hidden="true"></div>
-<div id="spotlight" aria-hidden="true"></div>
-
-<a href="#hlavni" class="sr-only focus:not-sr-only focus:absolute focus:z-[70] focus:m-3 focus:rounded focus:bg-flame focus:px-4 focus:py-2 focus:text-night">Přeskočit na obsah</a>
+<a href="#hlavni" class="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:m-3 focus:rounded-full focus:bg-rose focus:px-5 focus:py-3 focus:text-white">Přeskočit na obsah</a>
 
 <!-- ============================== HLAVIČKA ============================== -->
-<header id="site-header" class="fixed inset-x-0 top-0 z-40 transition duration-500">
-  <div class="mx-auto flex max-w-[88rem] items-center justify-between px-5 py-5 sm:px-8 lg:px-12">
+<header id="site-header" class="sticky top-0 z-40 border-b border-transparent bg-cream/95 backdrop-blur transition-shadow duration-300">
+  <div class="mx-auto flex max-w-6xl items-center justify-between px-5 py-4 sm:px-8">
 
-    <a href="#hlavni" class="group flex items-baseline gap-2 py-2 text-chalk">
-      <span class="font-display text-xl tracking-tight sm:text-[1.6rem]">Denisa</span>
-      <span class="font-display text-xl italic text-flame transition-transform duration-500 group-hover:translate-x-0.5 sm:text-[1.6rem]">Hair</span>
+    <a href="#hlavni" class="flex items-center gap-2.5 py-1">
+      <span class="flex h-9 w-9 items-center justify-center rounded-full bg-rose text-[15px] font-medium text-white">D</span>
+      <span class="text-[17px] font-medium tracking-tight">Denisa Hair</span>
     </a>
 
-    <nav class="hidden items-center gap-9 text-[13px] font-medium md:flex" aria-label="Hlavní navigace">
-      <a href="#o-mne"   class="ul inline-block py-2 text-chalk/80 transition-colors hover:text-chalk">O mně</a>
-      <a href="#sluzby"  class="ul inline-block py-2 text-chalk/80 transition-colors hover:text-chalk">Služby</a>
-      <a href="#galerie" class="ul inline-block py-2 text-chalk/80 transition-colors hover:text-chalk">Galerie</a>
-      <a href="#kontakt" class="ul inline-block py-2 text-chalk/80 transition-colors hover:text-chalk">Kontakt</a>
+    <nav class="hidden items-center gap-8 text-[15px] md:flex" aria-label="Hlavní navigace">
+      <a href="#sluzby"   class="ul py-2 text-stone transition-colors hover:text-cocoa">Služby</a>
+      <a href="#o-mne"    class="ul py-2 text-stone transition-colors hover:text-cocoa">O mně</a>
+      <a href="#galerie"  class="ul py-2 text-stone transition-colors hover:text-cocoa">Galerie</a>
+      <a href="#kontakt"  class="ul py-2 text-stone transition-colors hover:text-cocoa">Kontakt</a>
       <a href="#rezervace"
-         class="btn-flame rounded-full border border-flame/60 px-6 py-3 text-[11px] uppercase tracking-widest2 text-flame transition-colors duration-300">
-        Chci se objednat
+         class="rounded-full bg-rose px-6 py-3 text-[15px] font-medium text-white shadow-soft transition-colors duration-300 hover:bg-cocoa">
+        Objednat se
       </a>
     </nav>
 
     <button id="menu-toggle" type="button"
-            class="flex h-11 w-11 items-center justify-center text-chalk md:hidden"
+            class="flex h-11 w-11 items-center justify-center rounded-full text-cocoa md:hidden"
             aria-label="Otevřít menu" aria-expanded="false" aria-controls="mobile-menu">
-      <span class="relative block h-3 w-6" aria-hidden="true">
-        <span class="absolute inset-x-0 top-0 h-px bg-chalk transition-transform duration-300" data-bar-top></span>
-        <span class="absolute inset-x-0 bottom-0 h-px bg-chalk transition-transform duration-300" data-bar-bottom></span>
+      <span class="relative block h-3.5 w-6" aria-hidden="true">
+        <span class="absolute inset-x-0 top-0 h-0.5 rounded bg-cocoa transition-transform duration-300" data-bar-top></span>
+        <span class="absolute inset-x-0 bottom-0 h-0.5 rounded bg-cocoa transition-transform duration-300" data-bar-bottom></span>
       </span>
     </button>
   </div>
 
-  <div id="mobile-menu" class="hidden border-y border-[color:var(--line)] bg-soot/95 backdrop-blur-md md:hidden">
-    <nav class="mx-auto flex max-w-[88rem] flex-col px-5 py-3" aria-label="Mobilní navigace">
-      <a href="#o-mne"   class="border-b border-[color:var(--line)] py-4 text-chalk/80">O mně</a>
-      <a href="#sluzby"  class="border-b border-[color:var(--line)] py-4 text-chalk/80">Služby</a>
-      <a href="#galerie" class="border-b border-[color:var(--line)] py-4 text-chalk/80">Galerie</a>
-      <a href="#kontakt" class="border-b border-[color:var(--line)] py-4 text-chalk/80">Kontakt</a>
-      <a href="#rezervace" class="my-5 rounded-full bg-flame px-6 py-4 text-center text-[12px] uppercase tracking-widest2 text-night">Chci se objednat</a>
+  <div id="mobile-menu" class="hidden border-t border-[color:var(--line)] bg-cream md:hidden">
+    <nav class="mx-auto flex max-w-6xl flex-col px-5 py-2" aria-label="Mobilní navigace">
+      <a href="#sluzby"  class="border-b border-[color:var(--line)] py-4 text-[16px]">Služby</a>
+      <a href="#o-mne"   class="border-b border-[color:var(--line)] py-4 text-[16px]">O mně</a>
+      <a href="#galerie" class="border-b border-[color:var(--line)] py-4 text-[16px]">Galerie</a>
+      <a href="#kontakt" class="border-b border-[color:var(--line)] py-4 text-[16px]">Kontakt</a>
+      <a href="#rezervace" class="my-4 rounded-full bg-rose px-6 py-4 text-center text-[16px] font-medium text-white">Objednat se</a>
     </nav>
   </div>
 </header>
@@ -248,309 +170,222 @@ tailwind.config = {
 <main id="hlavni">
 
 <!-- ============================== HERO ============================== -->
-<section data-io class="relative overflow-hidden pb-16 pt-28 sm:pb-20 sm:pt-36 lg:pb-24 lg:pt-44">
+<section data-io class="relative overflow-hidden">
+  <div aria-hidden="true" class="pointer-events-none absolute -right-32 -top-24 h-96 w-96 rounded-full bg-blush/60 blur-3xl"></div>
 
-  <!-- teplé záře -->
-  <div aria-hidden="true" class="pointer-events-none absolute -right-40 -top-40 h-[42rem] w-[42rem] rounded-full bg-[radial-gradient(circle,rgba(232,130,92,.16),transparent_65%)]"></div>
-  <div aria-hidden="true" class="pointer-events-none absolute -left-56 top-1/2 h-[34rem] w-[34rem] rounded-full bg-[radial-gradient(circle,rgba(232,130,92,.07),transparent_70%)]"></div>
+  <div class="relative mx-auto grid max-w-6xl items-center gap-12 px-5 py-14 sm:px-8 sm:py-20 lg:grid-cols-2 lg:gap-16 lg:py-24">
 
-  <!-- svislý popisek u levého okraje (jen na širokých displejích) -->
-  <p class="vertical pointer-events-none absolute left-5 top-1/2 hidden -translate-y-1/2 text-[11px] uppercase tracking-widest2 text-chalk/55 xl:block">
-    Záříčí 192 — Morava
-  </p>
+    <div>
+      <p class="rv inline-flex items-center gap-2 rounded-full bg-blush px-4 py-2 text-[14px] text-rose">
+        <span class="h-1.5 w-1.5 rounded-full bg-rose" aria-hidden="true"></span>
+        Kadeřnictví v Záříčí
+      </p>
 
-  <div class="relative mx-auto max-w-[88rem] px-5 sm:px-8 lg:px-12">
+      <h1 class="rv mt-6 text-[2.4rem] font-medium leading-[1.12] sm:text-[3.2rem] lg:text-[3.6rem]" style="--d:60ms">
+        Účes, ve kterém se<br class="hidden sm:block">
+        budete cítit <span class="text-rose">dobře</span>
+      </h1>
 
-    <p class="rv mb-8 flex items-center gap-4 text-[11px] uppercase tracking-widest2 text-flame sm:text-[11px]">
-      <span class="rule block h-px w-12 bg-flame" aria-hidden="true"></span>
-      Kadeřnictví · est. Záříčí
-    </p>
+      <p class="rv mt-6 max-w-md text-[17px] leading-[1.7] text-stone" style="--d:120ms">
+        Dámské, pánské i dětské kadeřnictví. Stříhám v klidném tempu,
+        poradím s barvou i péčí doma — a nikdy nenutím službu, kterou nepotřebujete.
+      </p>
 
-    <h1 class="font-display font-normal leading-[0.92] tracking-[-0.015em]">
-      <span class="mask text-[clamp(3rem,10vw,7.5rem)]" style="--d:80ms"><span>Denisa</span></span>
-      <span class="mask text-[clamp(3rem,10vw,7.5rem)] italic text-flame" style="--d:200ms"><span>Hair</span></span>
-    </h1>
-
-    <div class="mt-10 grid gap-10 lg:mt-14 lg:grid-cols-12 lg:items-end lg:gap-8">
-
-      <div class="lg:col-span-6">
-        <p class="rv max-w-lg text-[17px] leading-relaxed text-dust sm:text-[19px]" style="--d:340ms">
-          Moderní <span class="text-chalk">dámské</span>, <span class="text-chalk">pánské</span>
-          a <span class="text-chalk">dětské</span> kadeřnictví v Záříčí.
-        </p>
-
-        <div class="rv mt-9 flex flex-wrap items-center gap-3" style="--d:420ms">
-          <span class="inline-flex items-center gap-2.5 rounded-full border border-[color:var(--line)] bg-soot/70 px-4 py-2.5 text-[13px] text-chalk/85">
-            <svg class="h-4 w-4 shrink-0 text-flame" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-              <path d="M12 21s7-5.686 7-11a7 7 0 1 0-14 0c0 5.314 7 11 7 11Z" stroke-linejoin="round"/><circle cx="12" cy="10" r="2.5"/>
-            </svg>
-            Záříčí 192
-          </span>
-          <span class="inline-flex items-center gap-2.5 rounded-full border border-[color:var(--line)] bg-soot/70 px-4 py-2.5 text-[13px] text-chalk/85">
-            <span class="relative flex h-2 w-2 shrink-0 items-center justify-center" aria-hidden="true">
-              <span class="pulse relative block h-2 w-2 rounded-full bg-flame"></span>
-            </span>
-            Otevírací doba dle objednávek
-          </span>
-        </div>
-
-        <div class="rv mt-11 flex flex-wrap items-center gap-x-8 gap-y-5" style="--d:500ms">
-          <a href="#rezervace"
-             class="btn-flame group inline-flex items-center gap-3 rounded-full border border-flame bg-flame px-8 py-4 text-[12px] uppercase tracking-widest2 text-night transition-colors duration-300">
-            Chci se objednat
-            <svg class="h-4 w-4 transition-transform duration-500 group-hover:translate-x-1.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
-              <path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </a>
-          <a href="#galerie" class="ul inline-block py-3 text-[13px] text-dust transition-colors hover:text-chalk">Prohlédnout práce</a>
-        </div>
+      <div class="rv mt-8 flex flex-wrap items-center gap-4" style="--d:180ms">
+        <a href="#rezervace"
+           class="group inline-flex items-center gap-2.5 rounded-full bg-rose px-7 py-4 text-[16px] font-medium text-white shadow-soft transition-colors duration-300 hover:bg-cocoa">
+          Objednat se
+          <svg class="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+        <a href="#sluzby"
+           class="inline-flex items-center rounded-full border border-[color:var(--line)] bg-shell px-7 py-4 text-[16px] text-cocoa transition-colors duration-300 hover:border-rose hover:text-rose">
+          Ceník a služby
+        </a>
       </div>
 
-      <!-- portrét -->
-      <div class="lg:col-span-6">
-        <figure class="rv tile-fig relative ml-auto w-full max-w-md overflow-hidden rounded-[1.75rem] border border-[color:var(--line)]" style="--d:560ms">
-          <div class="tile tile-in aspect-[5/4] w-full sm:aspect-[16/11]">
-            <!-- Nahraď za: <img src="assets/img/denisa.jpg" alt="Kadeřnice Denisa Hrabalová" width="1200" height="825" class="h-full w-full object-cover"> -->
-          </div>
-          <figcaption class="absolute inset-x-0 bottom-0 flex items-center justify-between gap-4 bg-gradient-to-t from-night via-night/80 to-transparent px-6 pb-5 pt-14">
-            <span class="font-display text-lg italic text-chalk">Denisa Hrabalová</span>
-            <span class="text-[11px] uppercase tracking-widest2 text-flame">kadeřnice</span>
-          </figcaption>
-        </figure>
-      </div>
+      <dl class="rv mt-12 grid max-w-md gap-6 border-t border-[color:var(--line)] pt-8 xs:grid-cols-3" style="--d:240ms">
+        <div class="flex items-baseline justify-between gap-3 xs:block">
+          <dt class="text-[14px] text-stone">Praxe</dt>
+          <dd class="text-[22px] font-medium xs:mt-1"><span data-count="3">0</span>. ročník</dd>
+        </div>
+        <div class="flex items-baseline justify-between gap-3 xs:block">
+          <dt class="text-[14px] text-stone">Služby</dt>
+          <dd class="text-[22px] font-medium xs:mt-1"><span data-count="4">0</span> druhy</dd>
+        </div>
+        <div class="flex items-baseline justify-between gap-3 xs:block">
+          <dt class="text-[14px] text-stone">Objednání</dt>
+          <dd class="text-[22px] font-medium xs:mt-1">Online</dd>
+        </div>
+      </dl>
     </div>
 
-    <p class="nudge mt-14 hidden items-center gap-3 text-[11px] uppercase tracking-widest2 text-chalk/35 lg:flex">
-      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
-        <path d="M12 5v14M6 13l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      Scrolluj
-    </p>
-  </div>
-</section>
-
-<!-- ============================== PÁS SE SLUŽBAMI ============================== -->
-<div class="overflow-hidden border-y border-[color:var(--line)] bg-soot py-4">
-  <div class="marquee gap-10 text-[12px] uppercase tracking-widest2 text-flame">
-    <?php
-    // Dvě kopie — druhá jen kvůli plynulé smyčce, pro čtečky skrytá.
-    $ticker = ['Dámské kadeřnictví', 'Pánské kadeřnictví', 'Dětské kadeřnictví', 'Barvení a melír', 'Foukaná', 'Střih na míru'];
-    for ($copy = 0; $copy < 2; $copy++): ?>
-      <div class="flex shrink-0 gap-10 pr-10" <?= $copy ? 'aria-hidden="true"' : '' ?>>
-        <?php foreach ($ticker as $t): ?>
-          <span class="flex shrink-0 items-center gap-10">
-            <?= e($t) ?>
-            <span class="h-1 w-1 rotate-45 bg-flame/60" aria-hidden="true"></span>
-          </span>
-        <?php endforeach; ?>
-      </div>
-    <?php endfor; ?>
-  </div>
-</div>
-
-<!-- ============================== O MNĚ ============================== -->
-<section id="o-mne" data-io class="scroll-mt-24 py-20 sm:py-24 lg:py-32">
-  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:px-12">
-
-    <div class="grid gap-12 lg:grid-cols-12 lg:gap-10">
-
-      <div class="lg:col-span-4">
-        <p class="rv flex items-center gap-4 text-[11px] uppercase tracking-widest2 text-dust">
-          <span class="font-display text-base not-italic text-flame">01</span>
-          <span class="rule block h-px w-10 bg-[color:var(--line)]" aria-hidden="true"></span>
-          O mně
-        </p>
-
-        <div class="rv mt-10 hidden border-l border-[color:var(--line)] pl-6 lg:block" style="--d:200ms">
-          <p class="font-display text-[2rem] italic leading-tight text-flame">„Vlasy si<br>pamatují,<br>jak s nimi<br>zacházíte.“</p>
+    <!-- Fotka -->
+    <div class="rv" style="--d:150ms">
+      <figure class="zoomwrap relative overflow-hidden rounded-[2rem] shadow-lift">
+        <div class="ph zoom aspect-[4/5] w-full sm:aspect-[5/4] lg:aspect-[4/5]">
+          <!-- Nahraď za: <img src="assets/img/denisa.jpg" alt="Kadeřnice Denisa Hrabalová v salonu" width="1000" height="1250" class="zoom h-full w-full object-cover"> -->
         </div>
-      </div>
-
-      <div class="lg:col-span-8">
-        <h2 class="font-display text-[clamp(2rem,4.6vw,3.1rem)] font-normal leading-[1.05]">
-          <span class="mask"><span>Každý účes je pro mě</span></span>
-          <span class="mask italic text-flame" style="--d:120ms"><span>malý příběh.</span></span>
-        </h2>
-
-        <div class="rv mt-9 max-w-2xl space-y-5 text-[16px] leading-[1.75] text-dust sm:text-[17px]" style="--d:220ms">
-          <p>
-            Jmenuji se <span class="text-chalk">Denisa Hrabalová</span> a kadeřnictví se věnuji naplno.
-            V Záříčí stříhám dámy, pány i ty nejmenší — vždy s ohledem na typ vlasů, tvar obličeje
-            a na to, kolik času chcete péči doma reálně věnovat.
-          </p>
-          <p>
-            Pracuji v klidném tempu, bez spěchu a bez tlaku na zbytečné služby. Ráda poradím
-            s barvou, střihem i tím, jak účes udržet hezký mezi návštěvami.
-          </p>
-        </div>
-
-        <!-- plaketa -->
-        <div class="rv relative mt-10 max-w-2xl overflow-hidden rounded-2xl border border-flame/35 bg-gradient-to-br from-[#271E2E] to-[#1D1622] p-6 sm:p-8" style="--d:300ms">
-          <div aria-hidden="true" class="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[radial-gradient(circle,rgba(232,130,92,.18),transparent_70%)]"></div>
-          <div class="relative flex items-start gap-4">
-            <svg class="mt-0.5 h-6 w-6 shrink-0 text-flame" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true">
-              <path d="m12 3 2.6 5.5 6 .9-4.3 4.3 1 6.1L12 17l-5.3 2.8 1-6.1L3.4 9.4l6-.9L12 3Z" stroke-linejoin="round"/>
-            </svg>
-            <p class="text-[15px] leading-relaxed text-chalk/90 sm:text-[16px]">
-              <span class="font-medium text-chalk">Mladá talentovaná kadeřnice (18 let, 3. ročník)</span>
-              — učím se, zlepšuji se a dávám si záležet na každém detailu.
-            </p>
-          </div>
-        </div>
-
-        <!-- čísla -->
-        <dl class="rv mt-12 grid max-w-2xl gap-7 border-t border-[color:var(--line)] pt-9 xs:grid-cols-3" style="--d:380ms">
-          <div class="flex items-baseline justify-between gap-4 xs:block">
-            <dt class="text-[11px] uppercase tracking-widest2 text-dust">Ročník studia</dt>
-            <dd class="font-display text-3xl text-chalk xs:mt-3 sm:text-4xl"><span data-count="3">0</span>.</dd>
-          </div>
-          <div class="flex items-baseline justify-between gap-4 xs:block">
-            <dt class="text-[11px] uppercase tracking-widest2 text-dust">Typy služeb</dt>
-            <dd class="font-display text-3xl text-chalk xs:mt-3 sm:text-4xl"><span data-count="4">0</span></dd>
-          </div>
-          <div class="flex items-baseline justify-between gap-4 xs:block">
-            <dt class="text-[11px] uppercase tracking-widest2 text-dust">Objednání</dt>
-            <dd class="font-display text-3xl text-chalk xs:mt-3 sm:text-4xl">Online</dd>
-          </div>
-        </dl>
-      </div>
+        <figcaption class="absolute bottom-4 left-4 right-4 rounded-2xl bg-shell/95 px-5 py-4 backdrop-blur">
+          <p class="text-[16px] font-medium">Denisa Hrabalová</p>
+          <p class="mt-0.5 text-[14px] text-stone">Záříčí 192 · otevřeno dle objednávek</p>
+        </figcaption>
+      </figure>
     </div>
   </div>
 </section>
 
 <!-- ============================== SLUŽBY ============================== -->
-<section id="sluzby" data-io class="scroll-mt-24 border-t border-[color:var(--line)] bg-soot py-20 sm:py-24 lg:py-32">
-  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:px-12">
+<section id="sluzby" data-io class="scroll-mt-20 bg-shell py-16 sm:py-20 lg:py-24">
+  <div class="mx-auto max-w-6xl px-5 sm:px-8">
 
-    <div class="grid gap-8 lg:grid-cols-12 lg:items-end">
-      <div class="lg:col-span-5">
-        <p class="rv flex items-center gap-4 text-[11px] uppercase tracking-widest2 text-dust">
-          <span class="font-display text-base not-italic text-flame">02</span>
-          <span class="rule block h-px w-10 bg-[color:var(--line)]" aria-hidden="true"></span>
-          Služby
-        </p>
-        <h2 class="mt-6 font-display text-[clamp(2rem,4.6vw,3.1rem)] font-normal leading-[1.05]">
-          <span class="mask"><span>Střih pro celou</span></span>
-          <span class="mask italic text-flame" style="--d:120ms"><span>rodinu</span></span>
-        </h2>
-      </div>
-      <div class="lg:col-span-7 lg:pb-3">
-        <p class="rv max-w-md text-[16px] leading-[1.75] text-dust lg:ml-auto" style="--d:200ms">
-          Ceny ráda sdělím po telefonu nebo v odpovědi na rezervaci — odvíjejí se
-          od délky vlasů a náročnosti úpravy.
-        </p>
-      </div>
+    <div class="rv max-w-2xl">
+      <h2 class="text-[1.9rem] font-medium leading-tight sm:text-[2.4rem]">Co pro vás udělám</h2>
+      <p class="mt-4 text-[17px] leading-[1.7] text-stone">
+        Ceny se odvíjejí od délky vlasů a náročnosti — ráda je řeknu po telefonu
+        nebo v odpovědi na rezervaci.
+      </p>
     </div>
 
-    <!-- Číslovaný editorial seznam místo generických karet -->
-    <div class="mt-14 border-t border-[color:var(--line)]">
+    <div class="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
       <?php
+      // Karty služeb — obsah v poli, ať se šablona neopakuje.
       $cards = [
           [
-              'no'    => '01',
               'title' => 'Dámské kadeřnictví',
-              'text'  => 'Střih na míru, mytí, foukaná i styling. Barvení, melír a přeliv podle typu vašich vlasů.',
-              'items' => ['Střih & foukaná', 'Barvení a melír', 'Regenerace vlasů'],
+              'text'  => 'Střih na míru, mytí, foukaná a styling podle typu vašich vlasů.',
+              'items' => ['Střih & foukaná', 'Regenerace', 'Styling'],
+              'icon'  => '<path d="M12 3c-3.3 0-6 2.7-6 6 0 4 6 12 6 12s6-8 6-12c0-3.3-2.7-6-6-6Z"/><circle cx="12" cy="9" r="2.2"/>',
           ],
           [
-              'no'    => '02',
               'title' => 'Pánské kadeřnictví',
-              'text'  => 'Klasické i moderní pánské střihy, fade, zastřižení kontur a úprava vousů.',
-              'items' => ['Klasický střih', 'Fade & mašinka', 'Úprava vousů'],
+              'text'  => 'Klasické i moderní střihy, fade, zastřižení kontur a úprava vousů.',
+              'items' => ['Klasický střih', 'Fade', 'Vousy'],
+              'icon'  => '<path d="M4 7h16M4 12h10M4 17h16" stroke-linecap="round"/>',
           ],
           [
-              'no'    => '03',
               'title' => 'Dětské kadeřnictví',
-              'text'  => 'Trpělivě, v klidu a bez slz. Střih pro kluky i holčičky, včetně prvního stříhání.',
-              'items' => ['První střih', 'Střih pro kluky', 'Střih pro holčičky'],
+              'text'  => 'Trpělivě a bez slz. Pro kluky i holčičky, včetně prvního stříhání.',
+              'items' => ['První střih', 'Kluci', 'Holčičky'],
+              'icon'  => '<circle cx="12" cy="12" r="8"/><path d="M9 10h.01M15 10h.01M9 14.5a4 4 0 0 0 6 0" stroke-linecap="round"/>',
           ],
           [
-              'no'    => '04',
               'title' => 'Barvení',
-              'text'  => 'Celková barva, melír, přeliv i jemné rozjasnění kolem obličeje. Vždy po domluvě odstínu.',
-              'items' => ['Celková barva', 'Melír', 'Přeliv & tónování'],
+              'text'  => 'Celková barva, melír, přeliv i jemné rozjasnění kolem obličeje.',
+              'items' => ['Celková barva', 'Melír', 'Přeliv'],
+              'icon'  => '<path d="M7 3h6l1 5H6l1-5Z"/><path d="M6 8h8v10a3 3 0 0 1-3 3H9a3 3 0 0 1-3-3V8Z"/>',
           ],
       ];
       foreach ($cards as $i => $c): ?>
-        <a href="#rezervace"
-           class="svc rv group block border-b border-[color:var(--line)] px-1 py-8 sm:px-4 lg:py-10"
-           style="--d: <?= 120 + $i * 90 ?>ms"
-           aria-label="Objednat: <?= e($c['title']) ?>">
-          <div class="grid gap-4 lg:grid-cols-12 lg:items-baseline lg:gap-8">
+        <article class="card rv flex h-full flex-col rounded-3xl border border-[color:var(--line)] bg-cream p-6"
+                 style="--d: <?= $i * 70 ?>ms">
+          <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-blush text-rose" aria-hidden="true">
+            <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                 stroke-linejoin="round"><?= $c['icon'] ?></svg>
+          </span>
 
-            <span class="svc-no block font-display text-sm text-chalk/35 lg:col-span-1"><?= e($c['no']) ?></span>
+          <h3 class="mt-5 text-[19px] font-medium"><?= e($c['title']) ?></h3>
+          <p class="mt-2.5 flex-1 text-[15px] leading-[1.65] text-stone"><?= e($c['text']) ?></p>
 
-            <h3 class="font-display text-[1.6rem] leading-tight text-chalk sm:text-3xl lg:col-span-4">
-              <?= e($c['title']) ?>
-            </h3>
+          <ul class="mt-5 flex flex-wrap gap-2">
+            <?php foreach ($c['items'] as $item): ?>
+              <li class="rounded-full bg-sand px-3 py-1.5 text-[13px] text-stone"><?= e($item) ?></li>
+            <?php endforeach; ?>
+          </ul>
 
-            <p class="max-w-md text-[16px] leading-[1.75] text-dust lg:col-span-4">
-              <?= e($c['text']) ?>
-            </p>
-
-            <div class="flex flex-wrap items-center gap-x-5 gap-y-2 lg:col-span-3 lg:justify-end">
-              <ul class="flex flex-wrap gap-x-4 gap-y-1.5 text-[12px] text-chalk/55">
-                <?php foreach ($c['items'] as $item): ?>
-                  <li class="flex items-center gap-2">
-                    <span class="h-1 w-1 rotate-45 bg-flame" aria-hidden="true"></span><?= e($item) ?>
-                  </li>
-                <?php endforeach; ?>
-              </ul>
-              <svg class="svc-arrow h-5 w-5 shrink-0 text-flame" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
-                <path d="M7 17 17 7M9 7h8v8" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </div>
-          </div>
-        </a>
+          <a href="#rezervace"
+             class="mt-6 inline-flex items-center gap-2 py-2.5 text-[15px] font-medium text-rose transition-colors hover:text-cocoa">
+            Objednat<span class="sr-only"> — <?= e($c['title']) ?></span>
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
+        </article>
       <?php endforeach; ?>
     </div>
   </div>
 </section>
 
-<!-- ============================== GALERIE ============================== -->
-<section id="galerie" data-io class="scroll-mt-24 py-20 sm:py-24 lg:py-32">
-  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:px-12">
+<!-- ============================== O MNĚ ============================== -->
+<section id="o-mne" data-io class="scroll-mt-20 py-16 sm:py-20 lg:py-24">
+  <div class="mx-auto grid max-w-6xl items-center gap-12 px-5 sm:px-8 lg:grid-cols-2 lg:gap-16">
 
-    <div class="flex flex-wrap items-end justify-between gap-6">
-      <div>
-        <p class="rv flex items-center gap-4 text-[11px] uppercase tracking-widest2 text-dust">
-          <span class="font-display text-base not-italic text-flame">03</span>
-          <span class="rule block h-px w-10 bg-[color:var(--line)]" aria-hidden="true"></span>
-          Galerie
+    <div class="rv order-2 lg:order-1">
+      <h2 class="text-[1.9rem] font-medium leading-tight sm:text-[2.4rem]">Ráda vás poznám</h2>
+
+      <div class="mt-5 space-y-4 text-[17px] leading-[1.75] text-stone">
+        <p>
+          Jmenuji se <span class="font-medium text-cocoa">Denisa Hrabalová</span> a kadeřnictví
+          se věnuji naplno. V Záříčí stříhám dámy, pány i ty nejmenší — vždy s ohledem na typ
+          vlasů, tvar obličeje a na to, kolik času chcete péči doma reálně věnovat.
         </p>
-        <h2 class="mt-6 font-display text-[clamp(2rem,4.6vw,3.1rem)] font-normal leading-[1.05]">
-          <span class="mask"><span>Vybrané <span class="italic text-flame">práce</span></span></span>
-        </h2>
+        <p>
+          Pracuji v klidném tempu a bez tlaku na zbytečné služby. Poradím s barvou, střihem
+          i tím, jak účes udržet hezký mezi návštěvami.
+        </p>
       </div>
-      <a href="#rezervace" class="rv ul inline-block py-3 text-[13px] text-dust transition-colors hover:text-chalk" style="--d:200ms">Chci to samé</a>
+
+      <div class="mt-7 flex items-start gap-4 rounded-3xl border border-blush bg-blush/40 p-5 sm:p-6">
+        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-rose text-white" aria-hidden="true">
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="m12 4 2.3 4.8 5.2.8-3.8 3.7.9 5.2-4.6-2.5-4.6 2.5.9-5.2L4.5 9.6l5.2-.8L12 4Z" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <p class="text-[15px] leading-[1.65] text-cocoa">
+          <span class="font-medium">Mladá talentovaná kadeřnice (18 let, 3. ročník)</span>
+          — učím se, zlepšuji se a dávám si záležet na každém detailu.
+        </p>
+      </div>
+
+      <div class="mt-7 flex flex-wrap gap-3">
+        <span class="inline-flex items-center gap-2 rounded-full border border-[color:var(--line)] bg-shell px-4 py-2.5 text-[15px] text-stone">
+          <svg class="h-4 w-4 shrink-0 text-rose" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <path d="M12 21s7-5.7 7-11a7 7 0 1 0-14 0c0 5.3 7 11 7 11Z" stroke-linejoin="round"/><circle cx="12" cy="10" r="2.3"/>
+          </svg>
+          Záříčí 192
+        </span>
+        <span class="inline-flex items-center gap-2 rounded-full border border-[color:var(--line)] bg-shell px-4 py-2.5 text-[15px] text-stone">
+          <svg class="h-4 w-4 shrink-0 text-rose" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2" stroke-linecap="round"/>
+          </svg>
+          Otevřeno dle objednávek
+        </span>
+      </div>
     </div>
 
-    <!-- Asymetrická editorial mřížka -->
-    <div class="mt-12 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+    <div class="rv order-1 lg:order-2" style="--d:100ms">
+      <div class="zoomwrap overflow-hidden rounded-[2rem] shadow-lift">
+        <!-- Nahraď za <img …> se stejnými třídami -->
+        <div class="ph zoom aspect-[4/3] w-full lg:aspect-[4/5]"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== GALERIE ============================== -->
+<section id="galerie" data-io class="scroll-mt-20 bg-shell py-16 sm:py-20 lg:py-24">
+  <div class="mx-auto max-w-6xl px-5 sm:px-8">
+
+    <div class="rv flex flex-wrap items-end justify-between gap-4">
+      <div class="max-w-xl">
+        <h2 class="text-[1.9rem] font-medium leading-tight sm:text-[2.4rem]">Moje práce</h2>
+        <p class="mt-4 text-[17px] leading-[1.7] text-stone">
+          Pár účesů z poslední doby. Klidně si vyberte a přiložte k rezervaci.
+        </p>
+      </div>
+      <a href="#rezervace" class="ul py-2 text-[16px] font-medium text-rose">Chci to samé</a>
+    </div>
+
+    <div class="mt-10 grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-3">
       <?php
-      $gallery = [
-          ['Dámský střih',  'aspect-[4/5]',  'lg:col-span-2 lg:aspect-[16/11]'],
-          ['Melír',         'aspect-[4/5]',  'lg:aspect-[4/5]'],
-          ['Pánský fade',   'aspect-[4/5]',  'lg:aspect-[4/5]'],
-          ['Barvení',       'aspect-[4/5]',  'lg:aspect-[4/5]'],
-          ['Dětský střih',  'aspect-[4/5]',  'lg:aspect-[4/5]'],
-          ['Foukaná',       'aspect-[4/5]',  'lg:col-span-2 lg:aspect-[16/11]'],
-      ];
-      foreach ($gallery as $i => [$label, $ratio, $lgRatio]): ?>
-        <figure class="tile-fig rv group relative overflow-hidden rounded-2xl border border-[color:var(--line)] <?= $ratio ?> <?= $lgRatio ?>"
-                style="--d: <?= 100 + $i * 80 ?>ms">
-          <!-- Nahraď vnitřní div za: <img src="assets/img/…" alt="…" loading="lazy" width="900" height="1125" class="tile-in h-full w-full object-cover"> -->
-          <div class="tile tile-in h-full w-full"></div>
-
-          <div aria-hidden="true" class="pointer-events-none absolute inset-0 flex items-center justify-center">
-            <svg class="h-8 w-8 text-chalk/10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
-              <rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m4 17 5-4 4 3 3-2 4 3"/>
-            </svg>
-          </div>
-
-          <figcaption class="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 bg-gradient-to-t from-night/95 via-night/55 to-transparent px-4 pb-3.5 pt-12 text-[12px] text-chalk sm:px-5">
+      $gallery = ['Dámský střih', 'Melír', 'Pánský fade', 'Barvení', 'Dětský střih', 'Foukaná'];
+      foreach ($gallery as $i => $label): ?>
+        <figure class="zoomwrap rv relative overflow-hidden rounded-3xl" style="--d: <?= $i * 60 ?>ms">
+          <!-- Nahraď vnitřní div za: <img src="assets/img/…" alt="…" loading="lazy" width="800" height="800" class="zoom h-full w-full object-cover"> -->
+          <div class="ph zoom aspect-square w-full"></div>
+          <figcaption class="absolute inset-x-3 bottom-3 rounded-2xl bg-shell/95 px-4 py-2.5 text-[14px] font-medium backdrop-blur">
             <?= e($label) ?>
-            <span class="text-[11px] uppercase tracking-widest2 text-flame/80"><?= sprintf('%02d', $i + 1) ?></span>
           </figcaption>
         </figure>
       <?php endforeach; ?>
@@ -559,188 +394,152 @@ tailwind.config = {
 </section>
 
 <!-- ============================== REZERVACE ============================== -->
-<section id="rezervace" data-io class="scroll-mt-24 border-t border-[color:var(--line)] bg-soot py-20 sm:py-24 lg:py-32">
-  <div class="mx-auto grid max-w-[88rem] gap-12 px-5 sm:px-8 lg:grid-cols-12 lg:gap-10 lg:px-12">
+<section id="rezervace" data-io class="scroll-mt-20 py-16 sm:py-20 lg:py-24">
+  <div class="mx-auto max-w-6xl px-5 sm:px-8">
 
-    <div class="lg:col-span-4">
-      <p class="rv flex items-center gap-4 text-[11px] uppercase tracking-widest2 text-dust">
-        <span class="font-display text-base not-italic text-flame">04</span>
-        <span class="rule block h-px w-10 bg-[color:var(--line)]" aria-hidden="true"></span>
-        Rezervace
-      </p>
-
-      <h2 class="mt-6 font-display text-[clamp(2rem,4.6vw,3.1rem)] font-normal leading-[1.05]">
-        <span class="mask"><span>Chci se</span></span>
-        <span class="mask italic text-flame" style="--d:120ms"><span>objednat</span></span>
-      </h2>
-
-      <p class="rv mt-6 max-w-sm text-[16px] leading-[1.75] text-dust" style="--d:220ms">
-        Vyplňte formulář a já se vám co nejdříve ozvu s potvrzením termínu.
+    <div class="rv mx-auto max-w-2xl text-center">
+      <h2 class="text-[1.9rem] font-medium leading-tight sm:text-[2.4rem]">Objednat se</h2>
+      <p class="mt-4 text-[17px] leading-[1.7] text-stone">
+        Vyplňte formulář a co nejdřív se vám ozvu s potvrzením termínu.
         Rezervace je nezávazná — platí až po mém potvrzení.
       </p>
+    </div>
 
-      <div class="rv mt-10 space-y-4 border-t border-[color:var(--line)] pt-8 text-[14px] text-chalk/80" style="--d:300ms">
-        <p class="flex items-center gap-3">
-          <svg class="h-4 w-4 shrink-0 text-flame" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-            <path d="M12 21s7-5.686 7-11a7 7 0 1 0-14 0c0 5.314 7 11 7 11Z" stroke-linejoin="round"/><circle cx="12" cy="10" r="2.5"/>
-          </svg>
-          Záříčí 192
-        </p>
-        <p class="flex items-center gap-3">
-          <svg class="h-4 w-4 shrink-0 text-flame" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-            <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2" stroke-linecap="round"/>
-          </svg>
-          Otevírací doba dle objednávek
-        </p>
+    <form id="booking-form" novalidate
+          class="rv mx-auto mt-10 max-w-3xl rounded-[2rem] border border-[color:var(--line)] bg-shell p-6 shadow-soft sm:p-9" style="--d:80ms">
+      <input type="hidden" name="csrf_token" value="<?= e($csrf) ?>">
+
+      <!-- honeypot proti robotům -->
+      <div class="hidden" aria-hidden="true">
+        <label>Nevyplňujte <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
       </div>
-    </div>
 
-    <div class="lg:col-span-8">
-      <form id="booking-form" novalidate
-            class="rv rounded-2xl border border-[color:var(--line)] bg-night p-6 sm:p-9" style="--d:180ms">
-        <input type="hidden" name="csrf_token" value="<?= e($csrf) ?>">
+      <div class="grid gap-5 sm:grid-cols-2">
 
-        <!-- honeypot proti robotům -->
-        <div class="hidden" aria-hidden="true">
-          <label>Nevyplňujte <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+        <div>
+          <label for="name" class="block text-[15px] font-medium">Jméno a příjmení <span class="text-rose">*</span></label>
+          <input id="name" name="name" type="text" required autocomplete="name" maxlength="100"
+                 placeholder="Jana Nováková" aria-describedby="err-name"
+                 class="mt-2 w-full rounded-2xl border border-[color:var(--line)] bg-sand px-4 py-3.5 text-[16px] placeholder-stone/50 transition-colors focus:border-rose focus:bg-shell focus:outline-none">
+          <p id="err-name" class="mt-1.5 hidden text-[14px] text-rose" role="alert"></p>
         </div>
 
-        <div class="grid gap-6 sm:grid-cols-2">
-
-          <div>
-            <label for="name" class="block text-[11px] uppercase tracking-widest2 text-dust">
-              Jméno a příjmení <span class="text-flame">*</span>
-            </label>
-            <input id="name" name="name" type="text" required autocomplete="name" maxlength="100"
-                   placeholder="Jana Nováková" aria-describedby="err-name"
-                   class="mt-2.5 w-full rounded-xl border border-[color:var(--line)] bg-ash px-4 py-3.5 text-[16px] text-chalk placeholder-chalk/25 transition-colors focus:border-flame focus:outline-none">
-            <p id="err-name" class="mt-1.5 hidden text-[13px] text-red-300" role="alert"></p>
-          </div>
-
-          <div>
-            <label for="phone" class="block text-[11px] uppercase tracking-widest2 text-dust">
-              Telefon <span class="text-flame">*</span>
-            </label>
-            <input id="phone" name="phone" type="tel" required autocomplete="tel" maxlength="30"
-                   spellcheck="false" inputmode="tel"
-                   placeholder="+420 777 123 456" aria-describedby="err-phone"
-                   class="mt-2.5 w-full rounded-xl border border-[color:var(--line)] bg-ash px-4 py-3.5 text-[16px] text-chalk placeholder-chalk/25 transition-colors focus:border-flame focus:outline-none">
-            <p id="err-phone" class="mt-1.5 hidden text-[13px] text-red-300" role="alert"></p>
-          </div>
-
-          <div>
-            <label for="email" class="block text-[11px] uppercase tracking-widest2 text-dust">E-mail</label>
-            <input id="email" name="email" type="email" autocomplete="email" maxlength="120"
-                   spellcheck="false" inputmode="email"
-                   placeholder="jana@email.cz" aria-describedby="hint-email err-email"
-                   class="mt-2.5 w-full rounded-xl border border-[color:var(--line)] bg-ash px-4 py-3.5 text-[16px] text-chalk placeholder-chalk/25 transition-colors focus:border-flame focus:outline-none">
-            <p id="hint-email" class="mt-1.5 text-[12px] text-dust">Nepovinné — potvrzení pošlu i SMS.</p>
-            <p id="err-email" class="mt-1.5 hidden text-[13px] text-red-300" role="alert"></p>
-          </div>
-
-          <div>
-            <label for="service" class="block text-[11px] uppercase tracking-widest2 text-dust">
-              Služba <span class="text-flame">*</span>
-            </label>
-            <select id="service" name="service" required aria-describedby="err-service"
-                    class="mt-2.5 w-full appearance-none rounded-xl border border-[color:var(--line)] bg-ash bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20fill=%22none%22%20stroke=%22%23C5A880%22%20stroke-width=%221.5%22%20viewBox=%220%200%2024%2024%22%3E%3Cpath%20d=%22m6%209%206%206%206-6%22/%3E%3C/svg%3E')] bg-[length:18px_18px] bg-[right_1rem_center] bg-no-repeat px-4 py-3.5 pr-11 text-[16px] text-chalk transition-colors focus:border-flame focus:outline-none">
-              <option value="">Vyberte službu…</option>
-              <?php foreach (SERVICES as $key => $label): ?>
-                <option value="<?= e($key) ?>"><?= e($label) ?></option>
-              <?php endforeach; ?>
-            </select>
-            <p id="err-service" class="mt-1.5 hidden text-[13px] text-red-300" role="alert"></p>
-          </div>
-
-          <div>
-            <label for="appointment_date" class="block text-[11px] uppercase tracking-widest2 text-dust">
-              Preferované datum <span class="text-flame">*</span>
-            </label>
-            <input id="appointment_date" name="appointment_date" type="date" required min="<?= e($today) ?>"
-                   aria-describedby="err-appointment_date"
-                   class="mt-2.5 w-full rounded-xl border border-[color:var(--line)] bg-ash px-4 py-3.5 text-[16px] text-chalk transition-colors focus:border-flame focus:outline-none">
-            <p id="err-appointment_date" class="mt-1.5 hidden text-[13px] text-red-300" role="alert"></p>
-          </div>
-
-          <div>
-            <label for="appointment_time" class="block text-[11px] uppercase tracking-widest2 text-dust">
-              Preferovaný čas <span class="text-flame">*</span>
-            </label>
-            <input id="appointment_time" name="appointment_time" type="time" required step="900"
-                   aria-describedby="err-appointment_time"
-                   class="mt-2.5 w-full rounded-xl border border-[color:var(--line)] bg-ash px-4 py-3.5 text-[16px] text-chalk transition-colors focus:border-flame focus:outline-none">
-            <p id="err-appointment_time" class="mt-1.5 hidden text-[13px] text-red-300" role="alert"></p>
-          </div>
-
-          <div class="sm:col-span-2">
-            <label for="note" class="block text-[11px] uppercase tracking-widest2 text-dust">Poznámka</label>
-            <textarea id="note" name="note" rows="4" maxlength="1000"
-                      placeholder="Napište mi, co byste si přáli — délka, barva, inspirace…"
-                      class="mt-2.5 w-full resize-y rounded-xl border border-[color:var(--line)] bg-ash px-4 py-3.5 text-[16px] text-chalk placeholder-chalk/25 transition-colors focus:border-flame focus:outline-none"></textarea>
-          </div>
+        <div>
+          <label for="phone" class="block text-[15px] font-medium">Telefon <span class="text-rose">*</span></label>
+          <input id="phone" name="phone" type="tel" required autocomplete="tel" maxlength="30"
+                 spellcheck="false" inputmode="tel"
+                 placeholder="+420 777 123 456" aria-describedby="err-phone"
+                 class="mt-2 w-full rounded-2xl border border-[color:var(--line)] bg-sand px-4 py-3.5 text-[16px] placeholder-stone/50 transition-colors focus:border-rose focus:bg-shell focus:outline-none">
+          <p id="err-phone" class="mt-1.5 hidden text-[14px] text-rose" role="alert"></p>
         </div>
 
-        <div class="mt-8 flex flex-col items-start gap-5 border-t border-[color:var(--line)] pt-7 sm:flex-row sm:items-center sm:justify-between">
-          <p class="text-[12px] leading-relaxed text-dust">
-            Odesláním souhlasíte se zpracováním údajů za účelem domluvení termínu.
-          </p>
-          <button id="submit-btn" type="submit"
-                  class="btn-flame inline-flex w-full items-center justify-center gap-3 rounded-full border border-flame bg-flame px-8 py-4 text-[12px] uppercase tracking-widest2 text-night transition-colors duration-300 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto">
-            <span data-btn-label>Odeslat rezervaci</span>
-            <svg data-spinner class="hidden h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.5" opacity=".25"/>
-              <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-            </svg>
-          </button>
+        <div>
+          <label for="email" class="block text-[15px] font-medium">E-mail</label>
+          <input id="email" name="email" type="email" autocomplete="email" maxlength="120"
+                 spellcheck="false" inputmode="email"
+                 placeholder="jana@email.cz" aria-describedby="hint-email err-email"
+                 class="mt-2 w-full rounded-2xl border border-[color:var(--line)] bg-sand px-4 py-3.5 text-[16px] placeholder-stone/50 transition-colors focus:border-rose focus:bg-shell focus:outline-none">
+          <p id="hint-email" class="mt-1.5 text-[13px] text-stone">Nepovinné — potvrzení pošlu i SMS.</p>
+          <p id="err-email" class="mt-1.5 hidden text-[14px] text-rose" role="alert"></p>
         </div>
 
-        <div id="form-status" class="mt-6 hidden rounded-xl border px-5 py-4 text-[14px]" role="status" aria-live="polite"></div>
-      </form>
-    </div>
+        <div>
+          <label for="service" class="block text-[15px] font-medium">Služba <span class="text-rose">*</span></label>
+          <select id="service" name="service" required aria-describedby="err-service"
+                  class="mt-2 w-full appearance-none rounded-2xl border border-[color:var(--line)] bg-sand bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20fill=%22none%22%20stroke=%22%239B5442%22%20stroke-width=%222%22%20viewBox=%220%200%2024%2024%22%3E%3Cpath%20d=%22m6%209%206%206%206-6%22/%3E%3C/svg%3E')] bg-[length:18px_18px] bg-[right_1rem_center] bg-no-repeat px-4 py-3.5 pr-11 text-[16px] transition-colors focus:border-rose focus:bg-shell focus:outline-none">
+            <option value="">Vyberte službu…</option>
+            <?php foreach (SERVICES as $key => $label): ?>
+              <option value="<?= e($key) ?>"><?= e($label) ?></option>
+            <?php endforeach; ?>
+          </select>
+          <p id="err-service" class="mt-1.5 hidden text-[14px] text-rose" role="alert"></p>
+        </div>
+
+        <div>
+          <label for="appointment_date" class="block text-[15px] font-medium">Datum <span class="text-rose">*</span></label>
+          <input id="appointment_date" name="appointment_date" type="date" required min="<?= e($today) ?>"
+                 aria-describedby="err-appointment_date"
+                 class="mt-2 w-full rounded-2xl border border-[color:var(--line)] bg-sand px-4 py-3.5 text-[16px] transition-colors focus:border-rose focus:bg-shell focus:outline-none">
+          <p id="err-appointment_date" class="mt-1.5 hidden text-[14px] text-rose" role="alert"></p>
+        </div>
+
+        <div>
+          <label for="appointment_time" class="block text-[15px] font-medium">Čas <span class="text-rose">*</span></label>
+          <input id="appointment_time" name="appointment_time" type="time" required step="900"
+                 aria-describedby="err-appointment_time"
+                 class="mt-2 w-full rounded-2xl border border-[color:var(--line)] bg-sand px-4 py-3.5 text-[16px] transition-colors focus:border-rose focus:bg-shell focus:outline-none">
+          <p id="err-appointment_time" class="mt-1.5 hidden text-[14px] text-rose" role="alert"></p>
+        </div>
+
+        <div class="sm:col-span-2">
+          <label for="note" class="block text-[15px] font-medium">Poznámka</label>
+          <textarea id="note" name="note" rows="4" maxlength="1000"
+                    placeholder="Napište mi, co byste si přáli — délka, barva, inspirace…"
+                    class="mt-2 w-full resize-y rounded-2xl border border-[color:var(--line)] bg-sand px-4 py-3.5 text-[16px] placeholder-stone/50 transition-colors focus:border-rose focus:bg-shell focus:outline-none"></textarea>
+        </div>
+      </div>
+
+      <div class="mt-7 flex flex-col items-start gap-4 border-t border-[color:var(--line)] pt-6 sm:flex-row sm:items-center sm:justify-between">
+        <p class="text-[13px] leading-relaxed text-stone">
+          Odesláním souhlasíte se zpracováním údajů za účelem domluvení termínu.
+        </p>
+        <button id="submit-btn" type="submit"
+                class="inline-flex w-full items-center justify-center gap-2.5 rounded-full bg-rose px-8 py-4 text-[16px] font-medium text-white shadow-soft transition-colors duration-300 hover:bg-cocoa disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto">
+          <span data-btn-label>Odeslat rezervaci</span>
+          <svg data-spinner class="hidden h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.5" opacity=".3"/>
+            <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <div id="form-status" class="mt-5 hidden rounded-2xl border px-5 py-4 text-[15px]" role="status" aria-live="polite"></div>
+    </form>
   </div>
 </section>
 
 </main>
 
 <!-- ============================== PATIČKA ============================== -->
-<footer id="kontakt" data-io class="scroll-mt-24 border-t border-[color:var(--line)] bg-night pb-10 pt-20">
-  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:px-12">
+<footer id="kontakt" class="scroll-mt-20 bg-cocoa py-14 text-cream/85">
+  <div class="mx-auto max-w-6xl px-5 sm:px-8">
+    <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
 
-    <div class="grid gap-12 lg:grid-cols-12">
-      <div class="lg:col-span-5">
-        <p class="rv font-display text-[clamp(2.2rem,6vw,3.8rem)] leading-none">
-          Denisa <span class="italic text-flame">Hair</span>
-        </p>
-        <p class="rv mt-6 max-w-xs text-[14px] leading-relaxed text-dust" style="--d:120ms">
-          Moderní dámské, pánské a dětské kadeřnictví v Záříčí.
+      <div>
+        <div class="flex items-center gap-2.5">
+          <span class="flex h-9 w-9 items-center justify-center rounded-full bg-rose text-[15px] font-medium text-white">D</span>
+          <span class="text-[17px] font-medium text-cream">Denisa Hair</span>
+        </div>
+        <p class="mt-4 max-w-xs text-[15px] leading-[1.7] text-cream/70">
+          Dámské, pánské a dětské kadeřnictví v Záříčí.
         </p>
       </div>
 
-      <div class="rv lg:col-span-3" style="--d:180ms">
-        <p class="text-[11px] uppercase tracking-widest2 text-flame">Kontakt</p>
-        <ul class="mt-5 space-y-3 text-[15px] text-chalk/85">
+      <div>
+        <p class="text-[15px] font-medium text-cream">Kontakt</p>
+        <ul class="mt-4 space-y-2 text-[15px]">
           <li>Denisa Hrabalová</li>
           <li>
             <a href="https://mapy.cz/zakladni?q=Z%C3%A1%C5%99%C3%AD%C4%8D%C3%AD%20192" target="_blank" rel="noopener"
-               class="ul inline-block py-2.5 hover:text-flame">Záříčí 192</a>
+               class="ul inline-block py-2.5 hover:text-cream">Záříčí 192</a>
           </li>
-          <li class="text-dust">Otevírací doba dle objednávek</li>
+          <li class="text-cream/70">Otevřeno dle objednávek</li>
         </ul>
       </div>
 
-      <div class="rv lg:col-span-4" style="--d:240ms">
-        <p class="text-[11px] uppercase tracking-widest2 text-flame">Rychlé odkazy</p>
-        <ul class="mt-5 space-y-3 text-[15px] text-chalk/85">
-          <li><a href="#sluzby"    class="ul inline-block py-2.5 hover:text-flame">Služby</a></li>
-          <li><a href="#galerie"   class="ul inline-block py-2.5 hover:text-flame">Galerie</a></li>
-          <li><a href="#rezervace" class="ul inline-block py-2.5 hover:text-flame">Rezervace</a></li>
-          <li><a href="admin/login.php" class="ul inline-block py-2.5 text-dust hover:text-flame">Administrace</a></li>
+      <div>
+        <p class="text-[15px] font-medium text-cream">Odkazy</p>
+        <ul class="mt-4 space-y-2 text-[15px]">
+          <li><a href="#sluzby"    class="ul inline-block py-2.5 hover:text-cream">Služby</a></li>
+          <li><a href="#galerie"   class="ul inline-block py-2.5 hover:text-cream">Galerie</a></li>
+          <li><a href="#rezervace" class="ul inline-block py-2.5 hover:text-cream">Rezervace</a></li>
+          <li><a href="admin/login.php" class="ul inline-block py-2.5 text-cream/60 hover:text-cream">Administrace</a></li>
         </ul>
       </div>
     </div>
 
-    <div class="mt-16 flex flex-col gap-3 border-t border-[color:var(--line)] pt-7 text-[12px] text-dust sm:flex-row sm:items-center sm:justify-between">
-      <p>© <?= date('Y') ?> Denisa Hair. Všechna práva vyhrazena.</p>
+    <div class="mt-12 flex flex-col gap-2 border-t border-cream/15 pt-6 text-[14px] text-cream/60 sm:flex-row sm:items-center sm:justify-between">
+      <p>© <?= date('Y') ?> Denisa Hair</p>
       <p>Záříčí 192, Česká republika</p>
     </div>
   </div>
@@ -751,48 +550,17 @@ tailwind.config = {
   'use strict';
 
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const raf    = requestAnimationFrame;
 
-  /* ---------- Hlavička + ukazatel odscrollování ---------- */
-  const header   = document.getElementById('site-header');
-  const progress = document.getElementById('progress');
-  let ticking = false;
-
+  /* ---------- Stín hlavičky po odscrollování ---------- */
+  const header = document.getElementById('site-header');
   const onScroll = () => {
-    if (ticking) return;
-    ticking = true;
-    raf(() => {
-      const y   = window.scrollY;
-      const max = document.documentElement.scrollHeight - window.innerHeight;
-
-      const scrolled = y > 24;
-      header.classList.toggle('bg-night/85', scrolled);
-      header.classList.toggle('backdrop-blur-md', scrolled);
-      header.classList.toggle('border-b', scrolled);
-      header.classList.toggle('border-[color:var(--line)]', scrolled);
-
-      progress.style.setProperty('--p', max > 0 ? (y / max).toFixed(4) : 0);
-      ticking = false;
-    });
+    const scrolled = window.scrollY > 8;
+    header.classList.toggle('shadow-soft', scrolled);
+    header.classList.toggle('border-[color:var(--line)]', scrolled);
+    header.classList.toggle('border-transparent', !scrolled);
   };
   onScroll();
   window.addEventListener('scroll', onScroll, { passive: true });
-
-  /* ---------- Světlo sledující kurzor ---------- */
-  const spot = document.getElementById('spotlight');
-  if (!reduce && window.matchMedia('(hover:hover) and (pointer:fine)').matches) {
-    let pending = false;
-    window.addEventListener('pointermove', (e) => {
-      if (pending) return;
-      pending = true;
-      raf(() => {
-        spot.style.setProperty('--mx', e.clientX + 'px');
-        spot.style.setProperty('--my', e.clientY + 'px');
-        spot.classList.add('on');
-        pending = false;
-      });
-    }, { passive: true });
-  }
 
   /* ---------- Mobilní menu ---------- */
   const toggle = document.getElementById('menu-toggle');
@@ -811,13 +579,11 @@ tailwind.config = {
   menu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => setMenu(false)));
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
 
-  /* ---------- Odhalování sekcí ---------- */
+  /* ---------- Odkrývání sekcí ---------- */
   const sections = document.querySelectorAll('[data-io]');
-  const loners   = document.querySelectorAll('.rv:not([data-io] .rv), .mask:not([data-io] .mask)');
 
   if (reduce || !('IntersectionObserver' in window)) {
     sections.forEach(el => el.classList.add('is-in'));
-    document.querySelectorAll('.rv, .mask').forEach(el => el.classList.add('is-in'));
     countUp(document);
   } else {
     const io = new IntersectionObserver((entries) => {
@@ -827,16 +593,23 @@ tailwind.config = {
         countUp(entry.target);
         io.unobserve(entry.target);
       });
-    }, { rootMargin: '0px 0px -10% 0px', threshold: 0.12 });
-
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.1 });
     sections.forEach(el => io.observe(el));
-    loners.forEach(el => io.observe(el));
   }
 
-  /* Hero rozjedeme hned po načtení, ať uživatel nečeká na scroll. */
-  raf(() => document.querySelector('[data-io]').classList.add('is-in'));
+  // Hero odkryjeme hned, ať uživatel nečeká na scroll.
+  const hero = document.querySelector('[data-io]');
+  hero.classList.add('is-in');
+  countUp(hero);
 
-  /* ---------- Počítadla čísel ---------- */
+  // Pojistka: kdyby IntersectionObserver z jakéhokoli důvodu nezabral
+  // (např. stránka načtená na pozadí), po 2,5 s obsah prostě ukážeme.
+  setTimeout(() => {
+    sections.forEach(el => el.classList.add('is-in'));
+    countUp(document);
+  }, 2500);
+
+  /* ---------- Počítadla ---------- */
   function countUp(root) {
     root.querySelectorAll('[data-count]').forEach(el => {
       if (el.dataset.done) return;
@@ -844,14 +617,17 @@ tailwind.config = {
       const target = parseInt(el.dataset.count, 10);
       if (reduce) { el.textContent = target; return; }
 
+      // Pojistka: kdyby se animační snímky nespustily, po 1,2 s
+      // dopíšeme výslednou hodnotu, ať tam nezůstane nula.
+      setTimeout(() => { el.textContent = target; }, 1200);
+
       const start = performance.now();
-      const dur   = 900;
-      const step  = (now) => {
-        const t = Math.min(1, (now - start) / dur);
+      const step = (now) => {
+        const t = Math.min(1, (now - start) / 800);
         el.textContent = Math.round(target * (1 - Math.pow(1 - t, 3)));
-        if (t < 1) raf(step);
+        if (t < 1) requestAnimationFrame(step);
       };
-      raf(step);
+      requestAnimationFrame(step);
     });
   }
 
@@ -864,17 +640,17 @@ tailwind.config = {
 
   const showStatus = (type, message) => {
     status.textContent = message;
-    status.className = 'mt-6 rounded-xl border px-5 py-4 text-[14px] ' + (
+    status.className = 'mt-5 rounded-2xl border px-5 py-4 text-[15px] ' + (
       type === 'success'
-        ? 'border-flame/45 bg-flame/10 text-chalk'
-        : 'border-red-400/40 bg-red-500/10 text-red-200'
+        ? 'border-emerald-600/30 bg-emerald-50 text-emerald-900'
+        : 'border-rose/40 bg-blush/50 text-cocoa'
     );
   };
 
   const clearErrors = () => {
     form.querySelectorAll('[role="alert"]').forEach(p => { p.textContent = ''; p.classList.add('hidden'); });
     form.querySelectorAll('input, select, textarea').forEach(el => {
-      el.classList.remove('border-red-400');
+      el.classList.remove('border-rose');
       el.removeAttribute('aria-invalid');
     });
   };
@@ -886,7 +662,7 @@ tailwind.config = {
       const box   = document.getElementById('err-' + field);
       if (box) { box.textContent = message; box.classList.remove('hidden'); }
       if (input) {
-        input.classList.add('border-red-400');
+        input.classList.add('border-rose');
         input.setAttribute('aria-invalid', 'true');
         if (!first) first = input;
       }
@@ -953,7 +729,7 @@ tailwind.config = {
     const box = document.getElementById('err-' + e.target.name);
     if (box && !box.classList.contains('hidden')) {
       box.classList.add('hidden');
-      e.target.classList.remove('border-red-400');
+      e.target.classList.remove('border-rose');
       e.target.removeAttribute('aria-invalid');
     }
   });

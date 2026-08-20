@@ -136,57 +136,54 @@ Co ta hláška typicky znamená:
 
 ## Vizuální styl
 
-Tmavý teplý motiv v odstínu lilku. Pozadí není černé ani hnědé, ale tmavě
-švestkové — korálový akcent na něm působí živě a nic nesplývá.
+Světlý, teplý a klidný — takový, jaký se hodí do salonu. Krémové pozadí,
+kakaový text, terakotový akcent a měkce zaoblené tvary. Žádné tmavé pozadí
+ani displayové písmo.
 
 ### Barvy
 
 | Token | Hex | Použití |
 |---|---|---|
-| `night` | `#16111A` | hlavní pozadí stránky |
-| `soot` | `#1F1824` | vyvýšené plochy, sekce |
-| `ash` | `#2A2130` | inputy, karty, vnitřní plochy |
-| `chalk` | `#F7F2F4` | hlavní text |
-| `dust` | `#B6A7B5` | vedlejší text |
-| `flame` | `#E8825C` | akcent — tlačítka, čísla sekcí, kurzíva |
-| `blush` | `#F2B79B` | světlejší korál pro přechody a focus |
+| `cream` | `#FBF8F4` | pozadí stránky |
+| `shell` | `#FFFFFF` | karty, sekce, formulář |
+| `sand` | `#F3EBE3` | inputy, štítky, vnitřní plochy |
+| `cocoa` | `#2C2521` | hlavní text, patička |
+| `stone` | `#665A53` | vedlejší text |
+| `rose` | `#9B5442` | akcent — tlačítka, odkazy, ikony |
+| `blush` | `#EFDDD5` | jemný akcentový nádech |
 
-Vlasová linka mezi sekcemi je `rgba(247,242,244,.14)`.
+Linka mezi prvky je `#E7DDD4`.
 
 ### Typografie
 
-- **Fraunces** — nadpisy. Proměnný font s osami `SOFT` a `WONK`; nastavené na
-  `SOFT 30, WONK 1` má teplé, mírně rozvolněné tvary místo strojové patky.
-- **Karla** — běžný text, popisky, UI. Grotesk s charakterem, výborně čitelný
-  i v malých velikostech.
+**Ubuntu** v celé aplikaci — humanistický bezpatkový font, přátelský
+a výborně čitelný. Hierarchii dělá velikost a řez, ne druhá rodina písma.
+Ověřená plná česká diakritika.
 
-Obě rodiny mají ověřenou plnou českou diakritiku — testováno měřením glyfů
-proti fallbacku, nikde nenaskakuje náhradní font.
-
-Kvůli čitelnosti: hlavní text 16–17 px s prokladem 1,75; prostrkání
-verzálkových popisků sníženo z 0,3 em na 0,16 em a jejich velikost zvednuta
-na 11 px; hero nadpis zmenšen z `clamp(3.5rem, 17vw, 13rem)` na
-`clamp(3rem, 10vw, 7.5rem)`.
+Hlavní text 17 px s prokladem 1,7; nadpisy 1,9–3,6 rem v řezu medium.
+Nikde nejsou verzálky s velkým prostrkáním — ty byly hlavní příčinou
+špatné čitelnosti dřívější verze.
 
 ### Animace
 
-Vše běží jen na `transform` a `opacity`, takže to neblokuje layout.
+Střídmé a jen na `transform` / `opacity`.
 
 | Efekt | Kde |
 |---|---|
-| Řádky nadpisů vyjíždějí zpod masky | všechny `h1` / `h2` |
-| Postupné odkrývání při scrollu, stagger přes `--d` | celý web |
-| Linka u popisku sekce se dokresluje (`scaleX`) | popisky 01–04 |
-| Ukazatel odscrollování | fixní pruh nahoře |
-| Nekonečný pás se službami, pauza při najetí | pod hero |
-| Světlo sledující kurzor | jen myš + jemný pointer |
-| Korálový přejezd zdola na tlačítkách | všechna hlavní CTA |
-| Korálový závoj na řádcích služeb | sekce Služby |
-| Přiblížení dlaždice | galerie |
-| Napočítání čísel od nuly | statistiky v „O mně“ |
-| Pulzující tečka | badge „dle objednávek“ |
+| Odkrytí sekce při scrollu se staggerem přes `--d` | celá stránka |
+| Nadzvednutí karty při najetí | karty služeb |
+| Přiblížení fotky | galerie, portrét |
+| Podtržení odkazu zleva | navigace, patička |
+| Napočítání čísel od nuly | údaje v hero sekci |
+| Stín hlavičky po odscrollování | sticky hlavička |
 
-Celé je to schované za `prefers-reduced-motion: reduce`.
+Vše respektuje `prefers-reduced-motion: reduce`.
+
+**Obsah se schovává jen když běží JavaScript** — inline skript přidá na
+`<html>` třídu `js` a teprve ta aktivuje `opacity:0`. Bez JavaScriptu se
+stránka zobrazí normálně. Navíc je tam pojistka: po 2,5 s se obsah odkryje
+i kdyby `IntersectionObserver` nezabral, a počítadla po 1,2 s dopíšou
+výslednou hodnotu, aby tam nezůstala nula.
 
 ---
 
@@ -200,15 +197,15 @@ WCAG AA.
 
 Klíčové body:
 
-- **Hero nadpis** `clamp(3.5rem, 17vw, 13rem)` — na 320px displeji 52 px, na
-  1440px monumentální.
+- **Hero nadpis** 2,4 rem na mobilu, 3,6 rem na desktopu — velký, ale ne
+  přes celou obrazovku.
 - **Tabulka rezervací** se pod 1024 px překlápí do karet (`.rtable` v
   `admin/_head.php`). DOM zůstává jeden, takže AJAX na změnu stavu i mazání
   funguje v obou režimech stejně; popisky sloupců doplňuje
   `td[data-label]::before`.
 - Přidaný breakpoint **`xs: 480px`** pro větší telefony (výchozí `sm` začíná až
   na 640 px).
-- Galerie: 2 sloupce → 4 (lg), s asymetrickými širokými dlaždicemi.
+- Galerie 2 sloupce → 3 (lg), karty služeb 1 → 2 (sm) → 4 (lg).
 
 ---
 
@@ -251,7 +248,7 @@ v kódu.
 - Rezervační formulář má **honeypot** a blokuje duplicity (stejný telefon + termín do 1 hodiny).
 - Veškerý výstup jde přes `e()` (`htmlspecialchars`).
 
-Na produkci nastav v `config.php` `APP_DEBUG = false` (výchozí) a web provozuj přes HTTPS.
+Na produkci nastav v `config.php` `APP_DEBUG` prázdné nebo `0` (výchozí) a web provozuj přes HTTPS.
 
 ## Poznámka k Tailwindu
 
@@ -263,5 +260,5 @@ nasazení a úpravy. Pokud chceš pro produkci menší CSS, nahraď
 npx tailwindcss -i input.css -o assets/tailwind.css --minify
 ```
 
-a v `tailwind.config.js` zachovej stejné barvy (`night`, `soot`, `ash`, `chalk`,
-`dust`, `flame`, `blush`), fonty (`display`, `sans`) i breakpoint `xs`.
+a v `tailwind.config.js` zachovej stejné barvy (`cream`, `shell`, `sand`, `cocoa`,
+`stone`, `rose`, `blush`), font (`sans`) i breakpoint `xs`.

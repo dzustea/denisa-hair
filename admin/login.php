@@ -73,23 +73,23 @@ $pageTitle = 'Přihlášení';
 </style>
 </head>
 
-<body class="glow flex min-h-dvh items-center justify-center bg-night px-4 py-10 font-sans text-chalk antialiased sm:px-5 sm:py-12">
+<body class="glow flex min-h-dvh items-center justify-center bg-cream px-4 py-10 font-sans text-cocoa antialiased sm:px-5 sm:py-12">
 
 <div class="relative w-full max-w-md">
 
   <div class="rv is-in mb-9 text-center">
-    <a href="../index.php" class="inline-block py-1 font-display text-3xl sm:text-4xl">
-      Denisa <span class="italic text-flame">Hair</span>
+    <a href="../index.php" class="inline-block py-1 font-medium text-3xl sm:text-4xl">
+      Denisa <span class="italic text-rose">Hair</span>
     </a>
-    <p class="mt-3 text-[11px] uppercase tracking-widest2 text-dust">Administrace rezervací</p>
+    <p class="mt-3 text-[14px] text-stone">Administrace rezervací</p>
   </div>
 
   <form method="post" novalidate
-        class="rv is-in rounded-2xl border border-[color:var(--line)] bg-soot p-6 sm:p-9" style="--d:120ms">
+        class="rv is-in rounded-2xl border border-[color:var(--line)] bg-shell p-6 sm:p-9" style="--d:120ms">
     <input type="hidden" name="csrf_token" value="<?= e($csrf) ?>">
 
     <?php if ($error !== ''): ?>
-      <div role="alert" class="mb-6 flex items-start gap-3 rounded-xl border border-red-400/35 bg-red-500/10 px-4 py-3 text-[14px] text-red-200">
+      <div role="alert" class="mb-6 flex items-start gap-3 rounded-2xl border border-red-400/35 bg-red-500/10 px-4 py-3 text-[14px] text-red-200">
         <svg class="mt-0.5 h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
           <circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01" stroke-linecap="round"/>
         </svg>
@@ -99,19 +99,19 @@ $pageTitle = 'Přihlášení';
 
     <div class="space-y-5">
       <div>
-        <label for="username" class="block text-[11px] uppercase tracking-widest2 text-dust">Přihlašovací jméno</label>
+        <label for="username" class="block text-[14px] text-stone">Přihlašovací jméno</label>
         <input id="username" name="username" type="text" required autocomplete="username" spellcheck="false" autofocus
                value="<?= e($username) ?>"
-               class="mt-2.5 w-full rounded-xl border border-[color:var(--line)] bg-ash px-4 py-3.5 text-[16px] text-chalk transition-colors focus:border-flame focus:outline-none">
+               class="mt-2.5 w-full rounded-2xl border border-[color:var(--line)] bg-sand px-4 py-3.5 text-[16px] text-cocoa transition-colors focus:border-rose focus:outline-none">
       </div>
 
       <div>
-        <label for="password" class="block text-[11px] uppercase tracking-widest2 text-dust">Heslo</label>
+        <label for="password" class="block text-[14px] text-stone">Heslo</label>
         <div class="relative mt-2.5">
           <input id="password" name="password" type="password" required autocomplete="current-password"
-                 class="w-full rounded-xl border border-[color:var(--line)] bg-ash px-4 py-3.5 pr-12 text-[16px] text-chalk transition-colors focus:border-flame focus:outline-none">
+                 class="w-full rounded-2xl border border-[color:var(--line)] bg-sand px-4 py-3.5 pr-12 text-[16px] text-cocoa transition-colors focus:border-rose focus:outline-none">
           <button type="button" id="toggle-pw"
-                  class="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-dust transition-colors hover:text-flame"
+                  class="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-stone transition-colors hover:text-rose"
                   aria-label="Zobrazit heslo" aria-pressed="false">
             <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
               <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/>
@@ -122,13 +122,13 @@ $pageTitle = 'Přihlášení';
     </div>
 
     <button type="submit"
-            class="btn-flame mt-8 w-full rounded-full border border-flame bg-flame px-6 py-4 text-[12px] uppercase tracking-widest2 text-night transition-colors duration-300">
+            class="mt-8 w-full rounded-full border border-rose bg-rose px-6 py-4 text-[15px] font-medium text-white transition-colors duration-300">
       Přihlásit se
     </button>
   </form>
 
-  <p class="rv is-in mt-7 text-center text-[13px] text-dust" style="--d:220ms">
-    <a href="../index.php" class="inline-block py-3 transition-colors hover:text-flame">← Zpět na web</a>
+  <p class="rv is-in mt-7 text-center text-[13px] text-stone" style="--d:220ms">
+    <a href="../index.php" class="inline-block py-3 transition-colors hover:text-rose">← Zpět na web</a>
   </p>
 </div>
 
