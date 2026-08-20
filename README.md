@@ -134,35 +134,39 @@ Co ta hláška typicky znamená:
 
 ---
 
-## Vizuální styl — „editorial noir“
+## Vizuální styl
 
-Tmavý, teplý a kontrastní motiv. Pozadí je hluboké espresso, ne černá — díky
-tomu zlaté a krémové prvky opticky svítí a nic nesplývá.
+Tmavý teplý motiv v odstínu lilku. Pozadí není černé ani hnědé, ale tmavě
+švestkové — korálový akcent na něm působí živě a nic nesplývá.
 
 ### Barvy
 
 | Token | Hex | Použití |
 |---|---|---|
-| `night` | `#141210` | hlavní pozadí stránky |
-| `soot` | `#1C1815` | vyvýšené plochy, sekce, karty |
-| `ash` | `#262120` | inputy, chipy, vnitřní plochy |
-| `cream` | `#FBF8F5` | hlavní text |
-| `muted` | `#A79C90` | vedlejší text (kontrast 7,3 : 1) |
-| `gold` | `#C5A880` | akcent, tlačítka, čísla sekcí |
-| `goldlite` | `#E2C79E` | světlejší zlatá pro přechody a focus |
+| `night` | `#16111A` | hlavní pozadí stránky |
+| `soot` | `#1F1824` | vyvýšené plochy, sekce |
+| `ash` | `#2A2130` | inputy, karty, vnitřní plochy |
+| `chalk` | `#F7F2F4` | hlavní text |
+| `dust` | `#B6A7B5` | vedlejší text |
+| `flame` | `#E8825C` | akcent — tlačítka, čísla sekcí, kurzíva |
+| `blush` | `#F2B79B` | světlejší korál pro přechody a focus |
 
-Vlasová linka mezi sekcemi je `rgba(234,227,217,.14)` — na tmavém pozadí je
-vidět, ale nekřičí.
+Vlasová linka mezi sekcemi je `rgba(247,242,244,.14)`.
 
 ### Typografie
 
-- **Bodoni Moda** — nadpisy. Didone s vysokým kontrastem tahů, kurzíva se
-  používá jako akcent (vždy zlatě).
-- **Familjen Grotesk** — běžný text, popisky, UI.
+- **Fraunces** — nadpisy. Proměnný font s osami `SOFT` a `WONK`; nastavené na
+  `SOFT 30, WONK 1` má teplé, mírně rozvolněné tvary místo strojové patky.
+- **Karla** — běžný text, popisky, UI. Grotesk s charakterem, výborně čitelný
+  i v malých velikostech.
 
-Obě rodiny mají ověřenou plnou českou diakritiku (`ě š č ř ž ý á í é ú ů ď ť ň`
-včetně verzálek) — testováno měřením glyfů proti fallbacku, nikde nenaskakuje
-náhradní font.
+Obě rodiny mají ověřenou plnou českou diakritiku — testováno měřením glyfů
+proti fallbacku, nikde nenaskakuje náhradní font.
+
+Kvůli čitelnosti: hlavní text 16–17 px s prokladem 1,75; prostrkání
+verzálkových popisků sníženo z 0,3 em na 0,16 em a jejich velikost zvednuta
+na 11 px; hero nadpis zmenšen z `clamp(3.5rem, 17vw, 13rem)` na
+`clamp(3rem, 10vw, 7.5rem)`.
 
 ### Animace
 
@@ -170,20 +174,19 @@ Vše běží jen na `transform` a `opacity`, takže to neblokuje layout.
 
 | Efekt | Kde |
 |---|---|
-| Řádky nadpisů vyjíždějí zpod masky (`overflow:hidden` + `translateY`) | všechny `h1`/`h2` |
-| Postupné odkrývání obsahu při scrollu, stagger přes `--d` | celý web |
-| Zlatá linka u popisku sekce se dokresluje (`scaleX`) | popisky 01–04 |
-| Ukazatel odscrollování nahoře | fixní pruh |
-| Nekonečný pás se službami, pauza při najetí | mezi hero a „O mně“ |
+| Řádky nadpisů vyjíždějí zpod masky | všechny `h1` / `h2` |
+| Postupné odkrývání při scrollu, stagger přes `--d` | celý web |
+| Linka u popisku sekce se dokresluje (`scaleX`) | popisky 01–04 |
+| Ukazatel odscrollování | fixní pruh nahoře |
+| Nekonečný pás se službami, pauza při najetí | pod hero |
 | Světlo sledující kurzor | jen myš + jemný pointer |
-| Zlatý přejezd zdola na tlačítkách | všechna hlavní CTA |
-| Zlatý závoj na řádcích služeb + posun čísla a šipky | sekce Služby |
-| Přiblížení dlaždice v galerii | galerie |
+| Korálový přejezd zdola na tlačítkách | všechna hlavní CTA |
+| Korálový závoj na řádcích služeb | sekce Služby |
+| Přiblížení dlaždice | galerie |
 | Napočítání čísel od nuly | statistiky v „O mně“ |
 | Pulzující tečka | badge „dle objednávek“ |
 
-Celé je to schované za `prefers-reduced-motion: reduce` — při zapnutém klidovém
-režimu se všechno okamžitě zobrazí bez pohybu.
+Celé je to schované za `prefers-reduced-motion: reduce`.
 
 ---
 
@@ -260,5 +263,5 @@ nasazení a úpravy. Pokud chceš pro produkci menší CSS, nahraď
 npx tailwindcss -i input.css -o assets/tailwind.css --minify
 ```
 
-a v `tailwind.config.js` zachovej stejné barvy (`night`, `soot`, `ash`, `cream`,
-`muted`, `gold`, `goldlite`), fonty (`display`, `sans`) i breakpoint `xs`.
+a v `tailwind.config.js` zachovej stejné barvy (`night`, `soot`, `ash`, `chalk`,
+`dust`, `flame`, `blush`), fonty (`display`, `sans`) i breakpoint `xs`.

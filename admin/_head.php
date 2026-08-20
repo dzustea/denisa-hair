@@ -15,29 +15,29 @@ $pageTitle = $pageTitle ?? 'Administrace';
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?= e($pageTitle) ?> — Denisa Hair</title>
 <meta name="robots" content="noindex, nofollow">
-<meta name="theme-color" content="#141210">
+<meta name="theme-color" content="#16111A">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..600;1,6..96,400..500&family=Familjen+Grotesk:ital,wght@0,400..700;1,400..600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,400..700,0..100,0..1;1,9..144,400..600,0..100,0..1&family=Karla:ital,wght@0,300..700;1,400..600&display=swap" rel="stylesheet">
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
 tailwind.config = { theme: { extend: {
   colors: {
-    night:   '#141210',
-    soot:    '#1C1815',
-    ash:     '#262120',
-    cream:   '#FBF8F5',
-    muted:   '#A79C90',
-    gold:    '#C5A880',
-    goldlite:'#E2C79E',
+    night:   '#16111A',
+    soot:    '#1F1824',
+    ash:     '#2A2130',
+    chalk:   '#F7F2F4',
+    dust:   '#B6A7B5',
+    flame:    '#E8825C',
+    blush:'#F2B79B',
   },
   fontFamily: {
-    display: ['"Bodoni Moda"', 'Didot', 'Georgia', 'serif'],
-    sans:    ['"Familjen Grotesk"', 'system-ui', 'sans-serif'],
+    display: ['Fraunces', 'Georgia', 'serif'],
+    sans:    ['Karla', 'system-ui', 'sans-serif'],
   },
-  letterSpacing: { widest2: '0.3em' },
+  letterSpacing: { widest2: '0.16em' },
   screens: { xs: '480px' },
 }}}
 </script>
@@ -45,21 +45,26 @@ tailwind.config = { theme: { extend: {
 <style>
   :root{
     color-scheme: dark;
-    --night:#141210; --soot:#1C1815; --ash:#262120;
-    --cream:#FBF8F5; --muted:#A79C90; --gold:#C5A880; --goldlite:#E2C79E;
-    --line: rgba(234,227,217,.14);
+    --night:#16111A; --soot:#1F1824; --ash:#2A2130;
+    --chalk:#F7F2F4; --dust:#B6A7B5; --flame:#E8825C; --blush:#F2B79B;
+    --line: rgba(247,242,244,.14);
     --ease: cubic-bezier(.22,1,.36,1);
   }
 
   html{ background:var(--night); }
   body{ -webkit-font-smoothing:antialiased; }
 
+  .font-display{
+    font-optical-sizing:auto;
+    font-variation-settings:"SOFT" 30, "WONK" 1;
+  }
+
   a, button, input, select, summary{ touch-action:manipulation; }
   h1, h2{ text-wrap:balance; }
-  ::selection{ background:var(--gold); color:#141210; }
+  ::selection{ background:var(--flame); color:#16111A; }
 
   :where(a,button,input,select,textarea,summary):focus-visible{
-    outline:2px solid var(--goldlite); outline-offset:3px; border-radius:3px;
+    outline:2px solid var(--blush); outline-offset:3px; border-radius:3px;
   }
 
   .tnum{ font-variant-numeric: tabular-nums; }
@@ -70,15 +75,15 @@ tailwind.config = { theme: { extend: {
        transition-delay:var(--d,0ms); }
   .is-in .rv, .rv.is-in{ opacity:1; transform:none; }
 
-  /* Zlatý přejezd na tlačítku */
-  .btn-gold{ position:relative; overflow:hidden; isolation:isolate; }
-  .btn-gold::before{
+  /* Korálový přejezd na tlačítku */
+  .btn-flame{ position:relative; overflow:hidden; isolation:isolate; }
+  .btn-flame::before{
     content:''; position:absolute; inset:0; z-index:-1; transform:translateY(101%);
-    background:linear-gradient(180deg,var(--goldlite),var(--gold));
+    background:linear-gradient(180deg,var(--blush),var(--flame));
     transition:transform .45s var(--ease);
   }
-  .btn-gold:hover::before, .btn-gold:focus-visible::before{ transform:none; }
-  .btn-gold:hover, .btn-gold:focus-visible{ color:#141210; border-color:transparent; }
+  .btn-flame:hover::before, .btn-flame:focus-visible::before{ transform:none; }
+  .btn-flame:hover, .btn-flame:focus-visible{ color:#16111A; border-color:transparent; }
 
   /* ---------------------------------------------------------------
      Responzivní tabulka: na desktopu sloupce, pod 1024 px karty.
@@ -89,19 +94,19 @@ tailwind.config = { theme: { extend: {
     .rtable thead{ display:none; }
 
     .rtable tr{
-      border:1px solid rgba(234,227,217,.14); border-radius:1rem;
-      background:#1C1815; padding:1rem 1.15rem;
+      border:1px solid rgba(247,242,244,.14); border-radius:1rem;
+      background:#1F1824; padding:1rem 1.15rem;
     }
     .rtable tr + tr{ margin-top:.75rem; }
 
     .rtable td{ padding:.6rem 0; border:0; }
-    .rtable td + td{ border-top:1px solid rgba(234,227,217,.1); }
+    .rtable td + td{ border-top:1px solid rgba(247,242,244,.1); }
 
     .rtable td[data-label]::before{
       content:attr(data-label);
       display:block; margin-bottom:.35rem;
-      font-size:.6875rem; letter-spacing:.3em; text-transform:uppercase;
-      color:#A79C90;
+      font-size:.6875rem; letter-spacing:.16em; text-transform:uppercase;
+      color:#B6A7B5;
     }
   }
 

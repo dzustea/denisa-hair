@@ -85,11 +85,11 @@ $stats = [
 function status_classes(string $status): string
 {
     return match ($status) {
-        'nova'      => 'bg-gold/15 text-goldlite border-gold/45',
+        'nova'      => 'bg-flame/15 text-blush border-flame/45',
         'potvrzena' => 'bg-emerald-400/12 text-emerald-200 border-emerald-300/30',
-        'dokoncena' => 'bg-cream/10 text-cream/80 border-cream/25',
+        'dokoncena' => 'bg-chalk/10 text-chalk/80 border-chalk/25',
         'zrusena'   => 'bg-red-400/12 text-red-200 border-red-300/30',
-        default     => 'bg-cream/10 text-cream/80 border-cream/25',
+        default     => 'bg-chalk/10 text-chalk/80 border-chalk/25',
     };
 }
 
@@ -108,28 +108,28 @@ $adminName = $_SESSION['admin_name'] ?? 'Administrace';
 <?php $pageTitle = 'Rezervace'; require __DIR__ . '/_head.php'; ?>
 </head>
 
-<body class="min-h-dvh bg-night font-sans text-cream antialiased">
+<body class="min-h-dvh bg-night font-sans text-chalk antialiased">
 
 <!-- ============================== HLAVIČKA ============================== -->
 <header class="sticky top-0 z-30 border-b border-[color:var(--line)] bg-night/85 backdrop-blur-md">
   <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 sm:px-8">
     <div class="flex items-baseline gap-3">
-      <span class="font-display text-xl">Denisa <span class="italic text-gold">Hair</span></span>
-      <span class="hidden text-[11px] uppercase tracking-widest2 text-muted sm:inline">Administrace</span>
+      <span class="font-display text-xl">Denisa <span class="italic text-flame">Hair</span></span>
+      <span class="hidden text-[11px] uppercase tracking-widest2 text-dust sm:inline">Administrace</span>
     </div>
 
     <div class="flex items-center gap-2 sm:gap-3">
-      <span class="hidden text-[13px] text-muted lg:inline"><?= e($adminName) ?></span>
+      <span class="hidden text-[13px] text-dust lg:inline"><?= e($adminName) ?></span>
       <a href="setup.php"
-         class="hidden rounded-full border border-[color:var(--line)] px-4 py-2.5 text-[12px] uppercase tracking-widest2 text-cream/80 transition-colors hover:border-gold hover:text-gold sm:inline-block">
+         class="hidden rounded-full border border-[color:var(--line)] px-4 py-2.5 text-[12px] uppercase tracking-widest2 text-chalk/80 transition-colors hover:border-flame hover:text-flame sm:inline-block">
         Heslo
       </a>
       <a href="../index.php" target="_blank" rel="noopener"
-         class="hidden rounded-full border border-[color:var(--line)] px-4 py-2.5 text-[12px] uppercase tracking-widest2 text-cream/80 transition-colors hover:border-gold hover:text-gold sm:inline-block">
+         class="hidden rounded-full border border-[color:var(--line)] px-4 py-2.5 text-[12px] uppercase tracking-widest2 text-chalk/80 transition-colors hover:border-flame hover:text-flame sm:inline-block">
         Web
       </a>
       <a href="logout.php"
-         class="rounded-full bg-gold px-5 py-3.5 text-[12px] uppercase tracking-widest2 text-night transition-colors hover:bg-goldlite">
+         class="rounded-full bg-flame px-5 py-3.5 text-[12px] uppercase tracking-widest2 text-night transition-colors hover:bg-blush">
         Odhlásit
       </a>
     </div>
@@ -139,23 +139,23 @@ $adminName = $_SESSION['admin_name'] ?? 'Administrace';
 <main class="mx-auto max-w-7xl px-5 py-10 sm:px-8 sm:py-12">
 
   <h1 class="rv is-in font-display text-4xl leading-tight sm:text-5xl">Rezervace</h1>
-  <p class="rv is-in mt-3 text-[15px] text-muted" style="--d:80ms">Přehled poptávek z webu a jejich stav.</p>
+  <p class="rv is-in mt-3 text-[15px] text-dust" style="--d:80ms">Přehled poptávek z webu a jejich stav.</p>
 
   <!-- ============================== WIDGETY ============================== -->
   <section aria-label="Souhrn" class="rv is-in mt-9 grid gap-4 sm:grid-cols-3" style="--d:160ms">
     <?php
     $widgets = [
-        ['key' => 'total',     'label' => 'Celkem poptávek', 'note' => 'Za celou dobu',   'accent' => 'text-cream'],
-        ['key' => 'nova',      'label' => 'Čeká na vyřízení','note' => 'Stav „Nová“',     'accent' => 'text-gold'],
+        ['key' => 'total',     'label' => 'Celkem poptávek', 'note' => 'Za celou dobu',   'accent' => 'text-chalk'],
+        ['key' => 'nova',      'label' => 'Čeká na vyřízení','note' => 'Stav „Nová“',     'accent' => 'text-flame'],
         ['key' => 'dokoncena', 'label' => 'Dokončené služby','note' => 'Hotové návštěvy', 'accent' => 'text-emerald-300'],
     ];
     foreach ($widgets as $w): ?>
       <article class="rounded-2xl border border-[color:var(--line)] bg-soot p-6">
-        <p class="text-[11px] uppercase tracking-widest2 text-muted"><?= e($w['label']) ?></p>
+        <p class="text-[11px] uppercase tracking-widest2 text-dust"><?= e($w['label']) ?></p>
         <p class="tnum mt-4 font-display text-5xl <?= $w['accent'] ?>" data-stat="<?= e($w['key']) ?>">
           <?= $stats[$w['key']] ?>
         </p>
-        <p class="mt-2 text-[13px] text-muted"><?= e($w['note']) ?></p>
+        <p class="mt-2 text-[13px] text-dust"><?= e($w['note']) ?></p>
       </article>
     <?php endforeach; ?>
   </section>
@@ -165,9 +165,9 @@ $adminName = $_SESSION['admin_name'] ?? 'Administrace';
     <form method="get" class="grid gap-5 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_auto] lg:items-end">
 
       <div>
-        <label for="f-status" class="block text-[11px] uppercase tracking-widest2 text-muted">Stav</label>
+        <label for="f-status" class="block text-[11px] uppercase tracking-widest2 text-dust">Stav</label>
         <select id="f-status" name="status"
-                class="mt-2 w-full rounded-lg border border-[color:var(--line)] bg-ash px-4 py-3 text-[16px] focus:border-gold focus:outline-none lg:text-[14px]">
+                class="mt-2 w-full rounded-lg border border-[color:var(--line)] bg-ash px-4 py-3 text-[16px] focus:border-flame focus:outline-none lg:text-[14px]">
           <option value="vse" <?= $filterStatus === 'vse' ? 'selected' : '' ?>>Všechny</option>
           <?php foreach (STATUSES as $key => $label): ?>
             <option value="<?= e($key) ?>" <?= $filterStatus === $key ? 'selected' : '' ?>><?= e($label) ?></option>
@@ -176,9 +176,9 @@ $adminName = $_SESSION['admin_name'] ?? 'Administrace';
       </div>
 
       <div>
-        <label for="f-service" class="block text-[11px] uppercase tracking-widest2 text-muted">Služba</label>
+        <label for="f-service" class="block text-[11px] uppercase tracking-widest2 text-dust">Služba</label>
         <select id="f-service" name="service"
-                class="mt-2 w-full rounded-lg border border-[color:var(--line)] bg-ash px-4 py-3 text-[16px] focus:border-gold focus:outline-none lg:text-[14px]">
+                class="mt-2 w-full rounded-lg border border-[color:var(--line)] bg-ash px-4 py-3 text-[16px] focus:border-flame focus:outline-none lg:text-[14px]">
           <option value="vse" <?= $filterService === 'vse' ? 'selected' : '' ?>>Všechny</option>
           <?php foreach (SERVICES as $key => $label): ?>
             <option value="<?= e($key) ?>" <?= $filterService === $key ? 'selected' : '' ?>><?= e($label) ?></option>
@@ -187,9 +187,9 @@ $adminName = $_SESSION['admin_name'] ?? 'Administrace';
       </div>
 
       <div>
-        <label for="f-sort" class="block text-[11px] uppercase tracking-widest2 text-muted">Řadit podle</label>
+        <label for="f-sort" class="block text-[11px] uppercase tracking-widest2 text-dust">Řadit podle</label>
         <select id="f-sort" name="sort"
-                class="mt-2 w-full rounded-lg border border-[color:var(--line)] bg-ash px-4 py-3 text-[16px] focus:border-gold focus:outline-none lg:text-[14px]">
+                class="mt-2 w-full rounded-lg border border-[color:var(--line)] bg-ash px-4 py-3 text-[16px] focus:border-flame focus:outline-none lg:text-[14px]">
           <option value="created_at"       <?= $sortKey === 'created_at' ? 'selected' : '' ?>>Data vytvoření</option>
           <option value="appointment_date" <?= $sortKey === 'appointment_date' ? 'selected' : '' ?>>Termínu návštěvy</option>
         </select>
@@ -198,7 +198,7 @@ $adminName = $_SESSION['admin_name'] ?? 'Administrace';
       <div class="flex flex-col gap-2 xs:flex-row">
         <input type="hidden" name="dir" id="f-dir" value="<?= $sortDir === 'ASC' ? 'asc' : 'desc' ?>">
         <button type="button" id="dir-toggle"
-                class="flex h-[48px] w-full items-center justify-center gap-2 rounded-lg border border-[color:var(--line)] bg-ash px-4 text-[13px] text-cream/80 transition-colors hover:border-gold xs:w-auto"
+                class="flex h-[48px] w-full items-center justify-center gap-2 rounded-lg border border-[color:var(--line)] bg-ash px-4 text-[13px] text-chalk/80 transition-colors hover:border-flame xs:w-auto"
                 aria-label="Přepnout směr řazení">
           <svg class="h-4 w-4 <?= $sortDir === 'ASC' ? 'rotate-180' : '' ?>" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
             <path d="M12 5v14M6 13l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/>
@@ -206,14 +206,14 @@ $adminName = $_SESSION['admin_name'] ?? 'Administrace';
           <?= $sortDir === 'ASC' ? 'Vzestupně' : 'Sestupně' ?>
         </button>
         <button type="submit"
-                class="h-[48px] w-full rounded-lg bg-gold px-6 text-[12px] uppercase tracking-widest2 text-night transition-colors hover:bg-goldlite xs:w-auto">
+                class="h-[48px] w-full rounded-lg bg-flame px-6 text-[12px] uppercase tracking-widest2 text-night transition-colors hover:bg-blush xs:w-auto">
           Použít
         </button>
       </div>
     </form>
 
     <?php if ($filterStatus !== 'vse' || $filterService !== 'vse'): ?>
-      <p class="mt-4 flex flex-wrap items-center gap-3 border-t border-[color:var(--line)] pt-4 text-[13px] text-muted">
+      <p class="mt-4 flex flex-wrap items-center gap-3 border-t border-[color:var(--line)] pt-4 text-[13px] text-dust">
         Aktivní filtr:
         <?php if ($filterStatus !== 'vse'): ?>
           <span class="rounded-full border border-[color:var(--line)] px-3 py-1"><?= e(STATUSES[$filterStatus]) ?></span>
@@ -221,24 +221,24 @@ $adminName = $_SESSION['admin_name'] ?? 'Administrace';
         <?php if ($filterService !== 'vse'): ?>
           <span class="rounded-full border border-[color:var(--line)] px-3 py-1"><?= e(SERVICES[$filterService]) ?></span>
         <?php endif; ?>
-        <a href="dashboard.php" class="inline-block py-2.5 text-gold underline underline-offset-4 hover:text-cream">Zrušit filtry</a>
+        <a href="dashboard.php" class="inline-block py-2.5 text-flame underline underline-offset-4 hover:text-chalk">Zrušit filtry</a>
       </p>
     <?php endif; ?>
   </section>
 
   <!-- ============================== TABULKA ============================== -->
   <section class="rv is-in mt-8" style="--d:320ms" aria-label="Seznam rezervací">
-    <p class="mb-4 text-[13px] text-muted">
+    <p class="mb-4 text-[13px] text-dust">
       Zobrazeno <span class="tnum"><?= count($bookings) ?></span> rezervací.
     </p>
 
     <?php if (!$bookings): ?>
       <div class="rounded-2xl border border-dashed border-[color:var(--line)] bg-soot px-6 py-16 text-center">
-        <svg class="mx-auto h-10 w-10 text-cream/20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true">
+        <svg class="mx-auto h-10 w-10 text-chalk/20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true">
           <rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 11h18"/>
         </svg>
         <p class="mt-5 font-display text-2xl">Zatím žádné rezervace</p>
-        <p class="mt-2 text-[14px] text-muted">
+        <p class="mt-2 text-[14px] text-dust">
           <?= ($filterStatus !== 'vse' || $filterService !== 'vse')
               ? 'Zkuste zrušit filtry — možná se schovaly.'
               : 'Jakmile někdo odešle formulář na webu, objeví se tady.' ?>
@@ -249,17 +249,17 @@ $adminName = $_SESSION['admin_name'] ?? 'Administrace';
       <div class="lg:overflow-hidden lg:rounded-2xl lg:border lg:border-[color:var(--line)] lg:bg-soot">
         <div class="lg:overflow-x-auto">
           <table class="rtable w-full text-left text-[14px] lg:min-w-[900px]">
-            <thead class="border-b border-[color:var(--line)] bg-ash text-[11px] uppercase tracking-widest2 text-muted">
+            <thead class="border-b border-[color:var(--line)] bg-ash text-[11px] uppercase tracking-widest2 text-dust">
               <tr>
                 <th scope="col" class="px-5 py-4 font-medium">Klient</th>
                 <th scope="col" class="px-5 py-4 font-medium">Služba</th>
                 <th scope="col" class="px-5 py-4 font-medium" <?= $sortKey === 'appointment_date' ? 'aria-sort="' . ($sortDir === 'ASC' ? 'ascending' : 'descending') . '"' : '' ?>>
                   <a href="<?= e(filter_url(['sort' => 'appointment_date', 'dir' => ($sortKey === 'appointment_date' && $sortDir === 'ASC') ? 'desc' : 'asc'])) ?>"
-                     class="hover:text-cream">Termín</a>
+                     class="hover:text-chalk">Termín</a>
                 </th>
                 <th scope="col" class="px-5 py-4 font-medium" <?= $sortKey === 'created_at' ? 'aria-sort="' . ($sortDir === 'ASC' ? 'ascending' : 'descending') . '"' : '' ?>>
                   <a href="<?= e(filter_url(['sort' => 'created_at', 'dir' => ($sortKey === 'created_at' && $sortDir === 'ASC') ? 'desc' : 'asc'])) ?>"
-                     class="hover:text-cream">Vytvořeno</a>
+                     class="hover:text-chalk">Vytvořeno</a>
                 </th>
                 <th scope="col" class="px-5 py-4 font-medium">Stav</th>
                 <th scope="col" class="px-5 py-4 text-right font-medium">Akce</th>
@@ -279,32 +279,32 @@ $adminName = $_SESSION['admin_name'] ?? 'Administrace';
                     <p class="text-[15px] font-medium lg:text-[14px]"><?= e($b['name']) ?></p>
                     <p class="mt-1">
                       <a href="tel:<?= e($telNo) ?>"
-                         class="tnum inline-block py-3 text-cream/80 underline-offset-4 hover:text-gold hover:underline lg:py-0"><?= e($b['phone']) ?></a>
+                         class="tnum inline-block py-3 text-chalk/80 underline-offset-4 hover:text-flame hover:underline lg:py-0"><?= e($b['phone']) ?></a>
                     </p>
                     <?php if (!empty($b['email'])): ?>
                       <p class="mt-0.5 break-all">
-                        <a href="mailto:<?= e($b['email']) ?>" class="inline-block py-3 text-muted underline-offset-4 hover:text-gold hover:underline lg:py-0"><?= e($b['email']) ?></a>
+                        <a href="mailto:<?= e($b['email']) ?>" class="inline-block py-3 text-dust underline-offset-4 hover:text-flame hover:underline lg:py-0"><?= e($b['email']) ?></a>
                       </p>
                     <?php endif; ?>
                     <?php if (!empty($b['note'])): ?>
                       <details class="mt-2 lg:max-w-xs">
-                        <summary class="inline-flex min-h-[44px] cursor-pointer items-center py-1 text-[12px] uppercase tracking-widest2 text-muted hover:text-gold lg:min-h-0">Poznámka</summary>
-                        <p class="mt-2 whitespace-pre-line break-words rounded-lg bg-ash px-3 py-2 text-[13px] leading-relaxed text-cream/80"><?= e($b['note']) ?></p>
+                        <summary class="inline-flex min-h-[44px] cursor-pointer items-center py-1 text-[12px] uppercase tracking-widest2 text-dust hover:text-flame lg:min-h-0">Poznámka</summary>
+                        <p class="mt-2 whitespace-pre-line break-words rounded-lg bg-ash px-3 py-2 text-[13px] leading-relaxed text-chalk/80"><?= e($b['note']) ?></p>
                       </details>
                     <?php endif; ?>
                   </td>
 
                   <!-- Služba -->
-                  <td data-label="Služba" class="text-cream/85 lg:px-5 lg:py-5"><?= e(SERVICES[$b['service']] ?? $b['service']) ?></td>
+                  <td data-label="Služba" class="text-chalk/85 lg:px-5 lg:py-5"><?= e(SERVICES[$b['service']] ?? $b['service']) ?></td>
 
                   <!-- Termín -->
                   <td data-label="Termín" class="tnum lg:px-5 lg:py-5">
                     <span class="font-medium"><?= e($d->format('j. n. Y')) ?></span>
-                    <span class="text-muted lg:mt-1 lg:block"><?= e($d->format('H:i')) ?></span>
+                    <span class="text-dust lg:mt-1 lg:block"><?= e($d->format('H:i')) ?></span>
                   </td>
 
                   <!-- Vytvořeno -->
-                  <td data-label="Vytvořeno" class="tnum text-muted lg:px-5 lg:py-5"><?= e($c->format('j. n. Y H:i')) ?></td>
+                  <td data-label="Vytvořeno" class="tnum text-dust lg:px-5 lg:py-5"><?= e($c->format('j. n. Y H:i')) ?></td>
 
                   <!-- Stav -->
                   <td data-label="Stav" class="lg:px-5 lg:py-5">
@@ -320,14 +320,14 @@ $adminName = $_SESSION['admin_name'] ?? 'Administrace';
 
                       <label class="sr-only" for="status-<?= (int) $b['id'] ?>">Změnit stav rezervace <?= e($b['name']) ?></label>
                       <select id="status-<?= (int) $b['id'] ?>" data-status-select="<?= (int) $b['id'] ?>"
-                              class="h-11 min-w-0 flex-1 rounded-lg border border-[color:var(--line)] bg-ash px-3 text-[16px] transition-colors focus:border-gold focus:outline-none lg:h-auto lg:flex-none lg:py-2.5 lg:text-[13px]">
+                              class="h-11 min-w-0 flex-1 rounded-lg border border-[color:var(--line)] bg-ash px-3 text-[16px] transition-colors focus:border-flame focus:outline-none lg:h-auto lg:flex-none lg:py-2.5 lg:text-[13px]">
                         <?php foreach (STATUSES as $key => $label): ?>
                           <option value="<?= e($key) ?>" <?= $b['status'] === $key ? 'selected' : '' ?>><?= e($label) ?></option>
                         <?php endforeach; ?>
                       </select>
 
                       <a href="tel:<?= e($telNo) ?>"
-                         class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-[color:var(--line)] text-muted transition-colors hover:border-gold hover:text-gold"
+                         class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-[color:var(--line)] text-dust transition-colors hover:border-flame hover:text-flame"
                          aria-label="Zavolat klientovi <?= e($b['name']) ?>" title="Zavolat">
                         <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
                           <path d="M6.6 3h3l1.5 4-2 1.4a12 12 0 0 0 5.5 5.5l1.4-2 4 1.5v3a2 2 0 0 1-2.2 2A16.5 16.5 0 0 1 4.6 5.2 2 2 0 0 1 6.6 3Z" stroke-linejoin="round"/>
@@ -337,7 +337,7 @@ $adminName = $_SESSION['admin_name'] ?? 'Administrace';
                       <button type="button"
                               data-delete="<?= (int) $b['id'] ?>"
                               data-name="<?= e($b['name']) ?>"
-                              class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-[color:var(--line)] text-muted transition-colors hover:border-red-300/60 hover:bg-red-400/10 hover:text-red-200"
+                              class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-[color:var(--line)] text-dust transition-colors hover:border-red-300/60 hover:bg-red-400/10 hover:text-red-200"
                               aria-label="Smazat rezervaci <?= e($b['name']) ?>" title="Smazat">
                         <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
                           <path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13M10 11v6M14 11v6" stroke-linecap="round" stroke-linejoin="round"/>
@@ -356,8 +356,8 @@ $adminName = $_SESSION['admin_name'] ?? 'Administrace';
 
   <!-- Odkazy skryté v hlavičce na malých displejích -->
   <nav class="mt-10 flex flex-wrap gap-3 border-t border-[color:var(--line)] pt-6 sm:hidden" aria-label="Další odkazy">
-    <a href="setup.php" class="rounded-full border border-[color:var(--line)] px-4 py-3 text-[12px] uppercase tracking-widest2 text-cream/80">Změnit heslo</a>
-    <a href="../index.php" target="_blank" rel="noopener" class="rounded-full border border-[color:var(--line)] px-4 py-3 text-[12px] uppercase tracking-widest2 text-cream/80">Zobrazit web</a>
+    <a href="setup.php" class="rounded-full border border-[color:var(--line)] px-4 py-3 text-[12px] uppercase tracking-widest2 text-chalk/80">Změnit heslo</a>
+    <a href="../index.php" target="_blank" rel="noopener" class="rounded-full border border-[color:var(--line)] px-4 py-3 text-[12px] uppercase tracking-widest2 text-chalk/80">Zobrazit web</a>
   </nav>
 </main>
 
@@ -368,14 +368,14 @@ $adminName = $_SESSION['admin_name'] ?? 'Administrace';
 
   <div class="relative w-full max-w-md rounded-2xl border border-[color:var(--line)] bg-soot p-6 shadow-2xl sm:p-7">
     <h2 id="delete-title" class="font-display text-2xl">Smazat rezervaci?</h2>
-    <p class="mt-3 text-[15px] leading-relaxed text-cream/80">
-      Rezervace klienta <strong id="delete-name" class="text-cream"></strong> bude trvale odstraněna.
+    <p class="mt-3 text-[15px] leading-relaxed text-chalk/80">
+      Rezervace klienta <strong id="delete-name" class="text-chalk"></strong> bude trvale odstraněna.
       Tuto akci nelze vrátit zpět.
     </p>
 
     <div class="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
       <button type="button" data-modal-close
-              class="rounded-full border border-[color:var(--line)] px-6 py-3.5 text-[12px] uppercase tracking-widest2 text-cream/80 transition-colors hover:border-cream/40 hover:text-cream">
+              class="rounded-full border border-[color:var(--line)] px-6 py-3.5 text-[12px] uppercase tracking-widest2 text-chalk/80 transition-colors hover:border-chalk/40 hover:text-chalk">
         Zrušit
       </button>
       <button type="button" id="delete-confirm"
@@ -399,9 +399,9 @@ $adminName = $_SESSION['admin_name'] ?? 'Administrace';
 
   const STATUS_LABELS = <?= json_encode(STATUSES, JSON_UNESCAPED_UNICODE) ?>;
   const STATUS_CLASSES = {
-    nova:      'bg-gold/15 text-goldlite border-gold/45',
+    nova:      'bg-flame/15 text-blush border-flame/45',
     potvrzena: 'bg-emerald-400/12 text-emerald-200 border-emerald-300/30',
-    dokoncena: 'bg-cream/10 text-cream/80 border-cream/25',
+    dokoncena: 'bg-chalk/10 text-chalk/80 border-chalk/25',
     zrusena:   'bg-red-400/12 text-red-200 border-red-300/30',
   };
 

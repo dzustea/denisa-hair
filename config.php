@@ -163,7 +163,7 @@ const SESSION_TTL = 7200;   // 2 hodiny
 /**
  * Ukládání session do tabulky `sessions`.
  */
-final class DbSessionHandler implements SessionHandlerInterface
+final class DbSessionHandler implements SessionHandlerInterface, SessionUpdateTimestampHandlerInterface
 {
     public function open(string $path, string $name): bool
     {
@@ -187,20 +187,56 @@ final class DbSessionHandler implements SessionHandlerInterface
 
     public function write(string $id, string $data): bool
     {
-        // UPSERT — jeden dotaz místo SELECT + INSERT/UPDATE
+        // Expiraci počítáme v PHP a posíláme jako hotové datum.
+        // Zástupný symbol uvnitř `INTERVAL ? SECOND` některé servery
+        // (mimo jiné TiDB) v prepared statementu neberou.
+        //
+        // Placeholdery se nesmí opakovat, protože máme vypnutou emulaci —
+        // proto jsou hodnoty svázané dvakrát pod různými jmény.
+        // Vyhýbáme se i funkci VALUES(), která je v MySQL 8.0.20+ zastaralá.
         $stmt = db()->prepare(
             'INSERT INTO sessions (id, payload, expires_at)
-             VALUES (:id, :payload, DATE_ADD(NOW(), INTERVAL :ttl SECOND))
+             VALUES (:id, :payload, :expires)
              ON DUPLICATE KEY UPDATE
-                payload    = VALUES(payload),
-                expires_at = VALUES(expires_at)'
+                payload    = :payload2,
+                expires_at = :expires2'
         );
 
+        $expires = date('Y-m-d H:i:s', time() + SESSION_TTL);
+
         return $stmt->execute([
-            ':id'      => $id,
-            ':payload' => $data,
-            ':ttl'     => SESSION_TTL,
+            ':id'       => $id,
+            ':payload'  => $data,
+            ':expires'  => $expires,
+            ':payload2' => $data,
+            ':expires2' => $expires,
         ]);
+    }
+
+    /**
+     * Existuje session s tímto ID?
+     *
+     * Bez tohoto rozhraní by `session.use_strict_mode` neměl jak zjistit,
+     * jestli je ID platné, a PHP by ho zbytečně přegenerovávalo.
+     */
+    public function validateId(string $id): bool
+    {
+        $stmt = db()->prepare(
+            'SELECT 1 FROM sessions WHERE id = :id AND expires_at > NOW()'
+        );
+        $stmt->execute([':id' => $id]);
+
+        return (bool) $stmt->fetchColumn();
+    }
+
+    /** Posune expiraci, když se obsah session nezměnil. */
+    public function updateTimestamp(string $id, string $data): bool
+    {
+        return db()->prepare('UPDATE sessions SET expires_at = :e WHERE id = :id')
+                   ->execute([
+                       ':e'  => date('Y-m-d H:i:s', time() + SESSION_TTL),
+                       ':id' => $id,
+                   ]);
     }
 
     public function destroy(string $id): bool

@@ -115,6 +115,28 @@ try {
         }
     }
 
+    echo "\nSESSION (kvůli přihlášení do administrace)\n";
+    try {
+        start_session();
+        $_SESSION['health_check'] = 'test-' . time();
+        session_write_close();
+
+        // Načteme ji znovu — tím ověříme zápis i čtení.
+        start_session();
+        $ok = ($_SESSION['health_check'] ?? '') !== '';
+
+        echo "  zápis a čtení: " . ($ok ? 'FUNGUJE' : 'SELHALO (zapsalo se, ale nepřečetlo)') . "\n";
+        echo "  session ID:    " . substr(session_id(), 0, 8) . "…\n";
+
+        unset($_SESSION['health_check']);
+        session_write_close();
+    } catch (Throwable $e) {
+        echo "  zápis a čtení: SELHALO\n";
+        echo "  hláška:        " . mask($e->getMessage()) . "\n";
+        echo "\n  Tohle je přesně důvod, proč nejde přihlášení — bez funkční\n";
+        echo "  session neprojde ani kontrola CSRF tokenu ve formuláři.\n";
+    }
+
     echo "\nVŠE V POŘÁDKU. Smaž prosím health.php.\n";
 
 } catch (PDOException $e) {
