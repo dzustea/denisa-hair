@@ -9,6 +9,20 @@
 declare(strict_types=1);
 
 /* ------------------------------------------------------------------
+ * 0) Hlášení chyb — musí být úplně první
+ *
+ * Když PHP vypíše notice nebo deprecation přímo do stránky, odejdou
+ * hlavičky dřív, než je stihneme nastavit, a rozbije to i JSON odpovědi.
+ * Na produkci proto chyby jen logujeme; zapnout je jde přes env
+ * APP_DEBUG=1 (na Vercelu v Settings → Environment Variables).
+ * ------------------------------------------------------------------ */
+define('APP_DEBUG', filter_var(getenv('APP_DEBUG') ?: '0', FILTER_VALIDATE_BOOL));
+
+error_reporting(E_ALL);
+ini_set('display_errors', APP_DEBUG ? '1' : '0');
+ini_set('log_errors', '1');
+
+/* ------------------------------------------------------------------
  * 1) Nastavení databáze
  *
  * Přednost mají proměnné prostředí (env) — díky tomu nejsou hesla
@@ -25,22 +39,22 @@ define('DB_CHARSET', 'utf8mb4');
 /**
  * Cesta k CA certifikátu pro šifrované spojení.
  * Prázdný řetězec = bez TLS (lokální XAMPP).
- * Cloudové databáze TLS vyžadují — přibalený cert pokrývá TiDB Cloud
- * i většinu ostatních (Let's Encrypt ISRG Root X1).
+ *
+ * Přibalený `certs/cacert.pem` je kompletní balík kořenových autorit
+ * od Mozilly, takže sedí na TiDB Cloud, Aiven i cokoli dalšího —
+ * nezáleží na tom, kdo databázi certifikát vydal.
  */
 define('DB_SSL_CA', getenv('DB_SSL_CA') !== false
     ? (string) getenv('DB_SSL_CA')
     : (DB_HOST === 'localhost' || DB_HOST === '127.0.0.1'
         ? ''
-        : __DIR__ . '/certs/isrgrootx1.pem'));
+        : __DIR__ . '/certs/cacert.pem'));
 
 /* ------------------------------------------------------------------
  * 2) Obecné nastavení
  * ------------------------------------------------------------------ */
 const APP_NAME = 'Denisa Hair';
 const APP_TZ   = 'Europe/Prague';
-/** Zobrazovat detailní chyby? Na produkci nastav na false. */
-const APP_DEBUG = false;
 
 date_default_timezone_set(APP_TZ);
 
@@ -70,20 +84,44 @@ function db(): PDO
     // Cloudové databáze (TiDB Cloud, Aiven, …) vyžadují TLS.
     // Certifikát je přibalený v repozitáři, cestu lze přepsat přes env.
     if (DB_SSL_CA !== '' && is_readable(DB_SSL_CA)) {
-        $options[PDO::MYSQL_ATTR_SSL_CA] = DB_SSL_CA;
+        // PHP 8.5 přejmenovalo konstanty ovladače z PDO::MYSQL_ATTR_*
+        // na Pdo\Mysql::ATTR_*. Bereme novou, když existuje.
+        $options[
+            defined('Pdo\Mysql::ATTR_SSL_CA')
+                ? constant('Pdo\Mysql::ATTR_SSL_CA')
+                : PDO::MYSQL_ATTR_SSL_CA
+        ] = DB_SSL_CA;
     }
 
     try {
         $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
     } catch (PDOException $e) {
-        http_response_code(500);
-        if (APP_DEBUG) {
-            exit('Chyba připojení k databázi: ' . $e->getMessage());
-        }
-        exit('Databáze je momentálně nedostupná. Zkuste to prosím později.');
+        error_log('[db] ' . $e->getMessage());
+        db_fail('Databáze je momentálně nedostupná. Zkuste to prosím později.', $e);
     }
 
     return $pdo;
+}
+
+/**
+ * Ukončí požadavek hláškou o nedostupné databázi.
+ *
+ * Hlavičky nastavuje jen pokud ještě neodešly — jinak by PHP vypsalo
+ * další warning přes už rozeslaný výstup.
+ */
+function db_fail(string $message, ?Throwable $e = null): never
+{
+    if (!headers_sent()) {
+        http_response_code(500);
+        header('Content-Type: text/html; charset=utf-8');
+    }
+
+    if (APP_DEBUG && $e !== null) {
+        exit('Chyba připojení k databázi: '
+            . htmlspecialchars($e->getMessage(), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
+    }
+
+    exit($message);
 }
 
 /* ------------------------------------------------------------------

@@ -49,7 +49,7 @@ s `password_verify()`.
 
 ### Požadavky
 
-- PHP 8.0+ s rozšířeními `pdo_mysql` a `mbstring`
+- PHP 8.1+ s rozšířeními `pdo_mysql` a `mbstring`
 - MySQL 5.7+ / MariaDB 10.3+ (nebo TiDB Cloud)
 
 ---
@@ -84,7 +84,7 @@ V projektu → **Settings → Environment Variables**:
 | `DB_USER` | `xxxxx.root` |
 | `DB_PASS` | heslo z TiDB Cloud |
 
-TLS se zapne samo — CA certifikát je v `certs/isrgrootx1.pem` a `config.php`
+TLS se zapne samo — CA balík je v `certs/cacert.pem` a `config.php`
 ho použije, jakmile `DB_HOST` není `localhost`.
 
 ### 3. Deploy
@@ -103,6 +103,26 @@ Preset nech na **Other**, build command prázdný. `vercel.json` udělá zbytek.
   zkontroluj aktuální číslo v jeho README a uprav `vercel.json`.
 - Kdyby to zlobilo, klasický PHP hosting spolkne tenhle projekt bez jediné
   změny kódu — stačí FTP a import `schema.sql`.
+
+### Když se objeví „Databáze je momentálně nedostupná“
+
+Skutečná chyba se na produkci schválně nevypisuje. Zapneš ji dočasně:
+
+1. Na Vercelu přidej proměnnou `APP_DEBUG` = `1`.
+2. **Redeploy** — proměnné prostředí se propíšou až do nového nasazení,
+   u běžícího se nezmění. To je nejčastější důvod, proč to „pořád nejde“.
+3. Načti stránku; místo obecné hlášky uvidíš konkrétní chybu z PDO.
+4. Po vyřešení `APP_DEBUG` zase smaž nebo dej `0`.
+
+Co ta hláška typicky znamená:
+
+| Text chyby | Příčina |
+|---|---|
+| `Unknown database 'denisa_hair'` | `schema.sql` se nespustil celý, nebo tabulky vznikly v jiné databázi (na TiDB často `test`). Zkontroluj `DB_NAME`. |
+| `Access denied for user` | Špatné `DB_USER` / `DB_PASS`. Uživatel na TiDB má tvar `xxxxx.root`. |
+| `SSL connection error` / `certificate verify failed` | Nenašel se `certs/cacert.pem`. Cestu lze přebít proměnnou `DB_SSL_CA`. |
+| `Connection refused` / timeout | Špatný `DB_HOST` nebo `DB_PORT` (TiDB jede na **4000**, ne 3306). |
+| `Table 'sessions' doesn't exist` | Ze `schema.sql` neproběhla část s tabulkou `sessions`. Doplň ji. |
 
 ---
 
