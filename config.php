@@ -9,14 +9,39 @@
 declare(strict_types=1);
 
 /* ------------------------------------------------------------------
- * 0) Hlášení chyb — musí být úplně první
+ * 0) Čtení proměnných prostředí
+ *
+ * Nespoléháme jen na getenv(). Podle nastavení `variables_order` a podle
+ * konkrétního hostingu (serverless runtime, FPM, CLI) bývá proměnná
+ * dostupná jen v některém z těch tří míst — projdeme je proto všechna.
+ * ------------------------------------------------------------------ */
+function env(string $key, ?string $default = null): ?string
+{
+    $value = getenv($key);
+
+    if ($value === false && array_key_exists($key, $_ENV)) {
+        $value = $_ENV[$key];
+    }
+    if ($value === false && array_key_exists($key, $_SERVER)) {
+        $value = $_SERVER[$key];
+    }
+
+    if ($value === false || $value === null || $value === '') {
+        return $default;
+    }
+
+    return (string) $value;
+}
+
+/* ------------------------------------------------------------------
+ * 0b) Hlášení chyb — musí být hned na začátku
  *
  * Když PHP vypíše notice nebo deprecation přímo do stránky, odejdou
  * hlavičky dřív, než je stihneme nastavit, a rozbije to i JSON odpovědi.
  * Na produkci proto chyby jen logujeme; zapnout je jde přes env
  * APP_DEBUG=1 (na Vercelu v Settings → Environment Variables).
  * ------------------------------------------------------------------ */
-define('APP_DEBUG', filter_var(getenv('APP_DEBUG') ?: '0', FILTER_VALIDATE_BOOL));
+define('APP_DEBUG', filter_var(env('APP_DEBUG', '0'), FILTER_VALIDATE_BOOL));
 
 error_reporting(E_ALL);
 ini_set('display_errors', APP_DEBUG ? '1' : '0');
@@ -29,11 +54,11 @@ ini_set('log_errors', '1');
  * v gitu a na hostingu se nastaví přes jeho panel. Když env chybí,
  * použijí se hodnoty za `?:`, což je pohodlné pro lokální XAMPP.
  * ------------------------------------------------------------------ */
-define('DB_HOST',    getenv('DB_HOST')    ?: 'localhost');
-define('DB_NAME',    getenv('DB_NAME')    ?: 'denisa_hair');
-define('DB_USER',    getenv('DB_USER')    ?: 'root');
-define('DB_PASS',    getenv('DB_PASS')    ?: '');
-define('DB_PORT',    getenv('DB_PORT')    ?: '3306');
+define('DB_HOST',    env('DB_HOST', 'localhost'));
+define('DB_NAME',    env('DB_NAME', 'denisa_hair'));
+define('DB_USER',    env('DB_USER', 'root'));
+define('DB_PASS',    env('DB_PASS', ''));
+define('DB_PORT',    env('DB_PORT', '3306'));
 define('DB_CHARSET', 'utf8mb4');
 
 /**
@@ -44,9 +69,8 @@ define('DB_CHARSET', 'utf8mb4');
  * od Mozilly, takže sedí na TiDB Cloud, Aiven i cokoli dalšího —
  * nezáleží na tom, kdo databázi certifikát vydal.
  */
-define('DB_SSL_CA', getenv('DB_SSL_CA') !== false
-    ? (string) getenv('DB_SSL_CA')
-    : (DB_HOST === 'localhost' || DB_HOST === '127.0.0.1'
+define('DB_SSL_CA', env('DB_SSL_CA')
+    ?? (DB_HOST === 'localhost' || DB_HOST === '127.0.0.1'
         ? ''
         : __DIR__ . '/certs/cacert.pem'));
 

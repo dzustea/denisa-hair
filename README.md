@@ -13,6 +13,7 @@ HTML5 · Tailwind CSS · Vanilla JS (fetch) · PHP 8 · MySQL (PDO)
 ├── index.php             veřejný web + rezervační formulář
 ├── process-booking.php   AJAX endpoint pro odeslání rezervace
 ├── schema.sql            inicializace databáze
+├── health.php            dočasná diagnostika nasazení (po zprovoznění smaž)
 ├── assets/img/           místo pro fotky (galerie, portrét)
 └── admin/
     ├── _head.php         sdílená <head> část administrace (fonty, motiv, CSS)
@@ -106,7 +107,14 @@ Preset nech na **Other**, build command prázdný. `vercel.json` udělá zbytek.
 
 ### Když se objeví „Databáze je momentálně nedostupná“
 
-Skutečná chyba se na produkci schválně nevypisuje. Zapneš ji dočasně:
+Otevři **`/health.php`**. Vypíše, které proměnné prostředí se k PHP dostaly
+(jen „nastaveno / chybí“, nikdy hodnoty), jestli sedí cesta k certifikátu,
+a hlavně konkrétní chybu z PDO i s vysvětlením, co znamená. Hlášky mají obsah
+v uvozovkách zamaskovaný, aby neunikl uživatel ani host.
+
+**Až web pojede, `health.php` smaž** — je veřejně přístupný.
+
+Druhá možnost je zapnout výpis chyb v celé aplikaci:
 
 1. Na Vercelu přidej proměnnou `APP_DEBUG` = `1`.
 2. **Redeploy** — proměnné prostředí se propíšou až do nového nasazení,
