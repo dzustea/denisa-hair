@@ -12,13 +12,11 @@
   ],
   "routes": [
     {
-      "//": "Písma a obrázky se nemění — necháme je viset v cache rok. Kdyby bylo potřeba je vyměnit, dostanou nové jméno souboru.",
       "src": "/assets/(fonts|img)/(.*)",
       "headers": { "Cache-Control": "public, max-age=31536000, immutable" },
       "continue": true
     },
     {
-      "//": "Stylopisy se vkládají přímo do stránky, tohle je jen pro případ přímého přístupu.",
       "src": "/assets/(.*)\\.(css|js)",
       "headers": { "Cache-Control": "public, max-age=3600" },
       "continue": true
