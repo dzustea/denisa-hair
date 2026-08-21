@@ -423,8 +423,10 @@ $pageTitle = 'Rezervace';
 (() => {
   'use strict';
 
-  // JSON_HEX_TAG a spol.: kdyby se do dat kdy dostalo </script>,
-  // neukončí to blok a nevystoupí z řetězce.
+  // JSON_HEX_TAG a spol.: kdyby se do dat dostala ukončovací značka
+  // skriptu, projde jako neškodná escape sekvence — neukončí blok
+  // a nevystoupí z řetězce. (Tu značku sem schválně nepíšu doslova:
+  // HTML parser si jí všimne i uvnitř komentáře a skript by tu skončil.)
   const CSRF   = <?= json_encode($csrf, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
   const LABELS = <?= json_encode(STATUSES, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
 
