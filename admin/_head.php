@@ -10,17 +10,14 @@ declare(strict_types=1);
 
 $pageTitle = $pageTitle ?? 'Administrace';
 
-// Stejná dvojice písem jako na webu: serif na velké nadpisy,
-// geometrický bezpatkový na data a čísla.
-$fontHref = 'https://fonts.googleapis.com/css2'
-          . '?family=Cormorant+Garamond:wght@300;400;500;600'
-          . '&family=Jost:wght@300;400;500;600'
-          . '&display=swap';
 ?>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title><?= e($pageTitle) ?> — Denisa Hair</title>
 <meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../assets/img/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../assets/img/favicon-180.png">
 <meta name="theme-color" content="#F1EBE1" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#15100C" media="(prefers-color-scheme: dark)">
 
@@ -37,11 +34,11 @@ $fontHref = 'https://fonts.googleapis.com/css2'
 })();
 </script>
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="../assets/app.css">
-<link rel="stylesheet" href="<?= e($fontHref) ?>" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="<?= e($fontHref) ?>"></noscript>
+<link rel="preload" href="../assets/fonts/jost-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/cormorant-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+
+<!-- Styly rovnou v HTML, ať se administrace otevře bez čekání. -->
+<style><?= inline_css('fonts.css', '../assets') ?><?= inline_css('app.css') ?></style>
 
 <style>
   /* ---------- Lišta administrace ---------- */
@@ -53,6 +50,7 @@ $fontHref = 'https://fonts.googleapis.com/css2'
     padding-top: env(safe-area-inset-top);
   }
   .abar__inner { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); min-height: 60px; }
+  .abar__name { white-space: nowrap; }
   .abar__brand { display: inline-flex; align-items: center; gap: var(--s3); }
   .abar__mark {
     display: grid; place-items: center;
@@ -81,28 +79,41 @@ $fontHref = 'https://fonts.googleapis.com/css2'
   }
   .ahead__meta strong { color: var(--text); font-weight: 500; font-variant-numeric: tabular-nums; }
 
-  /* ---------- Souhrn: samostatné bílé karty na krémovém pozadí ---------- */
-  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s3); }
-  @media (min-width: 640px) { .stats { gap: var(--s4); } }
+  /* ---------- Souhrn: samostatné bílé karty na krémovém pozadí ----------
+     Na nejužších telefonech se tři karty vedle sebe nevejdou — popisek
+     „Dokončené“ je širší než sloupec a mřížka přetekla. Pod 440 px se
+     proto překlopí na řádky: popisek vlevo, číslo vpravo. */
+  .stats { display: grid; grid-template-columns: 1fr; gap: var(--s2); }
   .stat {
     background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md);
-    padding: var(--s4) var(--s4) var(--s5);
+    padding: var(--s4) var(--s5);
+    display: flex; align-items: baseline; justify-content: space-between; gap: var(--s4);
     transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
   }
-  @media (min-width: 640px) { .stat { padding: var(--s6); } }
   .stat:hover { border-color: var(--gold); box-shadow: var(--sh-1); }
   .stat__l {
-    display: block;
     font-size: var(--t-micro); font-weight: 500;
     letter-spacing: var(--track); text-transform: uppercase; color: var(--text-3);
   }
   .stat__n {
-    display: block; margin-top: var(--s4);
-    font-size: 2.125rem; font-weight: 300; line-height: 1; letter-spacing: -.03em;
+    font-size: 1.75rem; font-weight: 300; line-height: 1; letter-spacing: -.03em;
     font-variant-numeric: tabular-nums; color: var(--text);
   }
-  @media (min-width: 640px) { .stat__n { font-size: 3rem; } }
-  .stat__rule { display: block; width: 26px; height: 1px; margin-top: var(--s4); background: var(--line); }
+  .stat__rule { display: none; }
+
+  @media (min-width: 440px) {
+    /* minmax(0, 1fr), ne 1fr — jinak sloupec nejde zúžit pod obsah. */
+    .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s3); }
+    .stat { display: block; padding: var(--s4) var(--s4) var(--s5); }
+    .stat__l { display: block; }
+    .stat__n { display: block; margin-top: var(--s4); font-size: 2.125rem; }
+    .stat__rule { display: block; width: 26px; height: 1px; margin-top: var(--s4); background: var(--line); }
+  }
+  @media (min-width: 640px) {
+    .stats { gap: var(--s4); }
+    .stat { padding: var(--s6); }
+    .stat__n { font-size: 3rem; }
+  }
   .stat--nova .stat__rule { background: var(--gold); }
   .stat--done .stat__rule { background: var(--ok); }
 

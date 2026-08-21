@@ -91,12 +91,13 @@ if (!is_valid_slot($time)) {
     $time = substr($time, 0, 5) . ':00';
 }
 
-// Uplynulé hodiny dnešního dne. Slot je obsazený až do svého konce,
-// takže v 14:30 už nelze objednat blok 14:00–15:00.
+// Uplynulé hodiny dnešního dne. Objednat se dá jen na slot, který ještě
+// nezačal — v 10:15 je blok 10:00–11:00 pryč a nejbližší volný je
+// 11:00–12:00. Kalendář to hlídá taky, tohle je pojistka na serveru.
 if (!isset($errors['appointment_date']) && !isset($errors['appointment_time'])) {
-    $slotEnd = new DateTimeImmutable($date . ' ' . slot_end(substr($time, 0, 5)));
-    if ($slotEnd <= new DateTimeImmutable('now')) {
-        $errors['appointment_time'] = 'Tento čas už proběhl. Vyberte prosím jiný.';
+    $slotStart = new DateTimeImmutable($date . ' ' . substr($time, 0, 5));
+    if ($slotStart <= new DateTimeImmutable('now')) {
+        $errors['appointment_time'] = 'Tento čas už začal. Vyberte prosím pozdější.';
     }
 }
 

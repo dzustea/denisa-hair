@@ -322,6 +322,9 @@ strong, b { font-weight: 500; color: var(--text); }
   margin-inline: auto;
   padding-inline: var(--s5);
 }
+/* Na úzkých telefonech je každý pixel šířky znát — hlavně v kalendáři,
+   kde se sedm sloupců musí vejít vedle sebe. */
+@media (max-width: 479.98px) { .wrap { padding-inline: var(--s4); } }
 @media (min-width: 768px)  { .wrap { padding-inline: var(--s8); } }
 @media (min-width: 1200px) { .wrap { padding-inline: var(--s10); } }
 
@@ -412,10 +415,11 @@ strong, b { font-weight: 500; color: var(--text); }
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--r-md);
-  padding: var(--s6);
+  padding: var(--s5);
   transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease),
               transform var(--dur) var(--ease);
 }
+@media (min-width: 480px) { .card { padding: var(--s6); } }
 @media (min-width: 768px) { .card { padding: var(--s8); } }
 
 /* Karta, která reaguje na najetí — jen tam, kde na ni jde kliknout */
@@ -506,7 +510,7 @@ strong, b { font-weight: 500; color: var(--text); }
   padding-block: var(--s4);
 }
 .price__row + .price__row { border-top: 1px solid var(--hairline); }
-.price__name { font-size: var(--t-body); }
+.price__name { min-width: 0; font-size: var(--t-body); overflow-wrap: break-word; }
 .price__note { display: block; margin-top: 2px; font-size: var(--t-caption); color: var(--text-2); }
 .price__dots { flex: 1 1 auto; min-width: var(--s5); border-bottom: 1px dotted var(--line); translate: 0 -5px; }
 .price__value {
@@ -608,8 +612,9 @@ strong, b { font-weight: 500; color: var(--text); }
   background: var(--surface-2);
   border: 1px solid var(--line);
   border-radius: var(--r-md);
-  padding: var(--s5);
+  padding: var(--s4);
 }
+@media (min-width: 480px) { .cal { padding: var(--s5); } }
 @media (min-width: 640px) { .cal { padding: var(--s6); } }
 
 .cal__head { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); }
@@ -629,7 +634,10 @@ strong, b { font-weight: 500; color: var(--text); }
 .cal__nav[disabled] { opacity: .3; cursor: not-allowed; }
 .cal__nav svg { width: 16px; height: 16px; }
 
-.cal__week, .cal__grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+/* minmax(0, 1fr) — s pouhým 1fr by sloupec nešel zúžit pod obsah
+   a mřížka by na úzkém displeji přetekla. */
+.cal__week, .cal__grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
+@media (min-width: 480px) { .cal__week, .cal__grid { gap: 4px; } }
 .cal__week {
   margin-top: var(--s5); padding-bottom: var(--s3);
   border-bottom: 1px solid var(--line);
@@ -644,7 +652,7 @@ strong, b { font-weight: 500; color: var(--text); }
 .cal__day {
   display: flex; align-items: center; justify-content: center;
   min-height: 44px; border-radius: var(--r-sm);
-  font-size: var(--t-small); font-variant-numeric: tabular-nums;
+  font-size: var(--t-caption); font-variant-numeric: tabular-nums;
   background: var(--surface); border: 1px solid var(--line); color: var(--text);
   transition: background var(--dur) var(--ease), color var(--dur) var(--ease),
               border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
@@ -664,6 +672,8 @@ strong, b { font-weight: 500; color: var(--text); }
   font-weight: 500;
   box-shadow: inset 0 -2px 0 0 var(--gold);
 }
+
+@media (min-width: 480px) { .cal__day { font-size: var(--t-small); } }
 
 .cal__msg {
   grid-column: 1 / -1; padding-block: var(--s10);
@@ -743,8 +753,9 @@ strong, b { font-weight: 500; color: var(--text); }
   .table thead { display: none; }
   .table tr {
     background: var(--surface); border: 1px solid var(--line);
-    border-radius: var(--r-md); padding: var(--s5);
+    border-radius: var(--r-md); padding: var(--s4);
   }
+  @media (min-width: 480px) { .table tr { padding: var(--s5); } }
   .table tr + tr { margin-top: var(--s3); }
   .table tbody tr + tr td { border-top: 0; }
   .table td { padding: var(--s2) 0; }

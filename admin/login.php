@@ -1,6 +1,14 @@
 <?php
 /**
  * admin/login.php — přihlášení do administrace
+ *
+ * Zároveň je to jediné místo, kde se dá změnit heslo. Nikde v aplikaci
+ * proto není žádné tlačítko „Heslo“ — změna je nepovinná část
+ * přihlášení: kdo vyplní i pole s novým heslem, přihlásí se a heslo se
+ * mu rovnou přepíše. Kdo ho nechá prázdné, jen se přihlásí.
+ *
+ * Účty samotné nejsou v kódu. Zakládají se z proměnných prostředí,
+ * viz sync_admin_accounts() v config.php.
  */
 declare(strict_types=1);
 require __DIR__ . '/../config.php';
@@ -13,13 +21,25 @@ if (is_logged_in()) {
     exit;
 }
 
-$error = '';
+// Účty z prostředí srovnáme s databází dřív, než začneme ověřovat.
+// Je to pár řádků a odpadá tím jakýkoli instalační krok.
+try {
+    sync_admin_accounts(db());
+} catch (PDOException $e) {
+    error_log('[login] sync účtů: ' . $e->getMessage());
+}
+
+$error   = '';
+$notice  = '';
 $username = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $username = trim((string) ($_POST['username'] ?? ''));
     $password = (string) ($_POST['password'] ?? '');
+    $newPass  = (string) ($_POST['new_password'] ?? '');
+    $newPass2 = (string) ($_POST['new_password2'] ?? '');
+    $wantsChange = $newPass !== '' || $newPass2 !== '';
 
     // Jednoduché omezení počtu pokusů (5 pokusů / 10 minut na session)
     $attempts = $_SESSION['login_attempts'] ?? ['count' => 0, 'until' => 0];
@@ -30,12 +50,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Platnost formuláře vypršela. Zkuste to prosím znovu.';
     } elseif ($username === '' || $password === '') {
         $error = 'Vyplňte prosím jméno i heslo.';
+    } elseif ($wantsChange && mb_strlen($newPass) < 8) {
+        $error = 'Nové heslo musí mít alespoň 8 znaků.';
+    } elseif ($wantsChange && $newPass !== $newPass2) {
+        $error = 'Nová hesla se neshodují.';
+    } elseif ($wantsChange && $newPass === $password) {
+        $error = 'Nové heslo musí být jiné než stávající.';
     } else {
         $stmt = db()->prepare('SELECT id, username, password_hash, full_name FROM users WHERE username = :u LIMIT 1');
         $stmt->execute([':u' => $username]);
         $user = $stmt->fetch();
 
         if ($user && password_verify($password, $user['password_hash'])) {
+            // Heslo měníme až po ověření toho stávajícího — jinak by šlo
+            // cizí heslo přepsat pouhou znalostí jména.
+            if ($wantsChange) {
+                db()->prepare('UPDATE users SET password_hash = :h WHERE id = :id')
+                    ->execute([
+                        ':h'  => password_hash($newPass, PASSWORD_DEFAULT),
+                        ':id' => $user['id'],
+                    ]);
+            }
+
             // Úspěch — nová session ID proti fixaci
             session_regenerate_id(true);
             $_SESSION['admin_id']   = (int) $user['id'];
@@ -45,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             db()->prepare('UPDATE users SET last_login = NOW() WHERE id = :id')
                 ->execute([':id' => $user['id']]);
 
-            header('Location: dashboard.php');
+            header('Location: dashboard.php' . ($wantsChange ? '?heslo=zmeneno' : ''));
             exit;
         }
 
@@ -102,6 +138,21 @@ $pageTitle = 'Přihlášení';
         </div>
       </div>
 
+      <!-- Nepovinná změna hesla. Není to tlačítko ani samostatná
+           stránka — kdo pole nechá prázdná, jen se přihlásí. -->
+      <div class="field" style="margin-top:var(--s6)">
+        <label class="label" for="new_password">Nové heslo</label>
+        <input class="input" id="new_password" name="new_password" type="password"
+               autocomplete="new-password" minlength="8" aria-describedby="hint-new">
+        <p class="hint" id="hint-new">Nechte prázdné, pokud si heslo neměníte. Jinak alespoň 8 znaků.</p>
+      </div>
+
+      <div class="field" id="new2-field" hidden>
+        <label class="label" for="new_password2">Nové heslo znovu</label>
+        <input class="input" id="new_password2" name="new_password2" type="password"
+               autocomplete="new-password" minlength="8">
+      </div>
+
       <button type="submit" class="btn btn--primary btn--block" style="margin-top:var(--s6)">Přihlásit se</button>
     </form>
 
@@ -112,6 +163,9 @@ $pageTitle = 'Přihlášení';
 </main>
 
 <script>
+(() => {
+  'use strict';
+
   // Přepínač zobrazení hesla
   const pw  = document.getElementById('password');
   const btn = document.getElementById('toggle-pw');
@@ -122,6 +176,13 @@ $pageTitle = 'Přihlášení';
     btn.setAttribute('aria-label', show ? 'Skrýt heslo' : 'Zobrazit heslo');
     pw.focus();
   });
+
+  // Potvrzení nového hesla ukážeme, teprve když někdo začne nové heslo
+  // psát. Do té doby je formulář prosté přihlášení.
+  const nw  = document.getElementById('new_password');
+  const box = document.getElementById('new2-field');
+  nw.addEventListener('input', () => { box.hidden = nw.value === ''; });
+})();
 </script>
 </body>
 </html>

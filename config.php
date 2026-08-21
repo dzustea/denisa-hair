@@ -280,6 +280,52 @@ function start_session(): void
     session_start();
 }
 
+/* ------------------------------------------------------------------
+ *  Vkládání stylů přímo do stránky
+ *
+ *  Externí stylopis znamená další cestu tam a zpět, než prohlížeč vůbec
+ *  začne kreslit — a po tu dobu je stránka bílá. Styly jsou pár
+ *  kilobajtů, takže je posíláme rovnou v HTML a první vykreslení
+ *  nečeká na nic.
+ * ------------------------------------------------------------------ */
+
+/**
+ * Načte stylopis z assets/ a vrátí jeho obsah k vložení do <style>.
+ *
+ * @param string $file    jméno souboru v assets/ (např. 'app.css')
+ * @param string $assets  cesta k adresáři assets z právě vykreslované
+ *                        stránky — z kořene 'assets', z /admin '../assets'.
+ *                        Dosadí se místo zástupného __ASSETS__ v fonts.css.
+ */
+function inline_css(string $file, string $assets = 'assets'): string
+{
+    static $cache = [];
+
+    $path = __DIR__ . '/assets/' . basename($file);
+    if (!isset($cache[$path])) {
+        $cache[$path] = @file_get_contents($path) ?: '';
+    }
+
+    return str_replace('__ASSETS__', rtrim($assets, '/'), $cache[$path]);
+}
+
+/**
+ * Absolutní adresa souboru na tomhle webu.
+ *
+ * og:image a podobné značky relativní cestu neberou — sdílecí roboti
+ * (Facebook, WhatsApp, Instagram) si ji nedokážou doplnit. Doménu proto
+ * skládáme z hlaviček požadavku, ať web běží kdekoli.
+ */
+function site_url(string $path = ''): string
+{
+    $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
+
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+
+    return ($https ? 'https://' : 'http://') . $host . '/' . ltrim($path, '/');
+}
+
 /** Je aktuální návštěvník přihlášený administrátor? */
 function is_logged_in(): bool
 {
@@ -293,6 +339,114 @@ function require_login(): void
     if (!is_logged_in()) {
         header('Location: login.php');
         exit;
+    }
+}
+
+/* ------------------------------------------------------------------
+ * 4b) Účty administrace
+ *
+ * V kódu ani v repozitáři není žádné jméno ani heslo. Účty se definují
+ * proměnnými prostředí (na Vercelu Settings → Environment Variables),
+ * očíslovanými od 1:
+ *
+ *     ADMIN_USER_1=...            přihlašovací jméno
+ *     ADMIN_PASSWORD_1=...        heslo (uloží se jen jeho otisk)
+ *     ADMIN_NAME_1=...            jméno k zobrazení (nepovinné)
+ *
+ *     ADMIN_USER_2=...            druhý účet, stejným způsobem
+ *     ADMIN_PASSWORD_2=...
+ *     ADMIN_NAME_2=...
+ *
+ * Místo ADMIN_PASSWORD_n lze zadat rovnou hotový otisk v
+ * ADMIN_HASH_n — pak se heslo nikde neobjeví ani v proměnných.
+ *
+ * Jak se to chová:
+ *   • účet, který v databázi není, se založí
+ *   • když se hodnota v prostředí změní, heslo se přepíše (tak se dělá
+ *     reset, když ho někdo zapomene)
+ *   • heslo změněné v aplikaci zůstane platit, dokud se proměnná
+ *     nezmění — proto si vedle otisku hesla držíme i otisk toho, co
+ *     naposledy přišlo z prostředí (sloupec seed_fingerprint)
+ * ------------------------------------------------------------------ */
+
+/** Načte účty z prostředí. Vrací pole [username, password, hash, name, fingerprint]. */
+function admin_accounts_from_env(): array
+{
+    $accounts = [];
+
+    for ($i = 1; $i <= 10; $i++) {
+        $username = env("ADMIN_USER_$i");
+        if ($username === null) {
+            continue;
+        }
+
+        $password = env("ADMIN_PASSWORD_$i");
+        $hash     = env("ADMIN_HASH_$i");
+
+        if ($password === null && $hash === null) {
+            continue;   // účet bez hesla nezakládáme
+        }
+
+        $accounts[] = [
+            'username' => trim($username),
+            'password' => $password,
+            'hash'     => $hash,
+            'name'     => env("ADMIN_NAME_$i") ?? trim($username),
+            // Otisk toho, co přišlo z prostředí. Musí být počítaný
+            // z původní hodnoty, ne z bcrypt otisku — ten je pokaždé
+            // jiný (jiná sůl), takže by se porovnání nikdy neshodlo.
+            'fingerprint' => hash('sha256', (string) ($hash ?? $password)),
+        ];
+    }
+
+    return $accounts;
+}
+
+/**
+ * Srovná databázi s účty z prostředí.
+ *
+ * Volá se před ověřením přihlášení. Je to pár řádků, takže se to vejde
+ * do jednoho dotazu na účet — a odpadá tím jakýkoli instalační krok.
+ */
+function sync_admin_accounts(PDO $pdo): void
+{
+    foreach (admin_accounts_from_env() as $account) {
+        $stmt = $pdo->prepare('SELECT id, seed_fingerprint FROM users WHERE username = :u LIMIT 1');
+        $stmt->execute([':u' => $account['username']]);
+        $existing = $stmt->fetch();
+
+        // Hotový otisk z prostředí bereme, jak je; jinak heslo zahashujeme.
+        $passwordHash = $account['hash'] !== null
+            ? $account['hash']
+            : password_hash((string) $account['password'], PASSWORD_DEFAULT);
+
+        if (!$existing) {
+            $pdo->prepare(
+                'INSERT INTO users (username, password_hash, full_name, seed_fingerprint)
+                 VALUES (:u, :h, :n, :f)'
+            )->execute([
+                ':u' => $account['username'],
+                ':h' => $passwordHash,
+                ':n' => $account['name'],
+                ':f' => $account['fingerprint'],
+            ]);
+            continue;
+        }
+
+        // Shodný otisk = v prostředí se nic nezměnilo. Případnou změnu
+        // hesla z aplikace tím pádem nepřepisujeme.
+        if (($existing['seed_fingerprint'] ?? null) === $account['fingerprint']) {
+            continue;
+        }
+
+        $pdo->prepare(
+            'UPDATE users SET password_hash = :h, full_name = :n, seed_fingerprint = :f WHERE id = :id'
+        )->execute([
+            ':h' => $passwordHash,
+            ':n' => $account['name'],
+            ':f' => $account['fingerprint'],
+            ':id' => $existing['id'],
+        ]);
     }
 }
 

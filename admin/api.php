@@ -121,10 +121,13 @@ try {
                 $time = substr($time, 0, 5) . ':00';
             }
 
+            // Stejné pravidlo jako na webu: zapsat jde jen slot, který
+            // ještě nezačal. Kalendář je sdílený, takže by jiná mez
+            // znamenala, že jde odeslat termín, který nabídku nenabízí.
             if (!isset($errors['appointment_date']) && !isset($errors['appointment_time'])) {
-                $slotEnd = new DateTimeImmutable($date . ' ' . slot_end(substr($time, 0, 5)));
-                if ($slotEnd <= new DateTimeImmutable('now')) {
-                    $errors['appointment_time'] = 'Tento čas už proběhl.';
+                $slotStart = new DateTimeImmutable($date . ' ' . substr($time, 0, 5));
+                if ($slotStart <= new DateTimeImmutable('now')) {
+                    $errors['appointment_time'] = 'Tento čas už začal.';
                 }
             }
 

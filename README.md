@@ -18,14 +18,15 @@ HTML5 · vlastní CSS · Vanilla JS · PHP 8 · MySQL (PDO)
 ├── schema.sql            inicializace databáze
 ├── assets/
 │   ├── app.css           designový systém — web i administrace
+│   ├── fonts.css         @font-face k písmům (generované, needitovat)
 │   ├── calendar.js       chování kalendáře
-│   └── img/              zkušební obrázky (SVG), sem patří i skutečné fotky
+│   ├── fonts/            woff2 soubory písem
+│   └── img/              obrázky, ikona webu a náhled odkazu
 └── admin/
     ├── _head.php         sdílená <head> část administrace
     ├── login.php         přihlášení
     ├── dashboard.php     správa rezervací
     ├── api.php           AJAX endpoint (stav, mazání, ruční zápis, statistiky)
-    ├── setup.php         změna hesla
     └── logout.php        odhlášení
 ```
 
@@ -43,14 +44,50 @@ mysql -u root -p < schema.sql
 
 3. Hotovo — web běží na `/index.php`, administrace na `/admin/login.php`.
 
-**Přihlášení do administrace:**
+**Přihlášení do administrace**
+
+V repozitáři není žádné jméno ani heslo. Účty se zakládají z proměnných
+prostředí — na Vercelu v *Settings → Environment Variables*, lokálně
+v `.env`:
 
 ```
-jméno: denisa
-heslo: denisa2026
+ADMIN_USER_1=denisa
+ADMIN_PASSWORD_1=…nějaké silné heslo…
+ADMIN_NAME_1=Denisa Hrabalová
+
+ADMIN_USER_2=filip
+ADMIN_PASSWORD_2=…jiné silné heslo…
+ADMIN_NAME_2=Filip Lochman
 ```
 
-Heslo si po prvním přihlášení změň v `/admin/setup.php`.
+Účet se založí sám při prvním otevření `/admin/login.php`. Číslovat jde
+až do desítky, takže účtů může být víc.
+
+Místo `ADMIN_PASSWORD_n` lze zadat hotový bcrypt otisk v `ADMIN_HASH_n`
+— pak se heslo neobjeví ani v proměnných prostředí. Otisk vyrobíš třeba
+takhle:
+
+```bash
+php -r "echo password_hash('sem heslo', PASSWORD_DEFAULT), PHP_EOL;"
+```
+
+### Změna hesla
+
+Nikde v aplikaci není tlačítko „Heslo“ ani samostatná stránka. Změna je
+**nepovinná část přihlášení**: v přihlašovacím formuláři je pole *Nové
+heslo*. Kdo ho nechá prázdné, jen se přihlásí; kdo ho vyplní, přihlásí
+se a heslo se mu rovnou přepíše. Staré heslo se ověřuje vždy, takže cizí
+heslo nejde přepsat pouhou znalostí jména.
+
+Denisa si tak heslo změní sama. Vývojář ho navíc může kdykoli
+resetovat — stačí změnit `ADMIN_PASSWORD_n` v prostředí; při dalším
+přihlášení se heslo přepíše na novou hodnotu.
+
+Jak se to nepere dohromady: u účtu se vedle otisku hesla drží
+i `seed_fingerprint`, otisk toho, co k němu naposledy přišlo
+z prostředí. Dokud se proměnná nezmění, heslo změněné v aplikaci
+zůstává. Jakmile se změní, vyhraje prostředí. Řeší to
+`sync_admin_accounts()` v `config.php`.
 
 ### Požadavky
 
@@ -108,8 +145,9 @@ nezávisel na konfiguraci hostingu.
 - **Session jsou v databázi**, ne v souborech — na serverless má každý
   požadavek vlastní `/tmp`, takže by přihlášení náhodně vypadávalo. Zajišťuje
   to `DbSessionHandler` v `config.php` a tabulka `sessions`.
-- **Hned po prvním přihlášení změň heslo.** Výchozí `denisa2026` je v tomto
-  repozitáři veřejně čitelné.
+- **Účty nastav v proměnných prostředí, než web pustíš ven.** Bez
+  `ADMIN_USER_1` a `ADMIN_PASSWORD_1` se nemá kdo přihlásit — v databázi
+  ani v repozitáři žádný účet předem není.
 - `vercel-php` je komunitní projekt. Když build spadne na verzi runtime,
   zkontroluj aktuální číslo v jeho README.
 - Kdyby to zlobilo, klasický PHP hosting spolkne projekt bez jediné změny kódu.
@@ -136,13 +174,27 @@ Stránka **nepoužívá žádný CSS framework za běhu**. Dřív se stahoval Ta
 Play CDN — 398 kB JavaScriptu, který teprve v prohlížeči generoval styly.
 Než doběhl, stránka se ukázala neostylovaná a působila rozházeně.
 
-Teď je místo něj `assets/app.css` (~27 kB), který prohlížeč použije okamžitě.
-S kalendářem a obrázky je celý front-end kolem 95 kB.
+Teď se styly posílají **rovnou v HTML**. Externí stylopis znamená další
+cestu tam a zpět, než prohlížeč vůbec začne kreslit — a po tu dobu je
+stránka bílá. Takhle je **nula blokujících požadavků**: dorazí HTML
+a stránka je hotová.
+
+Celá úvodní stránka i s veškerým CSS a JavaScriptem váží **23 kB**
+(brotli, jak ji servíruje Vercel).
 
 Obrázky jsou SVG (5–9 kB každý), mají `width`/`height` kvůli posunu layoutu
-a všechny pod ohybem `loading="lazy"`. Písmo se načítá neblokujícím způsobem
-(`media="print"` + `onload`), takže text je vidět hned — Cormorant Garamond
-pro nadpisy a Jost pro zbytek.
+a všechny pod ohybem `loading="lazy"`.
+
+**Písmo je na naší doméně**, ne u Googlu. Dřív se tahalo ze dvou cizích
+domén — navíc DNS, TLS a jeden požadavek, než se vůbec začalo stahovat.
+Teď leží v `assets/fonts/`, dva nejvíc viditelné řezy se předepisují
+přes `rel="preload"` a všechny mají `font-display: swap`, takže se
+nikdy nečeká s prázdnou stránkou.
+
+Stahují se jen řezy, které web opravdu používá, rozdělené na podmnožiny
+latin a latin-ext — čeština potřebuje obě (á í é jsou v latin, ě š č ř ž
+ve latin-ext). Vyměnit je jde skriptem, který je vygeneroval; hotový
+`assets/fonts.css` se needituje ručně.
 
 ---
 
@@ -325,6 +377,9 @@ i kdyby `IntersectionObserver` nezabral.
 | Barvy, písmo, rozestupy | `:root` v `assets/app.css` |
 | Tmavou paletu | `:root[data-theme="dark"]` **a** blok `prefers-color-scheme` v `assets/app.css` (obojí, jinak se režimy rozejdou) |
 | Ceny | konstanta `PRICES` v `config.php` |
+| Účty do administrace | proměnné `ADMIN_USER_n` / `ADMIN_PASSWORD_n` v prostředí |
+| Ikonu webu a náhled odkazu | `assets/img/favicon*` a `assets/img/og.png` |
+| Rozsah nabízených časů | slot musí ještě nezačít — viz `process-booking.php` a `assets/calendar.js` |
 | Texty webu | `index.php` |
 | Odkazy v navigaci | pole `$navLinks` v `index.php` (vykreslí lištu i mobilní nabídku) |
 | Nabídku služeb | pole `$cards` v `index.php` |

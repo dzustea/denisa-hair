@@ -21,9 +21,22 @@ $csrf = csrf_token();
 <meta name="theme-color" content="#FAF7F2" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#15100C" media="(prefers-color-scheme: dark)">
 
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="assets/img/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="assets/img/favicon-180.png">
+
+<!-- Náhled odkazu na sítích. Obrázek musí být rastr a absolutní adresa. -->
 <meta property="og:title" content="Denisa Hair — kadeřnictví Záříčí">
-<meta property="og:description" content="Moderní dámské, pánské a dětské kadeřnictví v Záříčí.">
+<meta property="og:description" content="Dámské, pánské a dětské kadeřnictví v Záříčí. Objednejte se online, kdykoliv se vám to hodí.">
 <meta property="og:type" content="website">
+<meta property="og:locale" content="cs_CZ">
+<meta property="og:site_name" content="Denisa Hair">
+<meta property="og:url" content="<?= e(site_url()) ?>">
+<meta property="og:image" content="<?= e(site_url('assets/img/og.png')) ?>">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Denisa Hair — kadeřnictví v Záříčí">
+<meta name="twitter:card" content="summary_large_image">
 
 <script>
 (() => {
@@ -38,18 +51,15 @@ $csrf = csrf_token();
 })();
 </script>
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="assets/app.css">
-<?php
-// Serif jen na velké nadpisy, geometrický bezpatkový na všechno ostatní.
-$fontHref = 'https://fonts.googleapis.com/css2'
-          . '?family=Cormorant+Garamond:wght@300;400;500;600'
-          . '&family=Jost:wght@300;400;500;600'
-          . '&display=swap';
-?>
-<link rel="stylesheet" href="<?= e($fontHref) ?>" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="<?= e($fontHref) ?>"></noscript>
+<!-- Písmo je na naší doméně, ne u Googlu. Odpadá tím DNS, TLS
+     a jeden požadavek navíc, než se vůbec začne stahovat. Dvě nejvíc
+     viditelná řezy se předepisují dopředu. -->
+<link rel="preload" href="assets/fonts/jost-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/cormorant-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+
+<!-- Styly jdou rovnou v HTML — první vykreslení tak nečeká na žádný
+     další požadavek. Zdroj je assets/app.css a assets/fonts.css. -->
+<style><?= inline_css('fonts.css', 'assets') ?><?= inline_css('app.css') ?></style>
 
 <style>
   /* Styly jen pro tuhle stránku. Zbytek je v app.css. */
@@ -59,21 +69,30 @@ $fontHref = 'https://fonts.googleapis.com/css2'
      Odkazy jsou normální velikostí a normálním písmem — drobné
      verzálky se v navigaci čtou špatně. */
   .site-head {
-    position: sticky; top: 0; z-index: 40;
+    position: sticky; top: 0; z-index: 60;   /* nad panelem nabídky */
     background: color-mix(in srgb, var(--bg) 88%, transparent);
     backdrop-filter: saturate(1.4) blur(14px);
     border-bottom: 1px solid transparent;
     transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease);
   }
+  /* Při otevřené nabídce musí být lišta neprůhledná — jinak by pod ní
+     prosvítal odjíždějící obsah panelu. */
+  body.menu-open .site-head { background: var(--bg); border-bottom-color: var(--line); }
   .site-head.is-stuck {
     border-bottom-color: var(--line);
     background: color-mix(in srgb, var(--bg) 97%, transparent);
   }
+  /* Na mobilu jen dva konce, na desktopu tři sloupce s odkazy uprostřed.
+     Mřížka na úzkém displeji stlačila značku tak, že se lámala na dva
+     řádky a lišta narostla na 88 px. */
   .site-head__inner {
-    display: grid; grid-template-columns: auto 1fr auto;
-    align-items: center; gap: var(--s4);
+    display: flex; align-items: center; justify-content: space-between;
+    gap: var(--s4);
     padding-block: var(--s3);
     transition: padding-block var(--dur) var(--ease);
+  }
+  @media (min-width: 1000px) {
+    .site-head__inner { display: grid; grid-template-columns: auto 1fr auto; }
   }
   .site-head.is-stuck .site-head__inner { padding-block: var(--s2); }
 
@@ -89,7 +108,9 @@ $fontHref = 'https://fonts.googleapis.com/css2'
   .brand__name {
     font-family: var(--font-display);
     font-size: 1.5rem; font-weight: 500; line-height: 1;
+    white-space: nowrap;          /* „Denisa Hair“ se nesmí zalomit */
   }
+  @media (max-width: 359.98px) { .brand__name { font-size: 1.25rem; } }
 
   /* Prostřední sloupec — na úzkých displejích se schová celý. */
   .nav { display: none; justify-content: center; align-items: center; gap: var(--s1); }
@@ -134,30 +155,48 @@ $fontHref = 'https://fonts.googleapis.com/css2'
   }
 
   /* ---------- Nabídka na telefonu ----------
-     Celá obrazovka a velké cíle. Stará zásuvka byla těsná a odkazy
-     v ní se špatně trefovaly. */
+     Panel začíná POD lištou (odsazení --head-h měří skript) a má nižší
+     vrstvu než ona. Zavírací křížek tak zůstane vždycky klikatelný —
+     to byla chyba předchozí verze, kde overlay překryl i tlačítko.
+     Uvnitř se scrolluje samostatně, takže dlouhá nabídka nikdy
+     nepřeteče mimo obrazovku. */
   .menu {
-    position: fixed; inset: 0; z-index: 45;
+    position: fixed;
+    inset: 0;
+    /* Panel kryje celou obrazovku, ale obsah začíná až pod lištou.
+       Lišta je neprůhledná a o vrstvu výš, takže případná nepřesnost
+       v --head-h se nikde neprojeví. */
+    padding-top: calc(var(--head-h, 60px) + var(--s4));
+    z-index: 50;
     display: flex; flex-direction: column;
     background: var(--bg);
-    padding: calc(64px + env(safe-area-inset-top)) var(--s5) calc(var(--s8) + env(safe-area-inset-bottom));
+    padding-inline: var(--s5);
+    padding-bottom: calc(var(--s8) + env(safe-area-inset-bottom));
     overflow-y: auto;
-    animation: menu-in var(--dur) var(--ease);
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    animation: menu-in .22s var(--ease);
   }
   .menu[hidden] { display: none; }
   @media (min-width: 1000px) { .menu { display: none !important; } }
-  @keyframes menu-in { from { opacity: 0; transform: translateY(-8px); } }
+  @keyframes menu-in { from { opacity: 0; transform: translateY(-10px); } }
 
   .menu a.menu__link {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: var(--s5) 0; border-bottom: 1px solid var(--hairline);
-    font-family: var(--font-display); font-size: 1.75rem; font-weight: 500;
+    display: flex; align-items: center; justify-content: space-between; gap: var(--s4);
+    min-height: 60px; padding: var(--s4) 0;
+    border-bottom: 1px solid var(--hairline);
+    font-family: var(--font-display); font-size: 1.625rem; font-weight: 500;
   }
-  .menu a.menu__link svg { width: 18px; height: 18px; color: var(--gold); }
+  .menu a.menu__link svg { flex: 0 0 auto; width: 18px; height: 18px; color: var(--gold); }
+  .menu a.menu__link:active { color: var(--gold-ink); }
   .menu__foot { margin-top: auto; padding-top: var(--s8); }
   .menu__foot .btn { margin-bottom: var(--s5); }
   .menu__meta { font-size: var(--t-small); color: var(--text-2); }
-  .menu__meta a { color: var(--gold-ink); }
+  .menu__meta a { color: var(--gold-ink); text-decoration: underline; text-underline-offset: 3px; }
+
+  /* Zamknutí stránky pod otevřenou nabídkou. Pozici drží skript, tohle
+     jen zabrání odrolování na pozadí. */
+  body.menu-open { overflow: hidden; }
 
   /* ---------- Hero ---------- */
   .hero { display: grid; gap: var(--s8); padding-block: var(--s10) var(--s12); }
@@ -765,24 +804,70 @@ function theme_toggle(): void { ?>
   const head = document.getElementById('site-head');
 
   /* ---------- Nabídka na telefonu ----------
-     Překrývá celou obrazovku, takže se pod ní musí zamknout scroll
-     stránky — jinak se pozadí posouvá pod prstem. */
+     Panel visí pod lištou, takže potřebuje znát její výšku. Ta se mění
+     (lišta se po odscrollování stahuje), proto ji měříme a zapisujeme
+     do proměnné --head-h.
+
+     Scroll pod otevřenou nabídkou se zamyká přes position: fixed na
+     <body>. Samotné overflow: hidden na iOS nestačí — stránka se pod
+     prstem posouvá dál a po zavření skočí jinam. */
   const toggle = document.getElementById('nav-toggle');
   const menu   = document.getElementById('menu');
+  let lockedAt = 0;
+
+  const measureHead = () => {
+    document.documentElement.style.setProperty('--head-h', head.offsetHeight + 'px');
+  };
 
   const setMenu = (open) => {
+    if (open === !menu.hidden) return;
+
+    if (open) {
+      lockedAt = scrollY;
+      document.body.classList.add('menu-open');
+      measureHead();   // až po nasazení třídy: mění lište rámeček
+      document.body.style.position = 'fixed';
+      document.body.style.insetInline = '0';
+      document.body.style.top = -lockedAt + 'px';
+    } else {
+      document.body.classList.remove('menu-open');
+      document.body.style.position = '';
+      document.body.style.insetInline = '';
+      document.body.style.top = '';
+      scrollTo(0, lockedAt);
+    }
+
     menu.hidden = !open;
     toggle.setAttribute('aria-expanded', String(open));
     toggle.setAttribute('aria-label', open ? 'Zavřít nabídku' : 'Otevřít nabídku');
-    document.body.style.overflow = open ? 'hidden' : '';
+
+    // Fokus musí jít za obsahem, jinak by klávesnice zůstala na stránce
+    // schované pod panelem.
+    if (open) menu.querySelector('a')?.focus();
+    else toggle.focus();
   };
 
   toggle.addEventListener('click', () => setMenu(menu.hidden));
-  menu.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => setMenu(false)));
-  addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
-  // Při otočení do šířky nebo na velký displej nabídku zavřeme —
-  // jinak by zůstala viset přes obsah.
+
+  // Odkaz nejdřív zavře panel (a vrátí scroll), teprve pak se skočí na
+  // kotvu — v opačném pořadí by odemčení scrollu skok přebilo.
+  menu.querySelectorAll('a[href^="#"]').forEach((a) => {
+    a.addEventListener('click', (event) => {
+      const target = document.querySelector(a.getAttribute('href'));
+      if (!target) return;
+      event.preventDefault();
+      setMenu(false);
+      requestAnimationFrame(() => target.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    });
+  });
+
+  addEventListener('keydown', (e) => { if (e.key === 'Escape' && !menu.hidden) setMenu(false); });
+
+  // Na širokém displeji nemá panel co dělat — po otočení telefonu nebo
+  // zvětšení okna ho zavřeme.
   matchMedia('(min-width: 1000px)').addEventListener('change', (e) => { if (e.matches) setMenu(false); });
+  addEventListener('resize', () => { if (!menu.hidden) measureHead(); }, { passive: true });
+  measureHead();
 
   /* ---------- Světlý / tmavý režim ----------
      Tři stavy: bez volby jede stránka podle systému, po kliknutí se
@@ -875,6 +960,9 @@ function theme_toggle(): void { ?>
 
   const onScroll = () => {
     ticking = false;
+    // Pod otevřenou nabídkou je <body> zafixované, takže scrollY spadne
+    // na nulu. Kdybychom na to reagovali, lišta by se rozskákala.
+    if (!menu.hidden) return;
     head.classList.toggle('is-stuck', scrollY > 4);
 
     const max = document.documentElement.scrollHeight - innerHeight;

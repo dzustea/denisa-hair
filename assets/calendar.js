@@ -21,6 +21,14 @@
   /** Konec hodinového slotu: "09:00" -> "10:00" */
   const slotEnd = (start) => pad(parseInt(start.slice(0, 2), 10) + 1) + ':00';
 
+  /**
+   * Objednat se dá jen na slot, který ještě nezačal.
+   *
+   * V 10:15 už tedy blok 10:00–11:00 nabídnout nesmíme — první volný
+   * je 11:00–12:00. Rozhoduje začátek slotu, ne jeho konec.
+   */
+  const slotStarted = (start, now) => start <= now;
+
   function initCalendar(root) {
     const endpoint = root.dataset.endpoint || 'availability.php';
     const prefix   = root.dataset.prefix || 'cal';
@@ -115,7 +123,7 @@
         const busy = taken[key] || [];
         const free = slots.filter(s => {
           if (busy.includes(s)) return false;
-          if (isToday && slotEnd(s) <= serverNow) return false;
+          if (isToday && slotStarted(s, serverNow)) return false;
           return true;
         });
 
@@ -163,7 +171,7 @@
       data.slots.forEach(start => {
         const end      = slotEnd(start);
         const isBusy   = busy.includes(start);
-        const isPast   = today && end <= serverNow;
+        const isPast   = today && slotStarted(start, serverNow);
         const disabled = isBusy || isPast;
 
         const btn = document.createElement('button');

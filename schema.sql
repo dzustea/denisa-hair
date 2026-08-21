@@ -6,7 +6,10 @@
 --  TiDB Cloud:   vlož obsah do SQL Editoru a spusť
 --                (databázi `denisa_hair` tam vytvoř přes CREATE DATABASE níž)
 --
---  Přihlášení do administrace: denisa / denisa2026 (heslo si pak změň).
+--  Účty do administrace tenhle skript NEZAKLÁDÁ. Žádné jméno ani heslo
+--  v repozitáři není — nastavují se proměnnými prostředí
+--  (ADMIN_USER_1, ADMIN_PASSWORD_1, …) a účet se založí sám při prvním
+--  otevření přihlašovací stránky. Podrobnosti v README.
 --
 --  Poznámka ke collation: používáme utf8mb4_unicode_ci, protože
 --  utf8mb4_czech_ci TiDB nepodporuje. Na řazení v aplikaci to nemá
@@ -24,29 +27,40 @@ USE `denisa_hair`;
 -- ------------------------------------------------------------
 DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users` (
-    `id`            INT UNSIGNED NOT NULL AUTO_INCREMENT,
-    `username`      VARCHAR(50)  NOT NULL,
-    `password_hash` VARCHAR(255) NOT NULL,
-    `full_name`     VARCHAR(100) DEFAULT NULL,
-    `last_login`    DATETIME     DEFAULT NULL,
-    `created_at`    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `id`               INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `username`         VARCHAR(50)  NOT NULL,
+    `password_hash`    VARCHAR(255) NOT NULL,
+    `full_name`        VARCHAR(100) DEFAULT NULL,
+    -- Otisk hodnoty, která k účtu naposledy přišla z prostředí.
+    -- Podle něj se pozná, že se ADMIN_PASSWORD_n / ADMIN_HASH_n změnilo
+    -- a heslo se má přepsat. Heslo změněné v aplikaci díky tomu
+    -- nepřepisujeme při každém přihlášení.
+    `seed_fingerprint` CHAR(64)     DEFAULT NULL,
+    `last_login`       DATETIME     DEFAULT NULL,
+    `created_at`       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uniq_username` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Výchozí administrátor — účet je rovnou funkční.
+-- Tabulka zůstává prázdná. Žádné jméno ani heslo není v repozitáři.
 --
---   jméno: denisa
---   heslo: denisa2026
+-- Účty se zakládají samy z proměnných prostředí, při prvním otevření
+-- přihlašovací stránky (viz sync_admin_accounts() v config.php):
 --
--- Hash je bcrypt (cost 10), kompatibilní s password_verify().
--- HESLO SI PO PRVNÍM PŘIHLÁŠENÍ ZMĚŇ v /admin/setup.php.
-INSERT INTO `users` (`username`, `password_hash`, `full_name`)
-VALUES (
-    'denisa',
-    '$2y$10$df3MBAzLKTQaFVIpckr6P.0p4HI7Xy.k19yzrn4jbFhi.DSLq2Q.m',
-    'Denisa Hrabalová'
-);
+--   ADMIN_USER_1 / ADMIN_PASSWORD_1 / ADMIN_NAME_1
+--   ADMIN_USER_2 / ADMIN_PASSWORD_2 / ADMIN_NAME_2
+--
+-- Podrobnosti a postup pro změnu hesla jsou v README.
+
+-- ------------------------------------------------------------
+--  Aktualizace starší instalace
+--
+--  Když už databáze běží a chybí v ní jen nový sloupec, stačí tohle
+--  (a pak smazat řádek s původním výchozím účtem):
+--
+--    ALTER TABLE `users` ADD COLUMN `seed_fingerprint` CHAR(64) DEFAULT NULL;
+--    DELETE FROM `users` WHERE `username` = 'denisa';
+-- ------------------------------------------------------------
 
 -- ------------------------------------------------------------
 --  Tabulka: bookings (rezervace / poptávky)
