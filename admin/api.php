@@ -49,8 +49,23 @@ try {
                 json_response(['success' => false, 'message' => 'Neplatné parametry.'], 422);
             }
 
-            $stmt = $pdo->prepare('UPDATE bookings SET status = :s WHERE id = :id');
-            $stmt->execute([':s' => $status, ':id' => $id]);
+            /*
+             * Se stavem se musí přepočítat i zámek termínu: zrušením se
+             * termín uvolní (NULL), obnovením se zase zabere. Kdyby to
+             * zůstalo jen na stavu, šlo by zrušenou rezervaci vrátit do
+             * hry na termín, který si mezitím vzal někdo jiný.
+             *
+             * Hodnotu skládá databáze z vlastních sloupců, takže se
+             * nemusí dohledávat dalším dotazem.
+             */
+            $stmt = $pdo->prepare(
+                'UPDATE bookings
+                    SET status    = :s,
+                        slot_lock = IF(:s2 = "zrusena", NULL,
+                                       CONCAT(appointment_date, " ", appointment_time))
+                  WHERE id = :id'
+            );
+            $stmt->execute([':s' => $status, ':s2' => $status, ':id' => $id]);
 
             if ($stmt->rowCount() === 0) {
                 // Buď rezervace neexistuje, nebo se stav nezměnil — ověříme.
@@ -155,9 +170,9 @@ try {
             // po telefonu už proběhla.
             $pdo->prepare(
                 'INSERT INTO bookings
-                    (name, phone, email, service, appointment_date, appointment_time, note, status)
+                    (name, phone, email, service, appointment_date, appointment_time, note, status, slot_lock)
                  VALUES
-                    (:name, :phone, NULL, :service, :date, :time, :note, "potvrzena")'
+                    (:name, :phone, NULL, :service, :date, :time, :note, "potvrzena", :lock)'
             )->execute([
                 ':name'    => mb_substr($name, 0, 100),
                 ':phone'   => mb_substr($phone, 0, 30),
@@ -165,6 +180,7 @@ try {
                 ':date'    => $date,
                 ':time'    => $time,
                 ':note'    => $note !== '' ? mb_substr($note, 0, 1000) : null,
+                ':lock'    => slot_lock_value($date, $time, 'potvrzena'),
             ]);
 
             json_response([

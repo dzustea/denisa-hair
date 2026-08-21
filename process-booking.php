@@ -166,9 +166,9 @@ try {
      * ----------------------------------------------------------- */
     $stmt = $pdo->prepare(
         'INSERT INTO bookings
-            (name, phone, email, service, appointment_date, appointment_time, note, status, ip_address)
+            (name, phone, email, service, appointment_date, appointment_time, note, status, ip_address, slot_lock)
          VALUES
-            (:name, :phone, :email, :service, :date, :time, :note, "nova", :ip)'
+            (:name, :phone, :email, :service, :date, :time, :note, "nova", :ip, :lock)'
     );
 
     $stmt->execute([
@@ -179,7 +179,9 @@ try {
         ':date'    => $date,
         ':time'    => $time,
         ':note'    => $note !== '' ? $note : null,
-        ':ip'      => mb_substr((string) ($_SERVER['REMOTE_ADDR'] ?? ''), 0, 45),
+        ':ip'      => client_ip(),
+        // Zámek termínu — na něm stojí unikátní index, který utne souběh.
+        ':lock'    => slot_lock_value($date, $time),
     ]);
 
 } catch (PDOException $e) {

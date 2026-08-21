@@ -61,14 +61,21 @@ CREATE TABLE `users` (
 --    ALTER TABLE `users` ADD COLUMN `seed_fingerprint` CHAR(64) DEFAULT NULL;
 --    DELETE FROM `users` WHERE `username` = 'denisa';
 --
---  Zámek termínu a počítadlo pokusů (přidáno kvůli souběhu a brute-force):
+--  Zámek termínu a počítadlo pokusů (přidáno kvůli souběhu a brute-force).
+--  Pořadí je důležité: nejdřív sloupec, pak dopočítat hodnoty, teprve
+--  nakonec index — jinak by index spadl na existujících řádcích.
 --
---    ALTER TABLE `bookings`
---      ADD COLUMN `slot_lock` VARCHAR(30)
---        GENERATED ALWAYS AS (
---          IF(`status` = 'zrusena', NULL, CONCAT(`appointment_date`, ' ', `appointment_time`))
---        ) STORED,
---      ADD UNIQUE KEY `uniq_slot` (`slot_lock`);
+--    ALTER TABLE `bookings` ADD COLUMN `slot_lock` VARCHAR(30) DEFAULT NULL;
+--
+--    UPDATE `bookings`
+--       SET `slot_lock` = IF(`status` = 'zrusena', NULL,
+--                            CONCAT(`appointment_date`, ' ', `appointment_time`));
+--
+--    -- Kdyby index neprošel, jsou v datech dvě nezrušené rezervace na
+--    -- stejný termín. Najdeš je takhle a jednu z nich zruš:
+--    --   SELECT slot_lock, COUNT(*) FROM bookings WHERE slot_lock IS NOT NULL
+--    --   GROUP BY slot_lock HAVING COUNT(*) > 1;
+--    ALTER TABLE `bookings` ADD UNIQUE KEY `uniq_slot` (`slot_lock`);
 --
 --    CREATE TABLE `rate_limits` (
 --      `bucket` VARCHAR(64) NOT NULL,
@@ -77,8 +84,8 @@ CREATE TABLE `users` (
 --      PRIMARY KEY (`bucket`), KEY `idx_expires` (`expires_at`)
 --    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 --
---  Pozor: kdyby v databázi už byly dvě nezrušené rezervace na stejný
---  termín, ALTER na uniq_slot neprojde. Nejdřív duplicity vyřeš.
+--  Pozor: TiDB neumí přidat generovaný sloupec přes ALTER TABLE, proto
+--  je slot_lock obyčejný sloupec, který plní aplikace.
 -- ------------------------------------------------------------
 
 -- ------------------------------------------------------------
@@ -102,12 +109,15 @@ CREATE TABLE `bookings` (
     -- nedokáže, protože mezi čtením a zápisem je mezera. Jediné, co to
     -- utne spolehlivě, je unikátní index přímo v databázi.
     --
-    -- Zrušené rezervace mají NULL a ty se v unikátním indexu neperou,
-    -- takže se uvolněný termín dá obsadit znovu.
-    `slot_lock`        VARCHAR(30)
-        GENERATED ALWAYS AS (
-            IF(`status` = 'zrusena', NULL, CONCAT(`appointment_date`, ' ', `appointment_time`))
-        ) STORED,
+    -- Hodnota je "RRRR-MM-DD HH:MM:SS", u zrušených rezervací NULL —
+    -- NULL se v unikátním indexu neperou, takže uvolněný termín jde
+    -- obsadit znovu.
+    --
+    -- Sloupec plní aplikace, ne databáze. Generovaný sloupec by se
+    -- udržoval sám, jenže TiDB ho neumí přidat přes ALTER TABLE
+    -- ("Adding generated stored column through ALTER TABLE is not
+    -- supported"). Obyčejný sloupec zvládne každá databáze stejně.
+    `slot_lock`        VARCHAR(30)  DEFAULT NULL,
     `ip_address`       VARCHAR(45)  DEFAULT NULL,
     `created_at`       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

@@ -534,6 +534,29 @@ function security_headers(bool $isAdmin = false): void
     }
 }
 
+/**
+ * Hodnota zámku termínu pro sloupec bookings.slot_lock.
+ *
+ * Nad sloupcem je unikátní index, takže dvě nezrušené rezervace na
+ * stejný termín databáze nepustí — a to i když se sejdou ve stejnou
+ * milisekundu, kdy kontrola „je slot volný?" v aplikaci selhává.
+ *
+ * Zrušená rezervace má NULL; ty se v unikátním indexu neperou, takže
+ * uvolněný termín jde obsadit znovu.
+ *
+ * Sloupec plní aplikace, protože generovaný sloupec neumí TiDB přidat
+ * do existující tabulky. Musí se proto nastavit všude, kde se rezervace
+ * zapisuje nebo kde se mění její stav.
+ */
+function slot_lock_value(string $date, string $time, string $status = 'nova'): ?string
+{
+    if ($status === 'zrusena') {
+        return null;
+    }
+
+    return $date . ' ' . substr($time, 0, 5) . ':00';
+}
+
 /** Je aktuální návštěvník přihlášený administrátor? */
 function is_logged_in(): bool
 {

@@ -140,6 +140,40 @@ jinak se statické soubory vůbec nenasadí a vrací 404. Chování kalendáře 
 navíc vkládá přímo do stránky (`render_calendar_script()`), aby výběr termínu
 nezávisel na konfiguraci hostingu.
 
+### Aktualizace databáze u běžící instalace
+
+Přibyl zámek termínu a tabulka počítadla pokusů. Na pořadí záleží —
+index se musí zakládat až nad dopočítanými hodnotami:
+
+```sql
+ALTER TABLE `bookings` ADD COLUMN `slot_lock` VARCHAR(30) DEFAULT NULL;
+
+UPDATE `bookings`
+   SET `slot_lock` = IF(`status` = 'zrusena', NULL,
+                        CONCAT(`appointment_date`, ' ', `appointment_time`));
+
+ALTER TABLE `bookings` ADD UNIQUE KEY `uniq_slot` (`slot_lock`);
+
+CREATE TABLE `rate_limits` (
+  `bucket`     VARCHAR(64)  NOT NULL,
+  `hits`       INT UNSIGNED NOT NULL DEFAULT 0,
+  `expires_at` DATETIME     NOT NULL,
+  PRIMARY KEY (`bucket`),
+  KEY `idx_expires` (`expires_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE `users` ADD COLUMN `seed_fingerprint` CHAR(64) DEFAULT NULL;
+```
+
+Kdyby poslední `ALTER` na `uniq_slot` neprošel, jsou v datech dvě
+nezrušené rezervace na stejný termín. Najdeš je takhle a jednu zrušíš:
+
+```sql
+SELECT slot_lock, COUNT(*) FROM bookings
+ WHERE slot_lock IS NOT NULL
+ GROUP BY slot_lock HAVING COUNT(*) > 1;
+```
+
 ### Na co si dát pozor
 
 - **Session jsou v databázi**, ne v souborech — na serverless má každý
@@ -443,7 +477,7 @@ skript spustit nemůže a odsávání dat blokuje `img-src 'self'`.
 
 | Hrozba | Opatření |
 |---|---|
-| Dvě rezervace na stejný termín (souběh) | unikátní index `uniq_slot` nad generovaným sloupcem `slot_lock`; zrušené mají `NULL`, takže se termín dá obsadit znovu |
+| Dvě rezervace na stejný termín (souběh) | unikátní index `uniq_slot` nad sloupcem `slot_lock`; zrušené mají `NULL`, takže se termín dá obsadit znovu |
 | Zahlcení formuláře boty | honeypot + 8 rezervací / hodinu na IP (HTTP 429) + kontrola duplicity na telefon |
 | Obejití kontrol v prohlížeči | server validuje všechno znovu: formát, povolený slot, minulost, obsazenost, existenci služby |
 
@@ -451,6 +485,17 @@ Kontrola „je slot volný?" v aplikaci souběh uhlídat **nedokáže** —
 mezi čtením a zápisem je vždycky mezera, do které se vejde druhý
 požadavek. Utne to až unikátní index v databázi; aplikace pak chybu
 1062 překládá na hlášku „termín právě někdo zabral".
+
+Sloupec `slot_lock` plní **aplikace**, ne databáze. Napřed to byl
+generovaný sloupec, který se udržuje sám, jenže TiDB ho neumí přidat do
+existující tabulky (*„Adding generated stored column through ALTER TABLE
+is not supported"*). Obyčejný sloupec zvládne každá databáze stejně —
+za cenu toho, že se musí nastavit všude, kde rezervace vzniká nebo kde
+se mění její stav. Hodnotu skládá `slot_lock_value()` v `config.php`.
+
+Že to drží i při změnách stavu, je důležité: zrušením se termín uvolní
+a **obnovení zrušené rezervace na termín, který si mezitím vzal někdo
+jiný, skončí chybou 409** — ne tichou dvojitou rezervací.
 
 ### Přenos a hosting
 
