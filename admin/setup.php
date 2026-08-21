@@ -61,13 +61,13 @@ $pageTitle = 'Změna hesla';
   <div class="auth__box">
 
     <div class="auth__head">
-      <span class="brand__mark" style="width:44px;height:44px;font-size:var(--t-body)" aria-hidden="true">D</span>
-      <h1 style="margin-top:var(--s4); font-size:var(--t-h2)">Změna hesla</h1>
+      <span class="brand__mark" style="width:48px;height:48px;font-size:1.375rem" aria-hidden="true">D</span>
+      <h1>Změna hesla</h1>
     </div>
 
     <div class="card">
       <?php if ($done): ?>
-        <h2 style="font-size:var(--t-lead)">Hotovo</h2>
+        <h2 class="display" style="font-size:1.75rem">Hotovo</h2>
         <p class="muted small" style="margin-top:var(--s3)">
           Od teď se k účtu <strong style="color:var(--text)"><?= e($user['username']) ?></strong>
           přihlašuj novým heslem.
@@ -79,7 +79,7 @@ $pageTitle = 'Změna hesla';
       <?php else: ?>
         <p class="muted small">
           Účet <strong style="color:var(--text)"><?= e($user['username']) ?></strong>.
-          Po instalaci je výchozí heslo <code>denisa2026</code> — změň si ho.
+          Po instalaci je výchozí heslo <code style="font-family:var(--font); background:var(--surface-2); padding:2px 6px; border-radius:var(--r-xs)">denisa2026</code> — změň si ho.
         </p>
 
         <?php if ($error !== ''): ?>

@@ -32,7 +32,7 @@ function render_booking_calendar(array $opts = []): void
 
         <div class="cal__head">
             <button type="button" class="cal__nav" data-cal-prev aria-label="Předchozí měsíc">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
                      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M15 6l-6 6 6 6"/>
                 </svg>
@@ -41,7 +41,7 @@ function render_booking_calendar(array $opts = []): void
             <p class="cal__title" data-cal-title aria-live="polite">…</p>
 
             <button type="button" class="cal__nav" data-cal-next aria-label="Další měsíc">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
                      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M9 6l6 6-6 6"/>
                 </svg>

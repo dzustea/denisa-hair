@@ -1,84 +1,101 @@
 /* =====================================================================
-   Denisa Hair — designový systém
+   Denisa Hair — designový systém „Atelier“
 
-   Ručně psané CSS místo Tailwind Play CDN. Ten stahoval 398 kB
-   JavaScriptu, který teprve v prohlížeči generoval styly — než doběhl,
-   stránka se ukázala neostylovaná. Tenhle soubor má pár kilobajtů
-   a prohlížeč ho použije okamžitě.
+   Světlý luxusní salon: čistá bílá plocha na teplé krémové stránce,
+   hluboce hnědá typografie, tlumené bronzové akcenty. Geometrie je
+   ostrá — jemné poloměry, vlasové linky, hodně vzduchu.
 
-   Psáno mobile-first: základ platí pro telefon, media query rozšiřuje.
+   Písma:
+     • Cormorant Garamond — serif, jen pro velké nadpisy
+     • Jost — geometrický bezpatkový, veškerý ostatní text a čísla
+
+   Ručně psané CSS místo frameworku: pár kilobajtů, prohlížeč je
+   použije okamžitě. Psáno mobile-first.
    ===================================================================== */
 
 /* ---------------------------------------------------------------------
    1. Tokeny
    ------------------------------------------------------------------ */
 :root {
-  /* Plochy — teplá, světlá paleta */
-  --bg:          #F5F0E9;
-  --surface:     #FCFAF6;
-  --surface-2:   #E9DFD3;
-  --line:        #DDD0C2;
-  --hairline:    #EAE0D5;
+  /* Plochy — pouze čistá bílá a teplá krémová/béžová */
+  --bg:        #F6F1E8;   /* stránka — teplý krém */
+  --bg-2:      #EFE7DA;   /* sytější béžový pás */
+  --surface:   #FFFFFF;   /* karty — čistá bílá */
+  --surface-2: #F3ECE0;   /* jemná béžová výplň uvnitř bílé */
+  --line:      #E2D8C8;   /* viditelná linka */
+  --hairline:  #EEE7DA;   /* vlasový předěl */
 
-  /* Text */
-  --text:        #241E1A;
-  --text-2:      #5E534B;
+  /* Text — hluboká hnědá/bronz */
+  --text:   #2B1E14;
+  --text-2: #6E5E4E;
+  --text-3: #857562;      /* jen doplňky, stále nad 4.5:1 na bílé */
 
-  /* Akcent */
-  --accent:      #8F4C3B;
-  --accent-soft: #E9D6CB;
-  --on-accent:   #FFFFFF;
+  /* Bronz / tlumené zlato */
+  --gold:      #B08D57;   /* dekorativní: ikony, linky, orámování */
+  --gold-ink:  #8C6B3C;   /* zlatá, která smí nést text */
+  --gold-soft: #F1E7D5;   /* výplň pod ikonami a štítky */
 
-  /* Stavy */
-  --ok:      #1F6F4A;
-  --ok-bg:   #E3F1E8;
-  --warn:    #8F4C3B;
-  --danger:  #9B2C22;
-  --danger-bg:#FBE9E7;
+  /* Plné tlačítko: hluboká hnědá, krémový text */
+  --ink:      #2B1E14;
+  --on-ink:   #FBF8F2;
+
+  /* Zpětná kompatibilita se staršími třídami */
+  --accent:      var(--gold-ink);
+  --accent-soft: var(--gold-soft);
+  --on-accent:   var(--on-ink);
+
+  /* Stavy — ztlumené, aby nerušily paletu */
+  --ok:        #2F6B4F;
+  --ok-bg:     #E9F1EC;
+  --warn:      #8C6B3C;
+  --danger:    #93342A;
+  --danger-bg: #F7ECEA;
 
   /* Písmo */
-  --font: 'Ubuntu', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font:         'Jost', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-display: 'Cormorant Garamond', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
 
-  /* Velikosti — vychází z Apple HIG: 17 px je základ */
+  /* Velikosti */
+  --t-micro:   0.6875rem;   /* 11 — verzálky s prostrkáním */
   --t-caption: 0.8125rem;   /* 13 */
   --t-small:   0.9375rem;   /* 15 */
   --t-body:    1.0625rem;   /* 17 */
-  --t-lead:    1.25rem;     /* 20 */
+  --t-lead:    1.1875rem;   /* 19 */
   --t-h3:      1.375rem;    /* 22 */
-  --t-h2:      1.75rem;     /* 28 */
-  --t-h1:      2.125rem;    /* 34 */
+  --t-h2:      2rem;        /* 32 — serif */
+  --t-h1:      2.75rem;     /* 44 — serif */
 
   /* Rozestupy — násobky 4 */
   --s1: .25rem;  --s2: .5rem;   --s3: .75rem;  --s4: 1rem;
   --s5: 1.25rem; --s6: 1.5rem;  --s8: 2rem;    --s10: 2.5rem;
-  --s12: 3rem;   --s16: 4rem;
+  --s12: 3rem;   --s16: 4rem;   --s20: 5rem;
 
-  /* Zaoblení */
-  --r-sm: 10px; --r-md: 14px; --r-lg: 20px; --r-xl: 28px; --r-full: 999px;
+  /* Zaoblení — geometrie, ne bublina */
+  --r-xs: 2px; --r-sm: 3px; --r-md: 4px; --r-lg: 6px; --r-xl: 10px; --r-full: 999px;
 
-  /* Stíny — velmi jemné, jen naznačují vrstvu */
-  --sh-1: 0 1px 2px rgba(36,30,26,.06);
-  --sh-2: 0 4px 16px -6px rgba(36,30,26,.18);
-  --sh-3: 0 20px 50px -20px rgba(36,30,26,.35);
+  /* Stíny — sotva znatelné, jen odsazují bílou od krému */
+  --sh-1: 0 1px 2px rgba(43,30,20,.045);
+  --sh-2: 0 10px 30px -18px rgba(43,30,20,.30);
+  --sh-3: 0 30px 70px -30px rgba(43,30,20,.45);
 
-  --ease: cubic-bezier(.32,.72,0,1);   /* pružné dojetí, jako u iOS */
-  --dur: .28s;
+  /* Prostrkání pro verzálkové popisky */
+  --track: .16em;
+
+  --ease: cubic-bezier(.22,.61,.36,1);
+  --dur:  .3s;
 
   color-scheme: light;
 }
 
-/* Administrace: stejná paleta, o stupeň sytější pozadí.
-   Je to pracovní nástroj — plochy musí držet tvar i při dlouhém čtení. */
+/* Administrace: stejná paleta, o odstín sytější pozadí — bílé karty
+   pak i při dlouhém čtení drží tvar. */
 body.admin {
-  --bg:        #EBE3D9;
-  --surface:   #FBF7F2;
-  --surface-2: #E0D4C6;
-  --line:      #CDBCA9;
-  --hairline:  #E0D5C8;
-  --text:      #1E1916;
-  --text-2:    #55493F;
-  --accent:    #874731;
-  --accent-soft:#E2CEC1;
+  --bg:        #F1EADE;
+  --bg-2:      #E9E0D0;
+  --surface:   #FFFFFF;
+  --surface-2: #F4EDE1;
+  --line:      #DFD4C1;
+  --hairline:  #ECE4D5;
 }
 
 /* ---------------------------------------------------------------------
@@ -96,17 +113,39 @@ body {
   margin: 0;
   font-family: var(--font);
   font-size: var(--t-body);
-  line-height: 1.55;
+  font-weight: 400;
+  line-height: 1.6;
   color: var(--text);
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
-h1, h2, h3, h4 { margin: 0; font-weight: 500; line-height: 1.2; letter-spacing: -0.022em; text-wrap: balance; }
-h1 { font-size: var(--t-h1); }
-h2 { font-size: var(--t-h2); }
+/* Nadpisy jsou bezpatkové geometrické; serif se zapíná třídou
+   .display (a plošně u h1/h2 v hero a hlavičkách sekcí). */
+h1, h2, h3, h4 {
+  margin: 0;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -.015em;
+  text-wrap: balance;
+}
 h3 { font-size: var(--t-h3); }
+h4 { font-size: var(--t-lead); }
+
+/* Serifový displej — jen velké nadpisy, jak si žádá vzor */
+.display, h1.display, h2.display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -.005em;
+  line-height: 1.08;
+}
+h1.display { font-size: var(--t-h1); }
+h2.display { font-size: var(--t-h2); }
+@media (min-width: 768px) {
+  h2.display { font-size: 2.375rem; }
+}
+
 p  { margin: 0; text-wrap: pretty; }
 ul, ol { margin: 0; padding: 0; list-style: none; }
 
@@ -119,12 +158,14 @@ button { background: none; border: 0; padding: 0; cursor: pointer; }
 
 a, button, input, select, textarea, summary, label { touch-action: manipulation; }
 
-::selection { background: var(--accent-soft); color: var(--text); }
+strong, b { font-weight: 500; color: var(--text); }
+
+::selection { background: var(--gold-soft); color: var(--text); }
 
 :where(a, button, input, select, textarea, summary):focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-  border-radius: 6px;
+  outline: 1.5px solid var(--gold-ink);
+  outline-offset: 3px;
+  border-radius: var(--r-xs);
 }
 
 .sr-only {
@@ -133,30 +174,61 @@ a, button, input, select, textarea, summary, label { touch-action: manipulation;
   clip-path: inset(50%); white-space: nowrap;
 }
 .skip:focus-visible {
-  position: fixed; inset-inline-start: var(--s3); inset-block-start: var(--s3);
+  position: fixed; inset-inline-start: var(--s4); inset-block-start: var(--s4);
   z-index: 100; width: auto; height: auto; clip-path: none;
-  padding: var(--s3) var(--s5); border-radius: var(--r-full);
-  background: var(--accent); color: var(--on-accent);
+  padding: var(--s3) var(--s5); border-radius: var(--r-sm);
+  background: var(--ink); color: var(--on-ink);
 }
 
-.tnum { font-variant-numeric: tabular-nums; }
+/* ---------------------------------------------------------------------
+   3. Typografické pomůcky
+   ------------------------------------------------------------------ */
+.tnum { font-variant-numeric: tabular-nums; font-feature-settings: 'tnum' 1; }
 .muted { color: var(--text-2); }
 .small { font-size: var(--t-small); }
 .caption { font-size: var(--t-caption); color: var(--text-2); }
 
+/* Verzálkový popisek — nosný prvek celého vzhledu */
+.eyebrow {
+  display: inline-block;
+  font-size: var(--t-micro);
+  font-weight: 500;
+  letter-spacing: var(--track);
+  text-transform: uppercase;
+  color: var(--gold-ink);
+}
+.eyebrow--muted { color: var(--text-3); }
+
+/* Velké číslo v kartě přehledu */
+.num {
+  display: block;
+  font-size: 2.25rem;
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: -.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+@media (min-width: 640px) { .num { font-size: 2.75rem; } }
+
+/* Vlasová linka jako oddělovač sekce */
+.rule { height: 1px; background: var(--line); border: 0; margin: 0; }
+.rule--short { width: 40px; height: 1px; background: var(--gold); }
+
 /* ---------------------------------------------------------------------
-   3. Rozvržení
+   4. Rozvržení
    ------------------------------------------------------------------ */
 .wrap {
   width: 100%;
-  max-width: 68rem;
+  max-width: 72rem;
   margin-inline: auto;
   padding-inline: var(--s5);
 }
-@media (min-width: 768px) { .wrap { padding-inline: var(--s8); } }
+@media (min-width: 768px)  { .wrap { padding-inline: var(--s8); } }
+@media (min-width: 1200px) { .wrap { padding-inline: var(--s10); } }
 
 .section { padding-block: var(--s12); }
-@media (min-width: 768px) { .section { padding-block: var(--s16); } }
+@media (min-width: 768px) { .section { padding-block: var(--s20); } }
 
 .stack > * + * { margin-top: var(--s4); }
 .stack-lg > * + * { margin-top: var(--s6); }
@@ -171,228 +243,354 @@ a, button, input, select, textarea, summary, label { touch-action: manipulation;
 @media (min-width: 900px) { .grid-4 { grid-template-columns: repeat(4, 1fr); } }
 
 /* ---------------------------------------------------------------------
-   4. Tlačítka
+   5. Tlačítka — geometrické, tenké linky, klidné přechody
    ------------------------------------------------------------------ */
 .btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: var(--s2);
+  position: relative;
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--s3);
   min-height: 48px; padding: var(--s3) var(--s6);
-  border-radius: var(--r-full);
-  font-size: var(--t-body); font-weight: 500;
+  border-radius: var(--r-sm);
+  font-size: var(--t-small); font-weight: 500;
+  letter-spacing: .06em; text-transform: uppercase;
   border: 1px solid transparent;
   transition: background var(--dur) var(--ease), color var(--dur) var(--ease),
-              border-color var(--dur) var(--ease), transform .12s var(--ease);
+              border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease),
+              transform .15s var(--ease);
 }
-.btn:active { transform: scale(.97); }
-.btn[disabled] { opacity: .5; cursor: not-allowed; }
+.btn:active { transform: translateY(1px); }
+.btn[disabled] { opacity: .45; cursor: not-allowed; }
 .btn[disabled]:active { transform: none; }
 
-.btn--primary { background: var(--accent); color: var(--on-accent); }
-.btn--primary:hover { background: var(--text); }
+/* Plné — hluboká hnědá s krémovým textem */
+.btn--primary { background: var(--ink); color: var(--on-ink); border-color: var(--ink); }
+.btn--primary:hover { background: var(--gold-ink); border-color: var(--gold-ink); box-shadow: var(--sh-2); }
 
+/* Obrysové — bílá plocha, tenký hnědý rámeček */
 .btn--soft { background: var(--surface); color: var(--text); border-color: var(--line); }
-.btn--soft:hover { border-color: var(--accent); color: var(--accent); }
+.btn--soft:hover { border-color: var(--ink); box-shadow: var(--sh-1); }
 
-.btn--ghost { color: var(--text-2); min-height: 44px; padding-inline: var(--s4); }
-.btn--ghost:hover { background: var(--surface-2); color: var(--text); }
+.btn--ghost {
+  color: var(--text-2); min-height: 44px; padding-inline: var(--s4);
+  letter-spacing: .08em;
+}
+.btn--ghost:hover { color: var(--text); background: var(--surface-2); }
 
-.btn--danger { background: var(--danger); color: #fff; }
-.btn--danger:hover { background: #7C1F17; }
+.btn--danger { background: var(--danger); color: #fff; border-color: var(--danger); }
+.btn--danger:hover { background: #7A2A22; border-color: #7A2A22; }
 
 .btn--block { width: 100%; }
 
-/* Ikonové tlačítko — 44×44 dotyková plocha i pro malou ikonu */
+/* Textový odkaz s podtrženou linkou, která při hoveru dojede */
+.link-underline {
+  display: inline-flex; align-items: center; gap: var(--s2);
+  min-height: 44px;
+  font-size: var(--t-micro); font-weight: 500;
+  letter-spacing: var(--track); text-transform: uppercase;
+  color: var(--text);
+}
+.link-underline span.line {
+  display: block; width: 22px; height: 1px; background: var(--gold);
+  transition: width var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+.link-underline:hover span.line { width: 36px; background: var(--ink); }
+
+/* Ikonové tlačítko — 44×44 dotyková plocha */
 .icon-btn {
   display: inline-flex; align-items: center; justify-content: center;
   width: 44px; height: 44px; border-radius: var(--r-sm);
-  color: var(--text-2); border: 1px solid transparent;
+  color: var(--text); background: var(--surface);
+  border: 1px solid var(--line);
   transition: background var(--dur) var(--ease), color var(--dur) var(--ease),
-              border-color var(--dur) var(--ease);
+              border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
 }
-.icon-btn:hover { background: var(--surface-2); color: var(--text); border-color: var(--line); }
-.icon-btn--danger:hover { background: var(--danger-bg); color: var(--danger); border-color: #E4B4AE; }
-.icon-btn svg { width: 20px; height: 20px; }
+.icon-btn:hover { border-color: var(--ink); box-shadow: var(--sh-1); }
+.icon-btn--danger:hover { background: var(--danger-bg); color: var(--danger); border-color: #DDB3AD; }
+.icon-btn svg { width: 18px; height: 18px; }
 
 /* ---------------------------------------------------------------------
-   5. Plochy
+   6. Plochy
    ------------------------------------------------------------------ */
 .card {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  padding: var(--s5);
+  border-radius: var(--r-md);
+  padding: var(--s6);
+  transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease),
+              transform var(--dur) var(--ease);
 }
-@media (min-width: 768px) { .card { padding: var(--s6); } }
+@media (min-width: 768px) { .card { padding: var(--s8); } }
 
-/* Seskupený seznam — jedna plocha s vlasovými předěly.
-   Přehlednější než mnoho samostatných orámovaných krabiček. */
+/* Karta, která reaguje na najetí — jen tam, kde na ni jde kliknout */
+.card--lift:hover { border-color: var(--gold); box-shadow: var(--sh-2); transform: translateY(-3px); }
+
+/* Seskupený seznam — jedna bílá plocha s vlasovými předěly */
 .group {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: var(--r-lg);
+  border-radius: var(--r-md);
   overflow: hidden;
 }
 .group > * + * { border-top: 1px solid var(--hairline); }
-.group__row { padding: var(--s4) var(--s5); }
+.group__row { padding: var(--s5) var(--s6); }
 
 .chip {
   display: inline-flex; align-items: center; gap: var(--s2);
   padding: var(--s2) var(--s4);
-  border-radius: var(--r-full);
+  border-radius: var(--r-sm);
   background: var(--surface); border: 1px solid var(--line);
-  font-size: var(--t-small); color: var(--text-2);
+  font-size: var(--t-caption); color: var(--text-2);
 }
-.chip--accent { background: var(--accent-soft); border-color: transparent; color: var(--accent); }
+.chip svg { color: var(--gold); }
+.chip--accent { background: var(--gold-soft); border-color: transparent; color: var(--gold-ink); }
 
-/* Stav jako tečka + text: čitelnější než těžký štítek a barva
-   není jediný nositel informace. */
-.status { display: inline-flex; align-items: center; gap: var(--s2); font-size: var(--t-small); white-space: nowrap; }
-.status::before { content: ''; width: 8px; height: 8px; border-radius: var(--r-full); background: currentColor; }
-.status--nova      { color: var(--warn); }
+/* Malý béžový štítek pod nadpisem karty */
+.tag {
+  display: inline-block;
+  padding: 5px var(--s3);
+  border-radius: var(--r-xs);
+  background: var(--surface-2);
+  border: 1px solid var(--hairline);
+  font-size: var(--t-micro);
+  letter-spacing: .1em; text-transform: uppercase;
+  color: var(--text-2);
+}
+
+/* Ikona v rámečku — bronzová linka na krémové ploše */
+.ico {
+  display: grid; place-items: center;
+  width: 46px; height: 46px;
+  border-radius: var(--r-sm);
+  background: var(--gold-soft);
+  color: var(--gold-ink);
+  border: 1px solid transparent;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease),
+              border-color var(--dur) var(--ease);
+}
+.ico svg { width: 22px; height: 22px; }
+
+/* Stav jako tečka + text: barva není jediný nositel informace. */
+.status {
+  display: inline-flex; align-items: center; gap: var(--s2);
+  font-size: var(--t-micro); font-weight: 500;
+  letter-spacing: .1em; text-transform: uppercase;
+  white-space: nowrap;
+}
+.status::before { content: ''; width: 6px; height: 6px; border-radius: var(--r-full); background: currentColor; }
+.status--nova      { color: var(--gold-ink); }
 .status--potvrzena { color: var(--ok); }
 .status--dokoncena { color: var(--text-2); }
 .status--zrusena   { color: var(--danger); }
 
 /* ---------------------------------------------------------------------
-   6. Formuláře
+   7. Formuláře
    ------------------------------------------------------------------ */
 .field { display: block; }
 .field + .field { margin-top: var(--s5); }
-.label { display: block; font-size: var(--t-small); font-weight: 500; margin-bottom: var(--s2); }
-.req { color: var(--accent); }
-.hint { margin-top: var(--s2); font-size: var(--t-caption); color: var(--text-2); }
-.err { margin-top: var(--s2); font-size: var(--t-small); color: var(--danger); }
+.label {
+  display: block; margin-bottom: var(--s2);
+  font-size: var(--t-micro); font-weight: 500;
+  letter-spacing: var(--track); text-transform: uppercase;
+  color: var(--text-2);
+}
+.req { color: var(--gold-ink); }
+.hint { margin-top: var(--s2); font-size: var(--t-caption); color: var(--text-3); }
+.err { margin-top: var(--s2); font-size: var(--t-caption); color: var(--danger); }
 .err[hidden] { display: none; }
 
 .input, .select, .textarea {
   display: block; width: 100%;
-  min-height: 48px; padding: var(--s3) var(--s4);
+  min-height: 50px; padding: var(--s3) var(--s4);
   font-size: 1rem;                     /* 16 px — pod tím iOS stránku zoomuje */
   background: var(--surface); color: var(--text);
-  border: 1px solid var(--line); border-radius: var(--r-md);
-  transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease);
+  border: 1px solid var(--line); border-radius: var(--r-sm);
+  transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
 }
-.input::placeholder, .textarea::placeholder { color: var(--text-2); opacity: .65; }
+.input:hover, .select:hover, .textarea:hover { border-color: #CFC1AB; }
+.input::placeholder, .textarea::placeholder { color: var(--text-3); }
 .input:focus, .select:focus, .textarea:focus {
-  outline: none; border-color: var(--accent);
+  outline: none;
+  border-color: var(--gold-ink);
+  box-shadow: 0 0 0 3px rgba(176,141,87,.16);
 }
-.input[aria-invalid="true"], .select[aria-invalid="true"] { border-color: var(--danger); }
-.textarea { min-height: 7rem; resize: vertical; line-height: 1.6; }
+.input[aria-invalid="true"], .select[aria-invalid="true"] {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px rgba(147,52,42,.12);
+}
+.textarea { min-height: 7.5rem; resize: vertical; line-height: 1.65; }
 
+/* Vlastní šipka — tenká, hluboce hnědá */
 .select {
   appearance: none;
   padding-inline-end: var(--s10);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235E534B' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232B1E14' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right var(--s4) center;
-  background-size: 18px;
+  background-size: 17px;
 }
 
-/* Segmentový přepínač (iOS) */
+/* Segmentový přepínač */
 .seg {
-  display: flex; gap: 2px; padding: 3px;
-  background: var(--surface-2); border-radius: 12px;
+  display: flex; gap: 0; padding: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
   overflow-x: auto; scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
 }
 .seg::-webkit-scrollbar { display: none; }
 .seg label { position: relative; flex: 0 0 auto; cursor: pointer; }
-/* Radio musí zůstat uvnitř labelu — kdyby se pozicoval vůči stránce,
-   utekl by ze scrollovacího kontejneru a roztáhl stránku do šířky. */
+.seg label + label { border-left: 1px solid var(--hairline); }
+/* Radio musí zůstat uvnitř labelu — jinak by uteklo ze scrollovacího
+   kontejneru a roztáhlo stránku do šířky. */
 .seg input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; appearance: none; }
 .seg span {
-  display: block; padding: var(--s2) var(--s4);
-  border-radius: 9px; white-space: nowrap;
-  font-size: var(--t-small); color: var(--text-2);
+  display: block; padding: var(--s3) var(--s5);
+  white-space: nowrap;
+  font-size: var(--t-micro); font-weight: 500;
+  letter-spacing: .1em; text-transform: uppercase;
+  color: var(--text-2);
   transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
 }
-.seg input:checked + span { background: var(--surface); color: var(--text); box-shadow: var(--sh-1); }
-.seg input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+.seg label:hover span { background: var(--surface-2); color: var(--text); }
+.seg input:checked + span { background: var(--ink); color: var(--on-ink); }
+.seg input:focus-visible + span { outline: 1.5px solid var(--gold-ink); outline-offset: -2px; }
 
 /* Hlášky */
-.note { padding: var(--s4) var(--s5); border-radius: var(--r-md); font-size: var(--t-small); border: 1px solid; }
-.note--ok    { background: var(--ok-bg);     border-color: rgba(31,111,74,.3);  color: var(--ok); }
-.note--error { background: var(--danger-bg); border-color: rgba(155,44,34,.28); color: var(--danger); }
+.note {
+  padding: var(--s4) var(--s5); border-radius: var(--r-sm);
+  font-size: var(--t-small); border: 1px solid; border-left-width: 2px;
+}
+.note--ok    { background: var(--ok-bg);     border-color: rgba(47,107,79,.28);  border-left-color: var(--ok);     color: var(--ok); }
+.note--error { background: var(--danger-bg); border-color: rgba(147,52,42,.24);  border-left-color: var(--danger); color: var(--danger); }
 .note[hidden] { display: none; }
 
 /* ---------------------------------------------------------------------
-   7. Kalendář
+   8. Kalendář
    ------------------------------------------------------------------ */
-.cal { background: var(--surface-2); border-radius: var(--r-lg); padding: var(--s4); }
-@media (min-width: 640px) { .cal { padding: var(--s5); } }
+/* Kalendář je béžová plocha s bílými dlaždicemi dnů — oddělí se tak
+   od bílé karty, ve které stojí, a zůstane přitom světlý. */
+.cal {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: var(--s5);
+}
+@media (min-width: 640px) { .cal { padding: var(--s6); } }
 
 .cal__head { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); }
-.cal__title { font-size: var(--t-body); font-weight: 500; }
+.cal__title {
+  font-size: var(--t-caption); font-weight: 500;
+  letter-spacing: var(--track); text-transform: uppercase;
+  color: var(--text);
+}
 .cal__nav {
   display: flex; align-items: center; justify-content: center;
-  width: 44px; height: 44px; border-radius: var(--r-full);
+  width: 42px; height: 42px; border-radius: var(--r-sm);
   background: var(--surface); border: 1px solid var(--line); color: var(--text);
-  transition: border-color var(--dur) var(--ease), color var(--dur) var(--ease);
+  transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease),
+              color var(--dur) var(--ease);
 }
-.cal__nav:hover:not([disabled]) { border-color: var(--accent); color: var(--accent); }
-.cal__nav[disabled] { opacity: .35; cursor: not-allowed; }
-.cal__nav svg { width: 18px; height: 18px; }
+.cal__nav:hover:not([disabled]) { border-color: var(--ink); box-shadow: var(--sh-1); }
+.cal__nav[disabled] { opacity: .3; cursor: not-allowed; }
+.cal__nav svg { width: 16px; height: 16px; }
 
 .cal__week, .cal__grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-.cal__week { margin-top: var(--s4); text-align: center; font-size: var(--t-caption); color: var(--text-2); }
-.cal__grid { margin-top: 4px; }
+.cal__week {
+  margin-top: var(--s5); padding-bottom: var(--s3);
+  border-bottom: 1px solid var(--line);
+  text-align: center;
+  font-size: var(--t-micro); letter-spacing: .12em; text-transform: uppercase;
+  color: var(--text-3);
+}
+.cal__grid { margin-top: var(--s3); }
 
+/* Volný den: bílá dlaždice s vlasovým rámečkem.
+   Obsazený: bez plochy, ztlumený. Vybraný: bronzový obrys + krém. */
 .cal__day {
   display: flex; align-items: center; justify-content: center;
   min-height: 44px; border-radius: var(--r-sm);
-  font-size: var(--t-small);
+  font-size: var(--t-small); font-variant-numeric: tabular-nums;
   background: var(--surface); border: 1px solid var(--line); color: var(--text);
   transition: background var(--dur) var(--ease), color var(--dur) var(--ease),
-              border-color var(--dur) var(--ease);
+              border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
 }
-.cal__day:hover:not([disabled]) { border-color: var(--accent); color: var(--accent); }
+.cal__day:hover:not([disabled]) { border-color: var(--ink); background: var(--surface); box-shadow: var(--sh-1); }
 .cal__day[disabled] {
-  background: none; border-color: transparent;
-  color: var(--text-2); opacity: .55; cursor: not-allowed;
-  text-decoration: line-through;
+  background: none; border-color: transparent; box-shadow: none;
+  color: var(--text-3); opacity: .5; cursor: not-allowed;
 }
-.cal__day[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
-.cal__day--today:not([disabled]) { font-weight: 700; }
+.cal__day[aria-pressed="true"] {
+  background: var(--gold-soft);
+  border-color: var(--gold);
+  box-shadow: inset 0 0 0 1px var(--gold);
+  color: var(--text); font-weight: 500;
+}
+.cal__day--today:not([disabled]) {
+  font-weight: 500;
+  box-shadow: inset 0 -2px 0 0 var(--gold);
+}
 
-.cal__msg { grid-column: 1 / -1; padding-block: var(--s8); text-align: center; font-size: var(--t-small); color: var(--text-2); }
+.cal__msg {
+  grid-column: 1 / -1; padding-block: var(--s10);
+  text-align: center; font-size: var(--t-small); color: var(--text-3);
+}
 .cal__msg--error { color: var(--danger); }
 
 .cal__slots-wrap { margin-top: var(--s5); padding-top: var(--s5); border-top: 1px solid var(--line); }
 .cal__slots-wrap[hidden] { display: none; }
-.cal__daylabel { font-size: var(--t-small); font-weight: 500; }
-.cal__slots { display: grid; gap: var(--s2); margin-top: var(--s3); }
+.cal__daylabel {
+  font-size: var(--t-micro); font-weight: 500;
+  letter-spacing: var(--track); text-transform: uppercase;
+  color: var(--text-2);
+}
+.cal__slots { display: grid; gap: var(--s2); margin-top: var(--s4); }
 @media (min-width: 480px) { .cal__slots { grid-template-columns: repeat(2, 1fr); } }
 
 .cal__slot {
   display: flex; align-items: center; justify-content: space-between; gap: var(--s2);
   min-height: 48px; padding: var(--s3) var(--s4);
-  border-radius: var(--r-md);
+  border-radius: var(--r-sm);
   background: var(--surface); border: 1px solid var(--line); color: var(--text);
-  font-size: var(--t-small); text-align: left;
+  font-size: var(--t-small); font-variant-numeric: tabular-nums; text-align: left;
   transition: background var(--dur) var(--ease), color var(--dur) var(--ease),
-              border-color var(--dur) var(--ease);
+              border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
 }
-.cal__slot:hover:not([disabled]) { border-color: var(--accent); color: var(--accent); }
-.cal__slot[disabled] { background: var(--surface-2); color: var(--text-2); cursor: not-allowed; }
-.cal__slot[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
-.cal__slot em { font-style: normal; font-size: var(--t-caption); }
+.cal__slot:hover:not([disabled]) { border-color: var(--ink); box-shadow: var(--sh-1); }
+.cal__slot[disabled] { background: transparent; border-color: var(--hairline); color: var(--text-3); cursor: not-allowed; }
+.cal__slot[aria-pressed="true"] {
+  background: var(--gold-soft); border-color: var(--gold);
+  box-shadow: inset 0 0 0 1px var(--gold); font-weight: 500;
+}
+.cal__slot em { font-style: normal; font-size: var(--t-micro); letter-spacing: .08em; text-transform: uppercase; color: var(--text-3); }
+.cal__slot[aria-pressed="true"] em { color: var(--gold-ink); }
 
-.cal__hint { margin-top: var(--s5); padding-top: var(--s5); border-top: 1px solid var(--line); font-size: var(--t-small); color: var(--text-2); }
+.cal__hint { margin-top: var(--s5); padding-top: var(--s5); border-top: 1px solid var(--line); font-size: var(--t-caption); color: var(--text-3); }
 .cal__hint[hidden] { display: none; }
-.cal__summary { margin-top: var(--s4); padding: var(--s3) var(--s4); border-radius: var(--r-md); background: var(--accent-soft); font-size: var(--t-small); }
+.cal__summary {
+  margin-top: var(--s4); padding: var(--s3) var(--s4);
+  border-radius: var(--r-sm);
+  background: var(--gold-soft); border-left: 2px solid var(--gold);
+  font-size: var(--t-small);
+}
 .cal__summary[hidden] { display: none; }
 
 /* ---------------------------------------------------------------------
-   8. Tabulka rezervací
+   9. Tabulka rezervací
    Zůstává <table>: jsou to tabulková data, čtečky je přečtou po
    sloupcích a řazení hlásí aria-sort. Na mobilu se překlopí do karet.
    ------------------------------------------------------------------ */
 .table { width: 100%; border-collapse: collapse; }
 .table th {
-  font-weight: 400; font-size: var(--t-caption); color: var(--text-2);
-  text-align: left; padding: var(--s3) var(--s4);
+  font-weight: 500;
+  font-size: var(--t-micro); letter-spacing: var(--track); text-transform: uppercase;
+  color: var(--text-3);
+  text-align: left; padding: var(--s4) var(--s5);
   border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
 }
-.table td { padding: var(--s4); vertical-align: top; font-size: var(--t-small); }
+.table th a { transition: color var(--dur) var(--ease); }
+.table th a:hover { color: var(--text); }
+.table td { padding: var(--s5); vertical-align: top; font-size: var(--t-small); }
 .table tbody tr + tr td { border-top: 1px solid var(--hairline); }
 
 @media (min-width: 1024px) {
@@ -405,7 +603,7 @@ a, button, input, select, textarea, summary, label { touch-action: manipulation;
   .table thead { display: none; }
   .table tr {
     background: var(--surface); border: 1px solid var(--line);
-    border-radius: var(--r-lg); padding: var(--s4) var(--s5);
+    border-radius: var(--r-md); padding: var(--s5);
   }
   .table tr + tr { margin-top: var(--s3); }
   .table tbody tr + tr td { border-top: 0; }
@@ -414,38 +612,39 @@ a, button, input, select, textarea, summary, label { touch-action: manipulation;
   .table td[data-label]::before {
     content: attr(data-label);
     display: block; margin-bottom: var(--s1);
-    font-size: var(--t-caption); color: var(--text-2);
+    font-size: var(--t-micro); letter-spacing: var(--track); text-transform: uppercase;
+    color: var(--text-3);
   }
 }
 
 /* ---------------------------------------------------------------------
-   9. Modal / spodní panel
-   Na telefonu vyjede zdola jako iOS sheet, na desktopu je uprostřed.
+   10. Modal / spodní panel
    ------------------------------------------------------------------ */
 .sheet { position: fixed; inset: 0; z-index: 60; display: none; }
 .sheet[open], .sheet.is-open { display: flex; align-items: flex-end; justify-content: center; }
 @media (min-width: 640px) { .sheet.is-open { align-items: center; padding: var(--s5); } }
 
-.sheet__scrim { position: absolute; inset: 0; background: rgba(30,25,22,.45); backdrop-filter: blur(3px); }
+.sheet__scrim { position: absolute; inset: 0; background: rgba(43,30,20,.42); backdrop-filter: blur(4px); }
 .sheet__panel {
-  position: relative; width: 100%; max-width: 26rem;
+  position: relative; width: 100%; max-width: 27rem;
   background: var(--surface);
-  border-radius: var(--r-xl) var(--r-xl) 0 0;
-  padding: var(--s6) var(--s5) calc(var(--s6) + env(safe-area-inset-bottom));
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+  padding: var(--s8) var(--s6) calc(var(--s8) + env(safe-area-inset-bottom));
   box-shadow: var(--sh-3);
   animation: sheet-up var(--dur) var(--ease);
 }
 @media (min-width: 640px) {
-  .sheet__panel { border-radius: var(--r-xl); padding-bottom: var(--s6); animation: sheet-pop var(--dur) var(--ease); }
+  .sheet__panel { border-radius: var(--r-md); padding-bottom: var(--s8); animation: sheet-pop var(--dur) var(--ease); }
 }
 @keyframes sheet-up  { from { transform: translateY(100%); } }
-@keyframes sheet-pop { from { transform: scale(.94); opacity: 0; } }
+@keyframes sheet-pop { from { transform: scale(.96); opacity: 0; } }
 
-.sheet__grip { width: 36px; height: 4px; border-radius: 2px; background: var(--line); margin: 0 auto var(--s5); }
+.sheet__grip { width: 34px; height: 2px; border-radius: 2px; background: var(--line); margin: 0 auto var(--s6); }
 @media (min-width: 640px) { .sheet__grip { display: none; } }
 
 /* ---------------------------------------------------------------------
-   10. Toasty
+   11. Toasty
    ------------------------------------------------------------------ */
 .toasts {
   position: fixed; z-index: 70;
@@ -454,28 +653,36 @@ a, button, input, select, textarea, summary, label { touch-action: manipulation;
   display: flex; flex-direction: column; gap: var(--s2);
   pointer-events: none;
 }
-@media (min-width: 640px) { .toasts { inset-inline: auto var(--s6); width: 22rem; bottom: var(--s6); } }
+@media (min-width: 640px) { .toasts { inset-inline: auto var(--s8); width: 22rem; bottom: var(--s8); } }
 
 .toast {
   pointer-events: auto;
-  padding: var(--s4) var(--s5); border-radius: var(--r-md);
-  font-size: var(--t-small); border: 1px solid;
+  padding: var(--s4) var(--s5); border-radius: var(--r-sm);
+  font-size: var(--t-small); border: 1px solid; border-left-width: 2px;
   box-shadow: var(--sh-2);
   animation: toast-in var(--dur) var(--ease);
 }
-.toast--ok    { background: var(--ok-bg);     border-color: rgba(31,111,74,.3);  color: var(--ok); }
-.toast--error { background: var(--danger-bg); border-color: rgba(155,44,34,.28); color: var(--danger); }
+.toast--ok    { background: var(--ok-bg);     border-color: rgba(47,107,79,.28); border-left-color: var(--ok);     color: var(--ok); }
+.toast--error { background: var(--danger-bg); border-color: rgba(147,52,42,.24); border-left-color: var(--danger); color: var(--danger); }
 @keyframes toast-in { from { transform: translateY(10px); opacity: 0; } }
 
 /* ---------------------------------------------------------------------
-   11. Odkrývání při scrollu
+   12. Odkrývání při scrollu
    Schovává se jen když běží JavaScript — bez něj je obsah vidět.
    ------------------------------------------------------------------ */
-.js .rv { opacity: 0; transform: translateY(14px); transition: opacity .6s ease-out, transform .7s var(--ease); transition-delay: var(--d, 0ms); }
+.js .rv {
+  opacity: 0; transform: translateY(16px);
+  transition: opacity .8s ease-out, transform .9s var(--ease);
+  transition-delay: var(--d, 0ms);
+}
 .js .is-in .rv, .js .rv.is-in { opacity: 1; transform: none; }
 
+/* Záložní ovládání pro vypnutý JavaScript (např. tlačítko „Použít“
+   u filtrů) — když skript běží, jen by zavazelo. */
+.js .no-js { display: none; }
+
 /* ---------------------------------------------------------------------
-   12. Klidový režim
+   13. Klidový režim
    ------------------------------------------------------------------ */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }

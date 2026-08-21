@@ -136,33 +136,47 @@ Stránka **nepoužívá žádný CSS framework za běhu**. Dřív se stahoval Ta
 Play CDN — 398 kB JavaScriptu, který teprve v prohlížeči generoval styly.
 Než doběhl, stránka se ukázala neostylovaná a působila rozházeně.
 
-Teď je místo něj `assets/app.css` (~20 kB), který prohlížeč použije okamžitě.
-S kalendářem a obrázky je celý front-end kolem 66 kB.
+Teď je místo něj `assets/app.css` (~27 kB), který prohlížeč použije okamžitě.
+S kalendářem a obrázky je celý front-end kolem 95 kB.
 
-Obrázky jsou SVG (~3 kB každý), mají `width`/`height` kvůli posunu layoutu
+Obrázky jsou SVG (5–9 kB každý), mají `width`/`height` kvůli posunu layoutu
 a všechny pod ohybem `loading="lazy"`. Písmo se načítá neblokujícím způsobem
-(`media="print"` + `onload`), takže text je vidět hned.
+(`media="print"` + `onload`), takže text je vidět hned — Cormorant Garamond
+pro nadpisy a Jost pro zbytek.
 
 ---
 
 ## Designový systém
 
-Vše je v `assets/app.css` jako CSS proměnné. Administrace přepíná paletu
-třídou `admin` na `<body>` — stejné odstíny, o stupeň sytější, protože je to
-pracovní nástroj, kde se čte hodně údajů.
+Vše je v `assets/app.css` jako CSS proměnné. Vzhled je **světlý luxusní
+salon**: čistá bílá karta na teplé krémové stránce, hluboce hnědá typografie
+a tlumené bronzové akcenty. Žádný tmavý režim — paleta má jen odstíny bílé
+a béžové. Administrace přepíná paletu třídou `admin` na `<body>` — stejné
+odstíny, o stupeň sytější pozadí, protože je to pracovní nástroj, kde se čte
+hodně údajů.
 
 | Token | Web | Administrace | Použití |
 |---|---|---|---|
-| `--bg` | `#F5F0E9` | `#EBE3D9` | pozadí stránky |
-| `--surface` | `#FCFAF6` | `#FBF7F2` | karty a řádky |
-| `--surface-2` | `#E9DFD3` | `#E0D4C6` | inputy, štítky |
-| `--text` | `#241E1A` | `#1E1916` | hlavní text |
-| `--text-2` | `#5E534B` | `#55493F` | vedlejší text |
-| `--accent` | `#8F4C3B` | `#874731` | tlačítka, odkazy, ikony |
-| `--accent-soft` | `#E9D6CB` | `#E2CEC1` | jemný nádech |
+| `--bg` | `#F6F1E8` | `#F1EADE` | pozadí stránky (teplý krém) |
+| `--bg-2` | `#EFE7DA` | `#E9E0D0` | sytější béžový pás sekce |
+| `--surface` | `#FFFFFF` | `#FFFFFF` | karty a řádky (čistá bílá) |
+| `--surface-2` | `#F3ECE0` | `#F4EDE1` | béžová výplň uvnitř bílé |
+| `--line` | `#E2D8C8` | `#DFD4C1` | viditelná linka |
+| `--hairline` | `#EEE7DA` | `#ECE4D5` | vlasový předěl |
+| `--text` | `#2B1E14` | ↑ | hlavní text (hluboká hnědá) |
+| `--text-2` | `#6E5E4E` | ↑ | vedlejší text |
+| `--text-3` | `#857562` | ↑ | doplňky, stále nad 4,5:1 na bílé |
+| `--gold` | `#B08D57` | ↑ | dekorace: ikony, linky, orámování |
+| `--gold-ink` | `#8C6B3C` | ↑ | bronzová, která smí nést text |
+| `--gold-soft` | `#F1E7D5` | ↑ | výplň pod ikonami a štítky |
+| `--ink` | `#2B1E14` | ↑ | plné tlačítko (krémový text) |
 
-**Písmo** Ubuntu, základ 17 px (jako v Apple HIG), stupnice 13 / 15 / 17 / 20 /
-22 / 28 / 34. **Rozestupy** po 4 px. **Zaoblení** 10 / 14 / 20 / 28 px.
+**Písmo** dvojice: *Cormorant Garamond* (serif) jen na velké nadpisy —
+zapíná se třídou `.display` — a *Jost* (geometrický bezpatkový) na všechen
+ostatní text, data a čísla. Základ 17 px, stupnice 11 / 13 / 15 / 17 / 19 /
+22 / 32 / 44. Malé popisky jsou verzálky s prostrkáním `--track` (.16em).
+**Rozestupy** po 4 px. **Zaoblení** 2 / 3 / 4 / 6 / 10 px — geometrie, ne
+bublina. **Stíny** jsou sotva znatelné, jen odsazují bílou od krému.
 
 Psáno **mobile-first**: základní pravidla platí pro telefon, media query je
 rozšiřuje. Většina návštěv i správy rezervací je z mobilu.
@@ -171,11 +185,16 @@ rozšiřuje. Většina návštěv i správy rezervací je z mobilu.
 
 | Třída | K čemu |
 |---|---|
-| `.group` | seskupený seznam — jedna plocha s vlasovými předěly místo mnoha krabiček |
+| `.display` | serifový nadpis (jen h1/h2 v hero a hlavičkách sekcí) |
+| `.eyebrow` | verzálkový popisek nad nadpisem — nosný prvek vzhledu |
+| `.card` / `.card--lift` | bílá karta; `--lift` reaguje na najetí |
+| `.group` | seskupený seznam — jedna plocha s vlasovými předěly |
+| `.ico` / `.tag` | ikona v béžovém rámečku / malý štítek pod nadpisem |
+| `.link-underline` | odkaz s bronzovou linkou, která při hoveru dojede |
 | `.seg` | segmentový přepínač (filtr stavu) |
 | `.sheet` | dialog — na telefonu vyjede zdola, na desktopu je uprostřed |
 | `.table` | seznam rezervací; pod 1024 px se řádky překlopí do karet |
-| `.cal__*` | kalendář |
+| `.cal__*` | kalendář — béžová plocha s bílými dlaždicemi dnů |
 | `.status` | stav jako tečka + text, barva není jediný nositel informace |
 
 Seznam rezervací zůstává `<table>` — jsou to tabulková data, čtečky je přečtou

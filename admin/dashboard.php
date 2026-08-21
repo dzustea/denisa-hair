@@ -88,7 +88,7 @@ function sort_head(string $key, string $label, string $sortKey, string $sortDir)
     $active = $sortKey === $key;
     $next   = ($active && $sortDir === 'ASC') ? 'desc' : 'asc';
     $arrow  = $active
-        ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"'
+        ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"'
           . ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"'
           . ($sortDir === 'ASC' ? ' style="transform:rotate(180deg)"' : '')
           . '><path d="M12 5v14M6 13l6 6 6-6"/></svg>'
@@ -114,14 +114,14 @@ $pageTitle = 'Rezervace';
   <div class="wrap abar__inner">
     <span class="abar__brand">
       <span class="abar__mark" aria-hidden="true">D</span>
-      Denisa Hair
-      <span class="abar__who">· <?= e($adminName) ?></span>
+      <span class="abar__name">Denisa Hair</span>
+      <span class="abar__who"><?= e($adminName) ?></span>
     </span>
 
     <div class="abar__actions">
       <a href="setup.php" class="btn btn--ghost abar__link">Heslo</a>
       <a href="../index.php" target="_blank" rel="noopener" class="btn btn--ghost abar__link">Web</a>
-      <a href="logout.php" class="btn btn--ghost" style="color:var(--accent)">Odhlásit</a>
+      <a href="logout.php" class="btn btn--soft" style="min-height:40px; padding-inline:var(--s5)">Odhlásit</a>
     </div>
   </div>
 </header>
@@ -129,45 +129,51 @@ $pageTitle = 'Rezervace';
 <main class="wrap" style="padding-bottom:var(--s12)">
 
   <div class="ahead">
-    <h1>Rezervace</h1>
-    <p><span class="tnum" data-stat="total"><?= $stats['total'] ?></span> celkem ·
-       <span class="tnum" data-stat="nova"><?= $stats['nova'] ?></span> čeká na vyřízení</p>
+    <p class="eyebrow">Administrace</p>
+    <h1 style="margin-top:var(--s3)">Rezervace</h1>
+    <p class="ahead__meta">
+      <span><strong data-stat="total"><?= $stats['total'] ?></strong> celkem</span>
+      <span><strong data-stat="nova"><?= $stats['nova'] ?></strong> čeká na vyřízení</span>
+    </p>
   </div>
 
   <!-- ============================== SOUHRN ============================== -->
-  <section class="group stats" aria-label="Souhrn">
+  <section class="stats" aria-label="Souhrn">
     <div class="stat">
-      <span class="stat__n tnum" data-stat="total"><?= $stats['total'] ?></span>
       <span class="stat__l">Celkem</span>
+      <span class="stat__n" data-stat="total"><?= $stats['total'] ?></span>
+      <span class="stat__rule" aria-hidden="true"></span>
     </div>
     <div class="stat stat--nova">
-      <span class="stat__n tnum" data-stat="nova"><?= $stats['nova'] ?></span>
       <span class="stat__l">Nové</span>
+      <span class="stat__n" data-stat="nova"><?= $stats['nova'] ?></span>
+      <span class="stat__rule" aria-hidden="true"></span>
     </div>
     <div class="stat stat--done">
-      <span class="stat__n tnum" data-stat="dokoncena"><?= $stats['dokoncena'] ?></span>
       <span class="stat__l">Dokončené</span>
+      <span class="stat__n" data-stat="dokoncena"><?= $stats['dokoncena'] ?></span>
+      <span class="stat__rule" aria-hidden="true"></span>
     </div>
   </section>
 
   <!-- ============================== NOVÁ REZERVACE ============================== -->
-  <section class="group" style="margin-top:var(--s4)" aria-label="Nová rezervace">
+  <section class="group" style="margin-top:var(--s5)" aria-label="Nová rezervace">
     <details class="panel" id="new-booking">
       <summary>
         <span class="panel__label">
           <span class="panel__icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
               <path d="M12 5v14M5 12h14"/>
             </svg>
           </span>
           Zapsat rezervaci z telefonu
         </span>
-        <svg class="panel__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        <svg class="panel__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
       </summary>
 
       <form class="panel__body" id="admin-booking-form" novalidate>
-        <div class="grid" style="gap:var(--s5)">
+        <div class="nb-grid">
           <div>
             <div class="field">
               <label class="label" for="nb-name">Jméno a příjmení <span class="req">*</span></label>
@@ -215,7 +221,8 @@ $pageTitle = 'Rezervace';
   <!-- ============================== FILTRY ==============================
        Stav se přepíná segmentovým přepínačem a filtry se uplatní hned
        při změně. Tlačítko "Použít" zůstává jen pro vypnutý JavaScript. -->
-  <section style="margin-top:var(--s6)" aria-label="Filtrování a řazení">
+  <section style="margin-top:var(--s10)" aria-label="Filtrování a řazení">
+    <p class="eyebrow eyebrow--muted" style="margin-bottom:var(--s4)">Filtry</p>
     <form method="get" id="filters" class="stack">
       <div class="seg" role="group" aria-label="Filtrovat podle stavu">
         <?php
@@ -246,7 +253,7 @@ $pageTitle = 'Rezervace';
         <input type="hidden" name="dir" id="f-dir" value="<?= $sortDir === 'ASC' ? 'asc' : 'desc' ?>">
         <button type="button" class="btn btn--soft" id="dir-toggle" style="min-height:44px"
                 aria-label="Přepnout směr řazení">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"
                <?= $sortDir === 'ASC' ? 'style="transform:rotate(180deg)"' : '' ?>>
             <path d="M12 5v14M6 13l6 6 6-6"/>
@@ -264,14 +271,14 @@ $pageTitle = 'Rezervace';
   </section>
 
   <!-- ============================== SEZNAM ============================== -->
-  <section style="margin-top:var(--s5)" aria-label="Seznam rezervací">
-    <p class="caption" style="margin-bottom:var(--s3)">
-      Zobrazeno <span class="tnum"><?= count($bookings) ?></span> rezervací.
+  <section style="margin-top:var(--s8)" aria-label="Seznam rezervací">
+    <p class="eyebrow eyebrow--muted" style="margin-bottom:var(--s4)">
+      Zobrazeno <span class="tnum"><?= count($bookings) ?></span> rezervací
     </p>
 
     <?php if (!$bookings): ?>
       <div class="group empty">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true">
           <rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 11h18"/>
         </svg>
         <h2>Zatím žádné rezervace</h2>
@@ -322,14 +329,14 @@ $pageTitle = 'Rezervace';
                   <?php endif; ?>
                 </td>
 
-                <td data-label="Služba"><?= e(SERVICES[$b['service']] ?? $b['service']) ?></td>
+                <td data-label="Služba"><span class="svc-name"><?= e(SERVICES[$b['service']] ?? $b['service']) ?></span></td>
 
-                <td data-label="Termín" class="tnum">
+                <td data-label="Termín">
                   <span class="when"><?= e($d->format('j. n. Y')) ?></span>
-                  <span class="muted" style="display:inline-block"><?= e($d->format('H:i')) . e($end) ?></span>
+                  <span class="when-sub"><?= e($d->format('H:i')) . e($end) ?></span>
                 </td>
 
-                <td data-label="Vytvořeno" class="tnum muted"><?= e($c->format('j. n. Y H:i')) ?></td>
+                <td data-label="Vytvořeno"><span class="when-sub" style="margin-top:0"><?= e($c->format('j. n. Y H:i')) ?></span></td>
 
                 <td data-label="Stav">
                   <span class="status status--<?= e($b['status']) ?>" data-badge="<?= (int) $b['id'] ?>">
@@ -348,7 +355,7 @@ $pageTitle = 'Rezervace';
 
                     <a class="icon-btn" href="tel:<?= e($telNo) ?>"
                        aria-label="Zavolat klientovi <?= e($b['name']) ?>" title="Zavolat">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
                            stroke-linejoin="round" aria-hidden="true">
                         <path d="M6.6 3h3l1.5 4-2 1.4a12 12 0 0 0 5.5 5.5l1.4-2 4 1.5v3a2 2 0 0 1-2.2 2A16.5 16.5 0 0 1 4.6 5.2 2 2 0 0 1 6.6 3Z"/>
                       </svg>
@@ -357,7 +364,7 @@ $pageTitle = 'Rezervace';
                     <button type="button" class="icon-btn icon-btn--danger"
                             data-delete="<?= (int) $b['id'] ?>" data-name="<?= e($b['name']) ?>"
                             aria-label="Smazat rezervaci <?= e($b['name']) ?>" title="Smazat">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13M10 11v6M14 11v6"/>
                       </svg>
@@ -384,7 +391,7 @@ $pageTitle = 'Rezervace';
   <div class="sheet__scrim" data-close></div>
   <div class="sheet__panel">
     <div class="sheet__grip" aria-hidden="true"></div>
-    <h2 id="delete-title">Smazat rezervaci?</h2>
+    <h2 id="delete-title" class="display">Smazat rezervaci?</h2>
     <p class="muted small" style="margin-top:var(--s3)">
       Rezervace klienta <strong id="delete-name" style="color:var(--text)"></strong> bude trvale
       odstraněna. Tuto akci nelze vrátit zpět.
@@ -402,7 +409,7 @@ $pageTitle = 'Rezervace';
   /* Na desktopu je seznam jedna ohraničená plocha, na mobilu jsou to
      samostatné karty — proto se rámeček zapíná až od 1024 px. */
   @media (min-width: 1024px) {
-    .lg-group { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); overflow: hidden; }
+    .lg-group { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); overflow: hidden; }
   }
 </style>
 
