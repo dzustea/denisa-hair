@@ -2,8 +2,8 @@
 /**
  * index.php — veřejná prezentace salonu Denisa Hair
  *
- * Vizuál: světlý, teplý a klidný — krémové pozadí, kakaový text,
- * terakotový akcent, měkce zaoblené tvary. Písmo Ubuntu v celé stránce.
+ * Styl řeší assets/app.css, obrázky assets/img/. Žádný CSS framework
+ * za běhu — stránka se vykreslí hned, jak dorazí HTML.
  */
 declare(strict_types=1);
 require __DIR__ . '/config.php';
@@ -12,10 +12,10 @@ require_once __DIR__ . '/booking-calendar.php';
 $csrf = csrf_token();
 ?>
 <!DOCTYPE html>
-<html lang="cs" class="scroll-smooth">
+<html lang="cs">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Denisa Hair — kadeřnictví Záříčí</title>
 <meta name="description" content="Moderní dámské, pánské a dětské kadeřnictví v Záříčí. Objednejte se online u kadeřnice Denisy Hrabalové.">
 <meta name="theme-color" content="#F5F0E9">
@@ -24,231 +24,215 @@ $csrf = csrf_token();
 <meta property="og:description" content="Moderní dámské, pánské a dětské kadeřnictví v Záříčí.">
 <meta property="og:type" content="website">
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,400;1,500&display=swap" rel="stylesheet">
-
-<!-- Označí, že JS běží. Teprve pak se obsah schová kvůli animaci —
-     bez JavaScriptu se stránka zobrazí normálně. -->
 <script>document.documentElement.classList.add('js');</script>
 
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-tailwind.config = {
-  theme: {
-    extend: {
-      colors: {
-        cream: '#F5F0E9',   // pozadí stránky
-        shell: '#FCFAF6',   // karty
-        sand:  '#E9DFD3',   // vnitřní plochy, inputy
-        cocoa: '#241E1A',   // hlavní text
-        stone: '#5E534B',   // vedlejší text
-        rose:  '#8F4C3B',   // akcent
-        blush: '#E9D6CB',   // jemný akcentový nádech
-      },
-      fontFamily: {
-        sans: ['Ubuntu', 'system-ui', 'sans-serif'],
-      },
-      screens: { xs: '480px' },
-      boxShadow: {
-        soft:  '0 2px 8px rgba(36,30,26,.05)',
-        lift:  '0 14px 34px -12px rgba(36,30,26,.18)',
-      },
-    }
-  }
-}
-</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="assets/app.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap"></noscript>
 
 <style>
-  :root{
-    color-scheme: light;
-    --cream:#F5F0E9; --shell:#FCFAF6; --sand:#E9DFD3;
-    --cocoa:#241E1A; --stone:#5E534B; --rose:#8F4C3B; --blush:#E9D6CB;
-    --line:#DDD0C2;
-    --ease:cubic-bezier(.22,1,.36,1);
+  /* Styly jen pro tuhle stránku. Zbytek je v app.css. */
+  .site-head {
+    position: sticky; top: 0; z-index: 40;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: saturate(1.5) blur(12px);
+    border-bottom: 1px solid transparent;
+    transition: border-color var(--dur) var(--ease);
+  }
+  .site-head.is-stuck { border-bottom-color: var(--line); }
+  .site-head__inner { display: flex; align-items: center; justify-content: space-between; gap: var(--s4); padding-block: var(--s3); }
+
+  .brand { display: inline-flex; align-items: center; gap: var(--s3); padding-block: var(--s2); }
+  .brand__mark {
+    display: grid; place-items: center;
+    width: 34px; height: 34px; border-radius: var(--r-full);
+    background: var(--accent); color: var(--on-accent);
+    font-size: var(--t-small); font-weight: 500;
+  }
+  .brand__name { font-size: var(--t-body); font-weight: 500; letter-spacing: -.01em; }
+
+  .nav { display: none; align-items: center; gap: var(--s2); }
+  @media (min-width: 900px) { .nav { display: flex; } .nav-toggle { display: none; } }
+  .nav a { padding: var(--s2) var(--s3); border-radius: var(--r-sm); color: var(--text-2); font-size: var(--t-small); transition: background var(--dur) var(--ease), color var(--dur) var(--ease); }
+  .nav a:hover { background: var(--surface-2); color: var(--text); }
+  .nav .btn { margin-left: var(--s2); min-height: 44px; }
+
+  .nav-toggle { display: grid; place-items: center; width: 44px; height: 44px; border-radius: var(--r-sm); color: var(--text); }
+  .nav-toggle span { display: block; width: 20px; height: 2px; border-radius: 2px; background: currentColor; transition: transform var(--dur) var(--ease); }
+  .nav-toggle span + span { margin-top: 5px; }
+  .nav-toggle[aria-expanded="true"] span:first-child { transform: translateY(3.5px) rotate(45deg); }
+  .nav-toggle[aria-expanded="true"] span:last-child  { transform: translateY(-3.5px) rotate(-45deg); }
+
+  .nav-drawer { border-top: 1px solid var(--line); background: var(--bg); }
+  .nav-drawer[hidden] { display: none; }
+  @media (min-width: 900px) { .nav-drawer { display: none !important; } }
+  .nav-drawer a { display: block; padding: var(--s4) 0; border-bottom: 1px solid var(--hairline); }
+  .nav-drawer .btn { margin-block: var(--s4); }
+
+  /* Hero */
+  .hero { display: grid; gap: var(--s8); padding-block: var(--s10) var(--s12); }
+  @media (min-width: 900px) { .hero { grid-template-columns: 1fr 1fr; align-items: center; gap: var(--s12); padding-block: var(--s16); } }
+  .hero h1 { font-size: clamp(2.125rem, 7vw, 3.25rem); margin-top: var(--s5); }
+  .hero__lead { margin-top: var(--s5); max-width: 34ch; color: var(--text-2); }
+  .hero__cta { margin-top: var(--s6); display: flex; flex-wrap: wrap; gap: var(--s3); }
+  .hero__figure { position: relative; border-radius: var(--r-xl); overflow: hidden; box-shadow: var(--sh-2); }
+  .hero__figure img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; }
+  @media (min-width: 900px) { .hero__figure img { aspect-ratio: 4 / 5; } }
+  .hero__caption {
+    position: absolute; inset-inline: var(--s4); bottom: var(--s4);
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
+    backdrop-filter: blur(8px);
+    border-radius: var(--r-md); padding: var(--s3) var(--s4);
   }
 
-  html{ background:var(--cream); }
-  body{ -webkit-font-smoothing:antialiased; }
+  .facts { margin-top: var(--s8); display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s4); border-top: 1px solid var(--line); padding-top: var(--s5); }
+  .facts dt { font-size: var(--t-caption); color: var(--text-2); }
+  .facts dd { margin: var(--s1) 0 0; font-size: var(--t-lead); font-weight: 500; }
 
-  a, button, input, select, textarea, summary{ touch-action:manipulation; }
-  h1, h2, h3{ text-wrap:balance; letter-spacing:-0.02em; }
-  p{ text-wrap:pretty; }
+  /* Služby */
+  .svc { display: flex; flex-direction: column; height: 100%; }
+  .svc__icon { display: grid; place-items: center; width: 44px; height: 44px; border-radius: var(--r-md); background: var(--accent-soft); color: var(--accent); }
+  .svc__icon svg { width: 22px; height: 22px; }
+  .svc h3 { margin-top: var(--s4); font-size: var(--t-lead); }
+  .svc p { margin-top: var(--s2); flex: 1; color: var(--text-2); font-size: var(--t-small); }
+  .svc__tags { margin-top: var(--s4); display: flex; flex-wrap: wrap; gap: var(--s2); }
+  .svc__tags li { padding: var(--s1) var(--s3); border-radius: var(--r-full); background: var(--surface-2); font-size: var(--t-caption); color: var(--text-2); }
+  .svc__link { margin-top: var(--s4); display: inline-flex; align-items: center; gap: var(--s2); min-height: 44px; color: var(--accent); font-size: var(--t-small); font-weight: 500; }
+  .svc__link svg { width: 16px; height: 16px; }
 
-  ::selection{ background:var(--blush); color:var(--cocoa); }
+  /* O mně */
+  .about { display: grid; gap: var(--s8); }
+  @media (min-width: 900px) { .about { grid-template-columns: 5fr 6fr; align-items: center; gap: var(--s12); } }
+  .about__figure { border-radius: var(--r-xl); overflow: hidden; box-shadow: var(--sh-2); }
+  .about__figure img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+  @media (min-width: 900px) { .about__figure img { aspect-ratio: 4 / 5; } }
+  .badge {
+    margin-top: var(--s6); display: flex; gap: var(--s4);
+    padding: var(--s4) var(--s5); border-radius: var(--r-lg);
+    background: var(--accent-soft);
+  }
+  .badge svg { width: 22px; height: 22px; flex: 0 0 auto; color: var(--accent); }
 
-  :where(a,button,input,select,textarea,summary):focus-visible{
-    outline:2px solid var(--rose); outline-offset:3px; border-radius:6px;
+  /* Galerie */
+  .gallery { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--s3); }
+  @media (min-width: 768px) { .gallery { grid-template-columns: repeat(3, 1fr); gap: var(--s4); } }
+  .gallery figure { position: relative; border-radius: var(--r-lg); overflow: hidden; }
+  .gallery img { width: 100%; aspect-ratio: 1; object-fit: cover; transition: transform .7s var(--ease); }
+  .gallery figure:hover img { transform: scale(1.04); }
+  .gallery figcaption {
+    position: absolute; inset-inline: var(--s2); bottom: var(--s2);
+    padding: var(--s2) var(--s3); border-radius: var(--r-sm);
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
+    backdrop-filter: blur(6px);
+    font-size: var(--t-caption); font-weight: 500;
   }
 
-  /* Odkrývání obsahu při scrollu.
-     Schováváme jen když běží JavaScript (třída .js na <html>) — bez něj
-     nebo při jeho selhání je obsah normálně vidět, ne prázdná stránka. */
-  .js .rv{
-    opacity:0; transform:translateY(20px);
-    transition:opacity .7s ease-out, transform .8s var(--ease);
-    transition-delay:var(--d,0ms);
-  }
-  .js .is-in .rv, .js .rv.is-in{ opacity:1; transform:none; }
+  /* Rezervace */
+  .booking { max-width: 44rem; margin-inline: auto; }
+  .booking__head { text-align: center; margin-bottom: var(--s6); }
+  .booking__grid { display: grid; gap: var(--s5); }
+  @media (min-width: 640px) { .booking__grid { grid-template-columns: repeat(2, 1fr); } .booking__grid .field--wide { grid-column: 1 / -1; } .field + .field { margin-top: 0; } }
+  .booking__foot { margin-top: var(--s6); padding-top: var(--s5); border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: var(--s4); }
+  @media (min-width: 640px) { .booking__foot { flex-direction: row; align-items: center; justify-content: space-between; } }
 
-  /* Karta se při najetí jemně nadzvedne */
-  .card{ transition:transform .45s var(--ease), box-shadow .45s var(--ease), border-color .45s ease; }
-  .card:hover{
-    transform:translateY(-4px);
-    box-shadow:0 14px 34px -12px rgba(36,30,26,.18);
-    border-color:var(--blush);
-  }
+  /* Patička */
+  .site-foot { background: var(--text); color: color-mix(in srgb, var(--bg) 82%, transparent); padding-block: var(--s10) var(--s6); margin-top: var(--s12); }
+  .site-foot a:hover { color: var(--bg); }
+  .site-foot__grid { display: grid; gap: var(--s8); }
+  @media (min-width: 640px) { .site-foot__grid { grid-template-columns: repeat(3, 1fr); } }
+  .site-foot h2 { font-size: var(--t-small); font-weight: 500; color: var(--bg); }
+  .site-foot li + li { margin-top: var(--s2); }
+  .site-foot li a { display: inline-flex; align-items: center; min-height: 44px; }
+  .site-foot__bottom { margin-top: var(--s10); padding-top: var(--s5); border-top: 1px solid rgba(255,255,255,.14); font-size: var(--t-caption); display: flex; flex-wrap: wrap; gap: var(--s2) var(--s5); justify-content: space-between; }
+  .site-foot .brand__name { color: var(--bg); }
 
-  /* Fotky v galerii */
-  .ph{ background:linear-gradient(150deg,#E9DCD1 0%,#DECDC0 55%,#D3BEAF 100%); }
-  .zoom{ transition:transform 1s var(--ease); }
-  .zoomwrap:hover .zoom{ transform:scale(1.05); }
-
-  /* Podtržení odkazu zleva */
-  .ul{ position:relative; }
-  .ul::after{
-    content:''; position:absolute; left:0; bottom:2px; height:1.5px; width:100%;
-    background:var(--rose); transform:scaleX(0); transform-origin:right;
-    transition:transform .4s var(--ease);
-  }
-  .ul:hover::after, .ul:focus-visible::after{ transform:scaleX(1); transform-origin:left; }
-
-  @media (prefers-reduced-motion: reduce){
-    html{ scroll-behavior:auto; }
-    .js .rv{ opacity:1 !important; transform:none !important; transition:none !important; }
-    .card:hover{ transform:none; }
-    *{ animation-duration:.01ms !important; transition-duration:.01ms !important; }
-  }
+  .eyebrow { font-size: var(--t-small); color: var(--accent); font-weight: 500; }
+  .section-head { max-width: 42rem; margin-bottom: var(--s8); }
+  .section-head p { margin-top: var(--s3); color: var(--text-2); }
 </style>
 </head>
 
-<body class="bg-cream font-sans text-cocoa antialiased">
+<body>
 
-<a href="#hlavni" class="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:m-3 focus:rounded-full focus:bg-rose focus:px-5 focus:py-3 focus:text-white">Přeskočit na obsah</a>
+<a href="#obsah" class="sr-only skip">Přeskočit na obsah</a>
 
 <!-- ============================== HLAVIČKA ============================== -->
-<header id="site-header" class="sticky top-0 z-40 border-b border-transparent bg-cream/95 backdrop-blur transition-shadow duration-300">
-  <div class="mx-auto flex max-w-6xl items-center justify-between px-5 py-4 sm:px-8">
-
-    <a href="#hlavni" class="flex items-center gap-2.5 py-1">
-      <span class="flex h-9 w-9 items-center justify-center rounded-full bg-rose text-[15px] font-medium text-white">D</span>
-      <span class="text-[17px] font-medium tracking-tight">Denisa Hair</span>
+<header class="site-head" id="site-head">
+  <div class="wrap site-head__inner">
+    <a href="#obsah" class="brand">
+      <span class="brand__mark" aria-hidden="true">D</span>
+      <span class="brand__name">Denisa Hair</span>
     </a>
 
-    <nav class="hidden items-center gap-8 text-[15px] md:flex" aria-label="Hlavní navigace">
-      <a href="#sluzby"   class="ul py-2 text-stone transition-colors hover:text-cocoa">Služby</a>
-      <a href="#o-mne"    class="ul py-2 text-stone transition-colors hover:text-cocoa">O mně</a>
-      <a href="#galerie"  class="ul py-2 text-stone transition-colors hover:text-cocoa">Galerie</a>
-      <a href="#kontakt"  class="ul py-2 text-stone transition-colors hover:text-cocoa">Kontakt</a>
-      <a href="#rezervace"
-         class="rounded-full bg-rose px-6 py-3 text-[15px] font-medium text-white shadow-soft transition-colors duration-300 hover:bg-cocoa">
-        Objednat se
-      </a>
+    <nav class="nav" aria-label="Hlavní navigace">
+      <a href="#sluzby">Služby</a>
+      <a href="#o-mne">O mně</a>
+      <a href="#galerie">Galerie</a>
+      <a href="#kontakt">Kontakt</a>
+      <a href="#rezervace" class="btn btn--primary">Objednat se</a>
     </nav>
 
-    <button id="menu-toggle" type="button"
-            class="flex h-11 w-11 items-center justify-center rounded-full text-cocoa md:hidden"
-            aria-label="Otevřít menu" aria-expanded="false" aria-controls="mobile-menu">
-      <span class="relative block h-3.5 w-6" aria-hidden="true">
-        <span class="absolute inset-x-0 top-0 h-0.5 rounded bg-cocoa transition-transform duration-300" data-bar-top></span>
-        <span class="absolute inset-x-0 bottom-0 h-0.5 rounded bg-cocoa transition-transform duration-300" data-bar-bottom></span>
-      </span>
+    <button type="button" class="nav-toggle" id="nav-toggle"
+            aria-label="Otevřít menu" aria-expanded="false" aria-controls="nav-drawer">
+      <span aria-hidden="true"></span><span aria-hidden="true"></span>
     </button>
   </div>
 
-  <div id="mobile-menu" class="hidden border-t border-[color:var(--line)] bg-cream md:hidden">
-    <nav class="mx-auto flex max-w-6xl flex-col px-5 py-2" aria-label="Mobilní navigace">
-      <a href="#sluzby"  class="border-b border-[color:var(--line)] py-4 text-[16px]">Služby</a>
-      <a href="#o-mne"   class="border-b border-[color:var(--line)] py-4 text-[16px]">O mně</a>
-      <a href="#galerie" class="border-b border-[color:var(--line)] py-4 text-[16px]">Galerie</a>
-      <a href="#kontakt" class="border-b border-[color:var(--line)] py-4 text-[16px]">Kontakt</a>
-      <a href="#rezervace" class="my-4 rounded-full bg-rose px-6 py-4 text-center text-[16px] font-medium text-white">Objednat se</a>
+  <div class="nav-drawer" id="nav-drawer" hidden>
+    <nav class="wrap" aria-label="Mobilní navigace">
+      <a href="#sluzby">Služby</a>
+      <a href="#o-mne">O mně</a>
+      <a href="#galerie">Galerie</a>
+      <a href="#kontakt">Kontakt</a>
+      <a href="#rezervace" class="btn btn--primary btn--block">Objednat se</a>
     </nav>
   </div>
 </header>
 
-<main id="hlavni">
+<main id="obsah">
 
 <!-- ============================== HERO ============================== -->
-<section data-io class="relative overflow-hidden">
-  <div aria-hidden="true" class="pointer-events-none absolute -right-32 -top-24 h-96 w-96 rounded-full bg-blush/60 blur-3xl"></div>
+<section class="wrap hero" data-io>
+  <div>
+    <p class="eyebrow rv">Kadeřnictví v Záříčí</p>
+    <h1 class="rv" style="--d:60ms">Účes, ve kterém se budete cítit dobře</h1>
+    <p class="hero__lead rv" style="--d:120ms">
+      Dámské, pánské i dětské kadeřnictví. Stříhám v klidném tempu, poradím
+      s barvou i péčí doma — a nikdy nenutím službu, kterou nepotřebujete.
+    </p>
 
-  <div class="relative mx-auto grid max-w-6xl items-center gap-12 px-5 py-14 sm:px-8 sm:py-20 lg:grid-cols-2 lg:gap-16 lg:py-24">
-
-    <div>
-      <p class="rv inline-flex items-center gap-2 rounded-full bg-blush px-4 py-2 text-[14px] text-rose">
-        <span class="h-1.5 w-1.5 rounded-full bg-rose" aria-hidden="true"></span>
-        Kadeřnictví v Záříčí
-      </p>
-
-      <h1 class="rv mt-6 text-[2.4rem] font-medium leading-[1.12] sm:text-[3.2rem] lg:text-[3.6rem]" style="--d:60ms">
-        Účes, ve kterém se<br class="hidden sm:block">
-        budete cítit <span class="text-rose">dobře</span>
-      </h1>
-
-      <p class="rv mt-6 max-w-md text-[17px] leading-[1.7] text-stone" style="--d:120ms">
-        Dámské, pánské i dětské kadeřnictví. Stříhám v klidném tempu,
-        poradím s barvou i péčí doma — a nikdy nenutím službu, kterou nepotřebujete.
-      </p>
-
-      <div class="rv mt-8 flex flex-wrap items-center gap-4" style="--d:180ms">
-        <a href="#rezervace"
-           class="group inline-flex items-center gap-2.5 rounded-full bg-rose px-7 py-4 text-[16px] font-medium text-white shadow-soft transition-colors duration-300 hover:bg-cocoa">
-          Objednat se
-          <svg class="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </a>
-        <a href="#sluzby"
-           class="inline-flex items-center rounded-full border border-[color:var(--line)] bg-shell px-7 py-4 text-[16px] text-cocoa transition-colors duration-300 hover:border-rose hover:text-rose">
-          Ceník a služby
-        </a>
-      </div>
-
-      <dl class="rv mt-12 grid max-w-md gap-6 border-t border-[color:var(--line)] pt-8 xs:grid-cols-3" style="--d:240ms">
-        <div class="flex items-baseline justify-between gap-3 xs:block">
-          <dt class="text-[14px] text-stone">Praxe</dt>
-          <dd class="text-[22px] font-medium xs:mt-1"><span data-count="3">0</span>. ročník</dd>
-        </div>
-        <div class="flex items-baseline justify-between gap-3 xs:block">
-          <dt class="text-[14px] text-stone">Služby</dt>
-          <dd class="text-[22px] font-medium xs:mt-1"><span data-count="4">0</span> druhy</dd>
-        </div>
-        <div class="flex items-baseline justify-between gap-3 xs:block">
-          <dt class="text-[14px] text-stone">Objednání</dt>
-          <dd class="text-[22px] font-medium xs:mt-1">Online</dd>
-        </div>
-      </dl>
+    <div class="hero__cta rv" style="--d:180ms">
+      <a href="#rezervace" class="btn btn--primary">Objednat se</a>
+      <a href="#sluzby" class="btn btn--soft">Služby a ceny</a>
     </div>
 
-    <!-- Fotka -->
-    <div class="rv" style="--d:150ms">
-      <figure class="zoomwrap relative overflow-hidden rounded-[2rem] shadow-lift">
-        <div class="ph zoom aspect-[4/5] w-full sm:aspect-[5/4] lg:aspect-[4/5]">
-          <!-- Nahraď za: <img src="assets/img/denisa.jpg" alt="Kadeřnice Denisa Hrabalová v salonu" width="1000" height="1250" class="zoom h-full w-full object-cover"> -->
-        </div>
-        <figcaption class="absolute bottom-4 left-4 right-4 rounded-2xl bg-shell/95 px-5 py-4 backdrop-blur">
-          <p class="text-[16px] font-medium">Denisa Hrabalová</p>
-          <p class="mt-0.5 text-[14px] text-stone">Záříčí 192 · otevřeno dle objednávek</p>
-        </figcaption>
-      </figure>
-    </div>
+    <dl class="facts rv" style="--d:240ms">
+      <div><dt>Praxe</dt><dd><span data-count="3">0</span>. ročník</dd></div>
+      <div><dt>Služby</dt><dd><span data-count="4">0</span> druhy</dd></div>
+      <div><dt>Objednání</dt><dd>Online</dd></div>
+    </dl>
   </div>
+
+  <figure class="hero__figure rv" style="--d:120ms">
+    <img src="assets/img/hero.svg" width="1200" height="1500" alt="Salon Denisa Hair — zkušební obrázek">
+    <figcaption class="hero__caption">
+      <p style="font-weight:500">Denisa Hrabalová</p>
+      <p class="caption">Záříčí 192 · otevřeno dle objednávek</p>
+    </figcaption>
+  </figure>
 </section>
 
 <!-- ============================== SLUŽBY ============================== -->
-<section id="sluzby" data-io class="scroll-mt-20 bg-shell py-16 sm:py-20 lg:py-24">
-  <div class="mx-auto max-w-6xl px-5 sm:px-8">
-
-    <div class="rv max-w-2xl">
-      <h2 class="text-[1.9rem] font-medium leading-tight sm:text-[2.4rem]">Co pro vás udělám</h2>
-      <p class="mt-4 text-[17px] leading-[1.7] text-stone">
-        Ceny se odvíjejí od délky vlasů a náročnosti — ráda je řeknu po telefonu
-        nebo v odpovědi na rezervaci.
-      </p>
+<section id="sluzby" class="section" style="background:var(--surface)" data-io>
+  <div class="wrap">
+    <div class="section-head rv">
+      <h2>Co pro vás udělám</h2>
+      <p>Ceny se odvíjejí od délky vlasů a náročnosti — ráda je řeknu po telefonu nebo v odpovědi na rezervaci.</p>
     </div>
 
-    <div class="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="grid grid-2 grid-4">
       <?php
       // Karty služeb — obsah v poli, ať se šablona neopakuje.
       $cards = [
@@ -256,50 +240,44 @@ tailwind.config = {
               'title' => 'Dámské kadeřnictví',
               'text'  => 'Střih na míru, mytí, foukaná a styling podle typu vašich vlasů.',
               'items' => ['Střih & foukaná', 'Regenerace', 'Styling'],
-              'icon'  => '<path d="M12 3c-3.3 0-6 2.7-6 6 0 4 6 12 6 12s6-8 6-12c0-3.3-2.7-6-6-6Z"/><circle cx="12" cy="9" r="2.2"/>',
+              'icon'  => '<path d="M6 4v9m12-9v9"/><circle cx="6" cy="16" r="3"/><circle cx="18" cy="16" r="3"/>',
           ],
           [
               'title' => 'Pánské kadeřnictví',
               'text'  => 'Klasické i moderní střihy, fade, zastřižení kontur a úprava vousů.',
               'items' => ['Klasický střih', 'Fade', 'Vousy'],
-              'icon'  => '<path d="M4 7h16M4 12h10M4 17h16" stroke-linecap="round"/>',
+              'icon'  => '<path d="M4 7h16M4 12h10M4 17h16"/>',
           ],
           [
               'title' => 'Dětské kadeřnictví',
               'text'  => 'Trpělivě a bez slz. Pro kluky i holčičky, včetně prvního stříhání.',
               'items' => ['První střih', 'Kluci', 'Holčičky'],
-              'icon'  => '<circle cx="12" cy="12" r="8"/><path d="M9 10h.01M15 10h.01M9 14.5a4 4 0 0 0 6 0" stroke-linecap="round"/>',
+              'icon'  => '<circle cx="12" cy="12" r="8"/><path d="M9 10h.01M15 10h.01M9 14.5a4 4 0 0 0 6 0"/>',
           ],
           [
               'title' => 'Barvení',
               'text'  => 'Celková barva, melír, přeliv i jemné rozjasnění kolem obličeje.',
               'items' => ['Celková barva', 'Melír', 'Přeliv'],
-              'icon'  => '<path d="M7 3h6l1 5H6l1-5Z"/><path d="M6 8h8v10a3 3 0 0 1-3 3H9a3 3 0 0 1-3-3V8Z"/>',
+              'icon'  => '<path d="M8 3h5l1 5H7l1-5Z"/><path d="M7 8h7v10a3 3 0 0 1-3 3h-1a3 3 0 0 1-3-3V8Z"/>',
           ],
       ];
       foreach ($cards as $i => $c): ?>
-        <article class="card rv flex h-full flex-col rounded-3xl border border-[color:var(--line)] bg-cream p-6"
-                 style="--d: <?= $i * 70 ?>ms">
-          <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-blush text-rose" aria-hidden="true">
-            <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
-                 stroke-linejoin="round"><?= $c['icon'] ?></svg>
+        <article class="card svc rv" style="--d: <?= $i * 60 ?>ms">
+          <span class="svc__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+                 stroke-linecap="round" stroke-linejoin="round"><?= $c['icon'] ?></svg>
           </span>
-
-          <h3 class="mt-5 text-[19px] font-medium"><?= e($c['title']) ?></h3>
-          <p class="mt-2.5 flex-1 text-[15px] leading-[1.65] text-stone"><?= e($c['text']) ?></p>
-
-          <ul class="mt-5 flex flex-wrap gap-2">
+          <h3><?= e($c['title']) ?></h3>
+          <p><?= e($c['text']) ?></p>
+          <ul class="svc__tags">
             <?php foreach ($c['items'] as $item): ?>
-              <li class="rounded-full bg-sand px-3 py-1.5 text-[13px] text-stone"><?= e($item) ?></li>
+              <li><?= e($item) ?></li>
             <?php endforeach; ?>
           </ul>
-
-          <a href="#rezervace"
-             class="mt-6 inline-flex items-center gap-2 py-2.5 text-[15px] font-medium text-rose transition-colors hover:text-cocoa">
+          <a href="#rezervace" class="svc__link">
             Objednat<span class="sr-only"> — <?= e($c['title']) ?></span>
-            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
           </a>
         </article>
       <?php endforeach; ?>
@@ -308,17 +286,20 @@ tailwind.config = {
 </section>
 
 <!-- ============================== O MNĚ ============================== -->
-<section id="o-mne" data-io class="scroll-mt-20 py-16 sm:py-20 lg:py-24">
-  <div class="mx-auto grid max-w-6xl items-center gap-12 px-5 sm:px-8 lg:grid-cols-2 lg:gap-16">
+<section id="o-mne" class="section" data-io>
+  <div class="wrap about">
+    <figure class="about__figure rv">
+      <img src="assets/img/portret.svg" width="900" height="1125" loading="lazy"
+           alt="Pracoviště kadeřnice — zkušební obrázek">
+    </figure>
 
-    <div class="rv order-2 lg:order-1">
-      <h2 class="text-[1.9rem] font-medium leading-tight sm:text-[2.4rem]">Ráda vás poznám</h2>
-
-      <div class="mt-5 space-y-4 text-[17px] leading-[1.75] text-stone">
+    <div class="rv" style="--d:80ms">
+      <h2>Ráda vás poznám</h2>
+      <div class="stack" style="margin-top:var(--s5); color:var(--text-2)">
         <p>
-          Jmenuji se <span class="font-medium text-cocoa">Denisa Hrabalová</span> a kadeřnictví
-          se věnuji naplno. V Záříčí stříhám dámy, pány i ty nejmenší — vždy s ohledem na typ
-          vlasů, tvar obličeje a na to, kolik času chcete péči doma reálně věnovat.
+          Jmenuji se <strong style="color:var(--text); font-weight:500">Denisa Hrabalová</strong>
+          a kadeřnictví se věnuji naplno. V Záříčí stříhám dámy, pány i ty nejmenší — vždy
+          s ohledem na typ vlasů, tvar obličeje a na to, kolik času chcete péči doma reálně věnovat.
         </p>
         <p>
           Pracuji v klidném tempu a bez tlaku na zbytečné služby. Poradím s barvou, střihem
@@ -326,67 +307,58 @@ tailwind.config = {
         </p>
       </div>
 
-      <div class="mt-7 flex items-start gap-4 rounded-3xl border border-blush bg-blush/40 p-5 sm:p-6">
-        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-rose text-white" aria-hidden="true">
-          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-            <path d="m12 4 2.3 4.8 5.2.8-3.8 3.7.9 5.2-4.6-2.5-4.6 2.5.9-5.2L4.5 9.6l5.2-.8L12 4Z" stroke-linejoin="round"/>
-          </svg>
-        </span>
-        <p class="text-[15px] leading-[1.65] text-cocoa">
-          <span class="font-medium">Mladá talentovaná kadeřnice (18 let, 3. ročník)</span>
+      <div class="badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+             stroke-linejoin="round" aria-hidden="true">
+          <path d="m12 4 2.3 4.8 5.2.8-3.8 3.7.9 5.2-4.6-2.5-4.6 2.5.9-5.2L4.5 9.6l5.2-.8L12 4Z"/>
+        </svg>
+        <p class="small">
+          <strong style="font-weight:500">Mladá talentovaná kadeřnice (18 let, 3. ročník)</strong>
           — učím se, zlepšuji se a dávám si záležet na každém detailu.
         </p>
       </div>
 
-      <div class="mt-7 flex flex-wrap gap-3">
-        <span class="inline-flex items-center gap-2 rounded-full border border-[color:var(--line)] bg-shell px-4 py-2.5 text-[15px] text-stone">
-          <svg class="h-4 w-4 shrink-0 text-rose" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+      <div class="row-wrap" style="margin-top:var(--s6)">
+        <span class="chip">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
             <path d="M12 21s7-5.7 7-11a7 7 0 1 0-14 0c0 5.3 7 11 7 11Z" stroke-linejoin="round"/><circle cx="12" cy="10" r="2.3"/>
           </svg>
           Záříčí 192
         </span>
-        <span class="inline-flex items-center gap-2 rounded-full border border-[color:var(--line)] bg-shell px-4 py-2.5 text-[15px] text-stone">
-          <svg class="h-4 w-4 shrink-0 text-rose" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+        <span class="chip">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
             <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2" stroke-linecap="round"/>
           </svg>
           Otevřeno dle objednávek
         </span>
       </div>
     </div>
-
-    <div class="rv order-1 lg:order-2" style="--d:100ms">
-      <div class="zoomwrap overflow-hidden rounded-[2rem] shadow-lift">
-        <!-- Nahraď za <img …> se stejnými třídami -->
-        <div class="ph zoom aspect-[4/3] w-full lg:aspect-[4/5]"></div>
-      </div>
-    </div>
   </div>
 </section>
 
 <!-- ============================== GALERIE ============================== -->
-<section id="galerie" data-io class="scroll-mt-20 bg-shell py-16 sm:py-20 lg:py-24">
-  <div class="mx-auto max-w-6xl px-5 sm:px-8">
-
-    <div class="rv flex flex-wrap items-end justify-between gap-4">
-      <div class="max-w-xl">
-        <h2 class="text-[1.9rem] font-medium leading-tight sm:text-[2.4rem]">Moje práce</h2>
-        <p class="mt-4 text-[17px] leading-[1.7] text-stone">
-          Pár účesů z poslední doby. Klidně si vyberte a přiložte k rezervaci.
-        </p>
-      </div>
-      <a href="#rezervace" class="ul py-2 text-[16px] font-medium text-rose">Chci to samé</a>
+<section id="galerie" class="section" style="background:var(--surface)" data-io>
+  <div class="wrap">
+    <div class="section-head rv">
+      <h2>Moje práce</h2>
+      <p>Pár účesů z poslední doby. Klidně si vyberte a přiložte k rezervaci.</p>
     </div>
 
-    <div class="mt-10 grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-3">
+    <div class="gallery">
       <?php
-      $gallery = ['Dámský střih', 'Melír', 'Pánský fade', 'Barvení', 'Dětský střih', 'Foukaná'];
-      foreach ($gallery as $i => $label): ?>
-        <figure class="zoomwrap rv relative overflow-hidden rounded-3xl" style="--d: <?= $i * 60 ?>ms">
-          <!-- Nahraď vnitřní div za: <img src="assets/img/…" alt="…" loading="lazy" width="800" height="800" class="zoom h-full w-full object-cover"> -->
-          <div class="ph zoom aspect-square w-full"></div>
-          <figcaption class="absolute inset-x-3 bottom-3 rounded-2xl bg-shell/95 px-4 py-2.5 text-[14px] font-medium backdrop-blur">
-            <?= e($label) ?>
-          </figcaption>
+      $gallery = [
+          ['prace-1.svg', 'Dámský střih'],
+          ['prace-2.svg', 'Barvení'],
+          ['prace-3.svg', 'Pánský fade'],
+          ['prace-4.svg', 'Melír'],
+          ['prace-5.svg', 'Foukaná'],
+          ['prace-6.svg', 'Dětský střih'],
+      ];
+      foreach ($gallery as $i => [$file, $label]): ?>
+        <figure class="rv" style="--d: <?= $i * 50 ?>ms">
+          <img src="assets/img/<?= e($file) ?>" width="800" height="800" loading="lazy"
+               alt="<?= e($label) ?> — zkušební obrázek">
+          <figcaption><?= e($label) ?></figcaption>
         </figure>
       <?php endforeach; ?>
     </div>
@@ -394,105 +366,87 @@ tailwind.config = {
 </section>
 
 <!-- ============================== REZERVACE ============================== -->
-<section id="rezervace" data-io class="scroll-mt-20 py-16 sm:py-20 lg:py-24">
-  <div class="mx-auto max-w-6xl px-5 sm:px-8">
-
-    <div class="rv mx-auto max-w-2xl text-center">
-      <h2 class="text-[1.9rem] font-medium leading-tight sm:text-[2.4rem]">Objednat se</h2>
-      <p class="mt-4 text-[17px] leading-[1.7] text-stone">
+<section id="rezervace" class="section" data-io>
+  <div class="wrap booking">
+    <div class="booking__head rv">
+      <h2>Objednat se</h2>
+      <p class="muted" style="margin-top:var(--s3)">
         Vyplňte formulář a co nejdřív se vám ozvu s potvrzením termínu.
         Rezervace je nezávazná — platí až po mém potvrzení.
       </p>
     </div>
 
-    <form id="booking-form" novalidate
-          class="rv mx-auto mt-10 max-w-3xl rounded-[2rem] border border-[color:var(--line)] bg-shell p-6 shadow-soft sm:p-9" style="--d:80ms">
+    <form id="booking-form" class="card rv" novalidate style="--d:80ms">
       <input type="hidden" name="csrf_token" value="<?= e($csrf) ?>">
 
       <!-- honeypot proti robotům -->
-      <div class="hidden" aria-hidden="true">
+      <div hidden aria-hidden="true">
         <label>Nevyplňujte <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
       </div>
 
-      <div class="grid gap-5 sm:grid-cols-2">
-
-        <div>
-          <label for="name" class="block text-[15px] font-medium">Jméno a příjmení <span class="text-rose">*</span></label>
-          <input id="name" name="name" type="text" required autocomplete="name" maxlength="100"
-                 placeholder="Jana Nováková" aria-describedby="err-name"
-                 class="mt-2 w-full rounded-2xl border border-[color:var(--line)] bg-sand px-4 py-3.5 text-[16px] placeholder-stone/50 transition-colors focus:border-rose focus:bg-shell focus:outline-none">
-          <p id="err-name" class="mt-1.5 hidden text-[14px] text-rose" role="alert"></p>
+      <div class="booking__grid">
+        <div class="field">
+          <label class="label" for="name">Jméno a příjmení <span class="req">*</span></label>
+          <input class="input" id="name" name="name" type="text" required autocomplete="name"
+                 maxlength="100" placeholder="Jana Nováková" aria-describedby="err-name">
+          <p class="err" id="err-name" role="alert" hidden></p>
         </div>
 
-        <div>
-          <label for="phone" class="block text-[15px] font-medium">Telefon <span class="text-rose">*</span></label>
-          <input id="phone" name="phone" type="tel" required autocomplete="tel" maxlength="30"
-                 spellcheck="false" inputmode="tel"
-                 placeholder="+420 777 123 456" aria-describedby="err-phone"
-                 class="mt-2 w-full rounded-2xl border border-[color:var(--line)] bg-sand px-4 py-3.5 text-[16px] placeholder-stone/50 transition-colors focus:border-rose focus:bg-shell focus:outline-none">
-          <p id="err-phone" class="mt-1.5 hidden text-[14px] text-rose" role="alert"></p>
+        <div class="field">
+          <label class="label" for="phone">Telefon <span class="req">*</span></label>
+          <input class="input" id="phone" name="phone" type="tel" required autocomplete="tel"
+                 maxlength="30" inputmode="tel" spellcheck="false"
+                 placeholder="+420 777 123 456" aria-describedby="err-phone">
+          <p class="err" id="err-phone" role="alert" hidden></p>
         </div>
 
-        <div>
-          <label for="email" class="block text-[15px] font-medium">E-mail</label>
-          <input id="email" name="email" type="email" autocomplete="email" maxlength="120"
-                 spellcheck="false" inputmode="email"
-                 placeholder="jana@email.cz" aria-describedby="hint-email err-email"
-                 class="mt-2 w-full rounded-2xl border border-[color:var(--line)] bg-sand px-4 py-3.5 text-[16px] placeholder-stone/50 transition-colors focus:border-rose focus:bg-shell focus:outline-none">
-          <p id="hint-email" class="mt-1.5 text-[13px] text-stone">Nepovinné — potvrzení pošlu i SMS.</p>
-          <p id="err-email" class="mt-1.5 hidden text-[14px] text-rose" role="alert"></p>
+        <div class="field">
+          <label class="label" for="email">E-mail</label>
+          <input class="input" id="email" name="email" type="email" autocomplete="email"
+                 maxlength="120" inputmode="email" spellcheck="false"
+                 placeholder="jana@email.cz" aria-describedby="hint-email err-email">
+          <p class="hint" id="hint-email">Nepovinné — potvrzení pošlu i SMS.</p>
+          <p class="err" id="err-email" role="alert" hidden></p>
         </div>
 
-        <div>
-          <label for="service" class="block text-[15px] font-medium">Služba <span class="text-rose">*</span></label>
-          <select id="service" name="service" required aria-describedby="err-service"
-                  class="mt-2 w-full appearance-none rounded-2xl border border-[color:var(--line)] bg-sand bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20fill=%22none%22%20stroke=%22%238F4C3B%22%20stroke-width=%222%22%20viewBox=%220%200%2024%2024%22%3E%3Cpath%20d=%22m6%209%206%206%206-6%22/%3E%3C/svg%3E')] bg-[length:18px_18px] bg-[right_1rem_center] bg-no-repeat px-4 py-3.5 pr-11 text-[16px] transition-colors focus:border-rose focus:bg-shell focus:outline-none">
+        <div class="field">
+          <label class="label" for="service">Služba <span class="req">*</span></label>
+          <select class="select" id="service" name="service" required aria-describedby="err-service">
             <option value="">Vyberte službu…</option>
             <?php foreach (SERVICES as $key => $label): ?>
               <option value="<?= e($key) ?>"><?= e($label) ?></option>
             <?php endforeach; ?>
           </select>
-          <p id="err-service" class="mt-1.5 hidden text-[14px] text-rose" role="alert"></p>
+          <p class="err" id="err-service" role="alert" hidden></p>
         </div>
 
-        <div class="sm:col-span-2">
-          <p class="text-[15px] font-medium">Termín <span class="text-rose">*</span></p>
-          <p class="mt-1 text-[13px] text-stone">
+        <div class="field field--wide">
+          <span class="label">Termín <span class="req">*</span></span>
+          <p class="hint" style="margin-top:0; margin-bottom:var(--s3)">
             Vyberte den a pak volný čas. Objednávám po hodinových blocích od 9:00 do 17:00.
           </p>
-          <div class="mt-3">
-            <?php render_booking_calendar([
-                'id'       => 'cal-web',
-                'endpoint' => 'availability.php',
-            ]); ?>
-          </div>
-          <p id="err-appointment_date" class="mt-1.5 hidden text-[14px] text-rose" role="alert"></p>
-          <p id="err-appointment_time" class="mt-1.5 hidden text-[14px] text-rose" role="alert"></p>
+          <?php render_booking_calendar(['id' => 'cal-web', 'endpoint' => 'availability.php']); ?>
+          <p class="err" id="err-appointment_date" role="alert" hidden></p>
+          <p class="err" id="err-appointment_time" role="alert" hidden></p>
         </div>
 
-        <div class="sm:col-span-2">
-          <label for="note" class="block text-[15px] font-medium">Poznámka</label>
-          <textarea id="note" name="note" rows="4" maxlength="1000"
-                    placeholder="Napište mi, co byste si přáli — délka, barva, inspirace…"
-                    class="mt-2 w-full resize-y rounded-2xl border border-[color:var(--line)] bg-sand px-4 py-3.5 text-[16px] placeholder-stone/50 transition-colors focus:border-rose focus:bg-shell focus:outline-none"></textarea>
+        <div class="field field--wide">
+          <label class="label" for="note">Poznámka</label>
+          <textarea class="textarea" id="note" name="note" rows="4" maxlength="1000"
+                    placeholder="Napište mi, co byste si přáli — délka, barva, inspirace…"></textarea>
         </div>
       </div>
 
-      <div class="mt-7 flex flex-col items-start gap-4 border-t border-[color:var(--line)] pt-6 sm:flex-row sm:items-center sm:justify-between">
-        <p class="text-[13px] leading-relaxed text-stone">
+      <div class="booking__foot">
+        <p class="caption" style="max-width:34ch">
           Odesláním souhlasíte se zpracováním údajů za účelem domluvení termínu.
         </p>
-        <button id="submit-btn" type="submit"
-                class="inline-flex w-full items-center justify-center gap-2.5 rounded-full bg-rose px-8 py-4 text-[16px] font-medium text-white shadow-soft transition-colors duration-300 hover:bg-cocoa disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto">
+        <button class="btn btn--primary" id="submit-btn" type="submit">
           <span data-btn-label>Odeslat rezervaci</span>
-          <svg data-spinner class="hidden h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.5" opacity=".3"/>
-            <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-          </svg>
         </button>
       </div>
 
-      <div id="form-status" class="mt-5 hidden rounded-2xl border px-5 py-4 text-[15px]" role="status" aria-live="polite"></div>
+      <div class="note" id="form-status" role="status" aria-live="polite" style="margin-top:var(--s5)" hidden></div>
     </form>
   </div>
 </section>
@@ -500,44 +454,40 @@ tailwind.config = {
 </main>
 
 <!-- ============================== PATIČKA ============================== -->
-<footer id="kontakt" class="scroll-mt-20 bg-cocoa py-14 text-cream/85">
-  <div class="mx-auto max-w-6xl px-5 sm:px-8">
-    <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
-
+<footer id="kontakt" class="site-foot">
+  <div class="wrap">
+    <div class="site-foot__grid">
       <div>
-        <div class="flex items-center gap-2.5">
-          <span class="flex h-9 w-9 items-center justify-center rounded-full bg-rose text-[15px] font-medium text-white">D</span>
-          <span class="text-[17px] font-medium text-cream">Denisa Hair</span>
-        </div>
-        <p class="mt-4 max-w-xs text-[15px] leading-[1.7] text-cream/70">
+        <span class="brand">
+          <span class="brand__mark" aria-hidden="true">D</span>
+          <span class="brand__name">Denisa Hair</span>
+        </span>
+        <p class="small" style="margin-top:var(--s4); max-width:28ch">
           Dámské, pánské a dětské kadeřnictví v Záříčí.
         </p>
       </div>
 
       <div>
-        <p class="text-[15px] font-medium text-cream">Kontakt</p>
-        <ul class="mt-4 space-y-2 text-[15px]">
+        <h2>Kontakt</h2>
+        <ul style="margin-top:var(--s3)" class="small">
           <li>Denisa Hrabalová</li>
-          <li>
-            <a href="https://mapy.cz/zakladni?q=Z%C3%A1%C5%99%C3%AD%C4%8D%C3%AD%20192" target="_blank" rel="noopener"
-               class="ul inline-block py-2.5 hover:text-cream">Záříčí 192</a>
-          </li>
-          <li class="text-cream/70">Otevřeno dle objednávek</li>
+          <li><a href="https://mapy.cz/zakladni?q=Z%C3%A1%C5%99%C3%AD%C4%8D%C3%AD%20192" target="_blank" rel="noopener">Záříčí 192</a></li>
+          <li>Otevřeno dle objednávek</li>
         </ul>
       </div>
 
       <div>
-        <p class="text-[15px] font-medium text-cream">Odkazy</p>
-        <ul class="mt-4 space-y-2 text-[15px]">
-          <li><a href="#sluzby"    class="ul inline-block py-2.5 hover:text-cream">Služby</a></li>
-          <li><a href="#galerie"   class="ul inline-block py-2.5 hover:text-cream">Galerie</a></li>
-          <li><a href="#rezervace" class="ul inline-block py-2.5 hover:text-cream">Rezervace</a></li>
-          <li><a href="admin/login.php" class="ul inline-block py-2.5 text-cream/60 hover:text-cream">Administrace</a></li>
+        <h2>Odkazy</h2>
+        <ul style="margin-top:var(--s3)" class="small">
+          <li><a href="#sluzby">Služby</a></li>
+          <li><a href="#galerie">Galerie</a></li>
+          <li><a href="#rezervace">Rezervace</a></li>
+          <li><a href="admin/login.php">Administrace</a></li>
         </ul>
       </div>
     </div>
 
-    <div class="mt-12 flex flex-col gap-2 border-t border-cream/15 pt-6 text-[14px] text-cream/60 sm:flex-row sm:items-center sm:justify-between">
+    <div class="site-foot__bottom">
       <p>© <?= date('Y') ?> Denisa Hair</p>
       <p>Záříčí 192, Česká republika</p>
     </div>
@@ -547,66 +497,38 @@ tailwind.config = {
 <script>
 (() => {
   'use strict';
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  /* ---------- Stín hlavičky po odscrollování ---------- */
-  const header = document.getElementById('site-header');
-  const onScroll = () => {
-    const scrolled = window.scrollY > 8;
-    header.classList.toggle('shadow-soft', scrolled);
-    header.classList.toggle('border-[color:var(--line)]', scrolled);
-    header.classList.toggle('border-transparent', !scrolled);
-  };
-  onScroll();
-  window.addEventListener('scroll', onScroll, { passive: true });
+  /* ---------- Hlavička ---------- */
+  const head = document.getElementById('site-head');
+  addEventListener('scroll', () => head.classList.toggle('is-stuck', scrollY > 4), { passive: true });
 
   /* ---------- Mobilní menu ---------- */
-  const toggle = document.getElementById('menu-toggle');
-  const menu   = document.getElementById('mobile-menu');
-  const barTop = toggle.querySelector('[data-bar-top]');
-  const barBot = toggle.querySelector('[data-bar-bottom]');
-
+  const toggle = document.getElementById('nav-toggle');
+  const drawer = document.getElementById('nav-drawer');
   const setMenu = (open) => {
-    menu.classList.toggle('hidden', !open);
+    drawer.hidden = !open;
     toggle.setAttribute('aria-expanded', String(open));
     toggle.setAttribute('aria-label', open ? 'Zavřít menu' : 'Otevřít menu');
-    barTop.style.transform = open ? 'translateY(6px) rotate(45deg)'   : '';
-    barBot.style.transform = open ? 'translateY(-6px) rotate(-45deg)' : '';
   };
-  toggle.addEventListener('click', () => setMenu(menu.classList.contains('hidden')));
-  menu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => setMenu(false)));
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
+  toggle.addEventListener('click', () => setMenu(drawer.hidden));
+  drawer.querySelectorAll('a').forEach(a => a.addEventListener('click', () => setMenu(false)));
+  addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
 
   /* ---------- Odkrývání sekcí ---------- */
   const sections = document.querySelectorAll('[data-io]');
+  const reveal = (el) => { el.classList.add('is-in'); countUp(el); };
 
   if (reduce || !('IntersectionObserver' in window)) {
-    sections.forEach(el => el.classList.add('is-in'));
-    countUp(document);
+    sections.forEach(reveal);
   } else {
     const io = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (!entry.isIntersecting) return;
-        entry.target.classList.add('is-in');
-        countUp(entry.target);
-        io.unobserve(entry.target);
-      });
-    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.1 });
+      entries.forEach(en => { if (en.isIntersecting) { reveal(en.target); io.unobserve(en.target); } });
+    }, { rootMargin: '0px 0px -8% 0px', threshold: .1 });
     sections.forEach(el => io.observe(el));
   }
-
-  // Hero odkryjeme hned, ať uživatel nečeká na scroll.
-  const hero = document.querySelector('[data-io]');
-  hero.classList.add('is-in');
-  countUp(hero);
-
-  // Pojistka: kdyby IntersectionObserver z jakéhokoli důvodu nezabral
-  // (např. stránka načtená na pozadí), po 2,5 s obsah prostě ukážeme.
-  setTimeout(() => {
-    sections.forEach(el => el.classList.add('is-in'));
-    countUp(document);
-  }, 2500);
+  reveal(sections[0]);                               // hero hned, ať se nečeká
+  setTimeout(() => sections.forEach(reveal), 2500);  // pojistka, kdyby IO nezabral
 
   /* ---------- Počítadla ---------- */
   function countUp(root) {
@@ -615,14 +537,10 @@ tailwind.config = {
       el.dataset.done = '1';
       const target = parseInt(el.dataset.count, 10);
       if (reduce) { el.textContent = target; return; }
-
-      // Pojistka: kdyby se animační snímky nespustily, po 1,2 s
-      // dopíšeme výslednou hodnotu, ať tam nezůstane nula.
-      setTimeout(() => { el.textContent = target; }, 1200);
-
-      const start = performance.now();
+      setTimeout(() => { el.textContent = target; }, 1200);   // pojistka
+      const t0 = performance.now();
       const step = (now) => {
-        const t = Math.min(1, (now - start) / 800);
+        const t = Math.min(1, (now - t0) / 800);
         el.textContent = Math.round(target * (1 - Math.pow(1 - t, 3)));
         if (t < 1) requestAnimationFrame(step);
       };
@@ -631,85 +549,63 @@ tailwind.config = {
   }
 
   /* ---------- Rezervační formulář ---------- */
-  const form    = document.getElementById('booking-form');
-  const status  = document.getElementById('form-status');
-  const button  = document.getElementById('submit-btn');
-  const label   = button.querySelector('[data-btn-label]');
-  const spinner = button.querySelector('[data-spinner]');
+  const form     = document.getElementById('booking-form');
+  const status   = document.getElementById('form-status');
+  const button   = document.getElementById('submit-btn');
+  const label    = button.querySelector('[data-btn-label]');
+  const calendar = form.querySelector('[data-calendar]');
 
   const showStatus = (type, message) => {
     status.textContent = message;
-    status.className = 'mt-5 rounded-2xl border px-5 py-4 text-[15px] ' + (
-      type === 'success'
-        ? 'border-emerald-600/30 bg-emerald-50 text-emerald-900'
-        : 'border-rose/40 bg-blush/50 text-cocoa'
-    );
+    status.className = 'note note--' + (type === 'success' ? 'ok' : 'error');
+    status.hidden = false;
   };
 
   const clearErrors = () => {
-    form.querySelectorAll('[role="alert"]').forEach(p => { p.textContent = ''; p.classList.add('hidden'); });
-    form.querySelectorAll('input, select, textarea').forEach(el => {
-      el.classList.remove('border-rose');
-      el.removeAttribute('aria-invalid');
-    });
+    form.querySelectorAll('.err').forEach(p => { p.textContent = ''; p.hidden = true; });
+    form.querySelectorAll('[aria-invalid]').forEach(el => el.removeAttribute('aria-invalid'));
   };
-
-  const calendar = form.querySelector('[data-calendar]');
 
   const showFieldErrors = (errors) => {
     let first = null;
     Object.entries(errors).forEach(([field, message]) => {
       const input = form.querySelector('[name="' + field + '"]');
       const box   = document.getElementById('err-' + field);
-      if (box) { box.textContent = message; box.classList.remove('hidden'); }
-      if (input) {
-        input.classList.add('border-rose');
-        input.setAttribute('aria-invalid', 'true');
-        if (!first) first = input;
-      }
+      if (box) { box.textContent = message; box.hidden = false; }
+      if (input) { input.setAttribute('aria-invalid', 'true'); if (!first) first = input; }
     });
-
     if (!first) return;
-
-    // Termín je ve skrytých polích — fokus by nikam nevedl, tak
-    // uživatele nasměrujeme na samotný kalendář.
-    if (first.type === 'hidden') {
-      if (calendar) calendar.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    } else {
-      first.focus();
-    }
+    // Termín je ve skrytých polích — fokus by nikam nevedl.
+    if (first.type === 'hidden') calendar.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    else first.focus();
   };
 
-  // Výběr v kalendáři schová případnou chybu u termínu.
-  if (calendar) {
-    calendar.addEventListener('calendar:change', () => {
-      ['appointment_date', 'appointment_time'].forEach(f => {
-        const box = document.getElementById('err-' + f);
-        if (box) box.classList.add('hidden');
-      });
+  calendar.addEventListener('calendar:change', () => {
+    ['appointment_date', 'appointment_time'].forEach(f => {
+      const box = document.getElementById('err-' + f);
+      if (box) box.hidden = true;
     });
-  }
+  });
 
   /* Klientská validace — server ji vždy zopakuje. */
-  const validate = (data) => {
-    const errors = {};
-    if (!data.name || data.name.trim().length < 2) errors.name = 'Zadejte prosím své jméno.';
-    if (!data.phone || data.phone.replace(/\D/g, '').length < 9) errors.phone = 'Zadejte platné telefonní číslo.';
-    if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(data.email)) errors.email = 'E-mail nemá správný tvar.';
-    if (!data.service)          errors.service = 'Vyberte prosím službu.';
-    if (!data.appointment_date) errors.appointment_date = 'Vyberte prosím den v kalendáři.';
-    else if (!data.appointment_time) errors.appointment_time = 'Vyberte prosím čas.';
-    return errors;
+  const validate = (d) => {
+    const e = {};
+    if (!d.name || d.name.trim().length < 2) e.name = 'Zadejte prosím své jméno.';
+    if (!d.phone || d.phone.replace(/\D/g, '').length < 9) e.phone = 'Zadejte platné telefonní číslo.';
+    if (d.email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(d.email)) e.email = 'E-mail nemá správný tvar.';
+    if (!d.service) e.service = 'Vyberte prosím službu.';
+    if (!d.appointment_date) e.appointment_date = 'Vyberte prosím den v kalendáři.';
+    else if (!d.appointment_time) e.appointment_time = 'Vyberte prosím čas.';
+    return e;
   };
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     clearErrors();
-    status.classList.add('hidden');
+    status.hidden = true;
 
-    const data   = Object.fromEntries(new FormData(form).entries());
+    const data = Object.fromEntries(new FormData(form).entries());
     const errors = validate(data);
-
     if (Object.keys(errors).length) {
       showFieldErrors(errors);
       showStatus('error', 'Zkontrolujte prosím zvýrazněná pole.');
@@ -718,21 +614,18 @@ tailwind.config = {
 
     button.disabled = true;
     label.textContent = 'Odesílám…';
-    spinner.classList.remove('hidden');
 
     try {
-      const response = await fetch('process-booking.php', {
-        method:  'POST',
+      const res = await fetch('process-booking.php', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'fetch' },
-        body:    JSON.stringify(data),
+        body: JSON.stringify(data),
       });
-      const result = await response.json();
+      const result = await res.json();
 
       if (result.success) {
         form.reset();
-        // form.reset() skrytá pole vyčistí, ale kalendář o tom neví —
-        // řekneme mu, ať se překreslí i s nově obsazeným slotem.
-        if (calendar && typeof calendar.reset === 'function') calendar.reset();
+        if (typeof calendar.reset === 'function') calendar.reset();
         showStatus('success', result.message);
       } else {
         if (result.errors) showFieldErrors(result.errors);
@@ -743,18 +636,13 @@ tailwind.config = {
     } finally {
       button.disabled = false;
       label.textContent = 'Odeslat rezervaci';
-      spinner.classList.add('hidden');
     }
   });
 
   // Chybu u pole schováme, jakmile ji uživatel začne opravovat
   form.addEventListener('input', (e) => {
     const box = document.getElementById('err-' + e.target.name);
-    if (box && !box.classList.contains('hidden')) {
-      box.classList.add('hidden');
-      e.target.classList.remove('border-rose');
-      e.target.removeAttribute('aria-invalid');
-    }
+    if (box && !box.hidden) { box.hidden = true; e.target.removeAttribute('aria-invalid'); }
   });
 })();
 </script>

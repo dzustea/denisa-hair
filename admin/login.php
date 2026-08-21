@@ -23,6 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Jednoduché omezení počtu pokusů (5 pokusů / 10 minut na session)
     $attempts = $_SESSION['login_attempts'] ?? ['count' => 0, 'until' => 0];
+
     if ($attempts['count'] >= 5 && time() < $attempts['until']) {
         $error = 'Příliš mnoho pokusů. Zkuste to prosím za pár minut.';
     } elseif (!csrf_verify($_POST['csrf_token'] ?? null)) {
@@ -64,73 +65,51 @@ $pageTitle = 'Přihlášení';
 <html lang="cs">
 <head>
 <?php require __DIR__ . '/_head.php'; ?>
-<style>
-  /* Jemná korálová záře za kartou */
-  .glow::before{
-    content:''; position:fixed; inset:0; pointer-events:none;
-    background:radial-gradient(50rem circle at 50% -10%, rgba(232,130,92,.13), transparent 65%);
-  }
-</style>
 </head>
 
-<body class="glow flex min-h-dvh items-center justify-center bg-cream px-4 py-10 font-sans text-cocoa antialiased sm:px-5 sm:py-12">
+<body class="admin">
+<main class="auth">
+  <div class="auth__box">
 
-<div class="relative w-full max-w-md">
+    <div class="auth__head">
+      <a href="../index.php" class="brand__mark" style="width:44px;height:44px;font-size:var(--t-body)" aria-hidden="true">D</a>
+      <h1 style="margin-top:var(--s4); font-size:var(--t-h2)">Denisa Hair</h1>
+      <p class="caption" style="margin-top:var(--s2)">Administrace rezervací</p>
+    </div>
 
-  <div class="rv is-in mb-9 text-center">
-    <a href="../index.php" class="inline-block py-1 font-medium text-3xl sm:text-4xl">
-      Denisa <span class="italic text-rose">Hair</span>
-    </a>
-    <p class="mt-3 text-[14px] text-stone">Administrace rezervací</p>
-  </div>
+    <form class="card" method="post" novalidate>
+      <input type="hidden" name="csrf_token" value="<?= e($csrf) ?>">
 
-  <form method="post" novalidate
-        class="rv is-in rounded-2xl border border-[color:var(--line)] bg-shell p-6 sm:p-9" style="--d:120ms">
-    <input type="hidden" name="csrf_token" value="<?= e($csrf) ?>">
+      <?php if ($error !== ''): ?>
+        <p class="note note--error" role="alert" style="margin-bottom:var(--s5)"><?= e($error) ?></p>
+      <?php endif; ?>
 
-    <?php if ($error !== ''): ?>
-      <div role="alert" class="mb-6 flex items-start gap-3 rounded-2xl border border-red-400/35 bg-red-500/10 px-4 py-3 text-[14px] text-red-200">
-        <svg class="mt-0.5 h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
-          <circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01" stroke-linecap="round"/>
-        </svg>
-        <span><?= e($error) ?></span>
-      </div>
-    <?php endif; ?>
-
-    <div class="space-y-5">
-      <div>
-        <label for="username" class="block text-[14px] text-stone">Přihlašovací jméno</label>
-        <input id="username" name="username" type="text" required autocomplete="username" spellcheck="false" autofocus
-               value="<?= e($username) ?>"
-               class="mt-2.5 w-full rounded-2xl border border-[color:var(--line)] bg-sand px-4 py-3.5 text-[16px] text-cocoa transition-colors focus:border-rose focus:outline-none">
+      <div class="field">
+        <label class="label" for="username">Přihlašovací jméno</label>
+        <input class="input" id="username" name="username" type="text" required
+               autocomplete="username" spellcheck="false" autofocus value="<?= e($username) ?>">
       </div>
 
-      <div>
-        <label for="password" class="block text-[14px] text-stone">Heslo</label>
-        <div class="relative mt-2.5">
-          <input id="password" name="password" type="password" required autocomplete="current-password"
-                 class="w-full rounded-2xl border border-[color:var(--line)] bg-sand px-4 py-3.5 pr-12 text-[16px] text-cocoa transition-colors focus:border-rose focus:outline-none">
-          <button type="button" id="toggle-pw"
-                  class="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-stone transition-colors hover:text-rose"
-                  aria-label="Zobrazit heslo" aria-pressed="false">
-            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+      <div class="field">
+        <label class="label" for="password">Heslo</label>
+        <div class="pw-wrap">
+          <input class="input" id="password" name="password" type="password" required autocomplete="current-password">
+          <button type="button" class="pw-toggle" id="toggle-pw" aria-label="Zobrazit heslo" aria-pressed="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
               <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/>
             </svg>
           </button>
         </div>
       </div>
-    </div>
 
-    <button type="submit"
-            class="mt-8 w-full rounded-full border border-rose bg-rose px-6 py-4 text-[15px] font-medium text-white transition-colors duration-300">
-      Přihlásit se
-    </button>
-  </form>
+      <button type="submit" class="btn btn--primary btn--block" style="margin-top:var(--s6)">Přihlásit se</button>
+    </form>
 
-  <p class="rv is-in mt-7 text-center text-[13px] text-stone" style="--d:220ms">
-    <a href="../index.php" class="inline-block py-3 transition-colors hover:text-rose">← Zpět na web</a>
-  </p>
-</div>
+    <p style="margin-top:var(--s5); text-align:center">
+      <a href="../index.php" class="btn btn--ghost">← Zpět na web</a>
+    </p>
+  </div>
+</main>
 
 <script>
   // Přepínač zobrazení hesla

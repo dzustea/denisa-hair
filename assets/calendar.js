@@ -6,6 +6,7 @@
  *
  * Data bere z endpointu v [data-endpoint] (availability.php) a vybraný
  * termín zapisuje do skrytých polí #<prefix>-date a #<prefix>-time.
+ * Vzhled řeší třídy .cal__* v assets/app.css.
  */
 (() => {
   'use strict';
@@ -38,7 +39,7 @@
     const summary   = root.querySelector('[data-cal-summary]');
 
     const cache = new Map();      // "YYYY-MM" -> data z endpointu
-    let view    = new Date();     // zobrazený měsíc
+    let view = new Date();        // zobrazený měsíc
     view.setDate(1);
     let selectedDay = null;       // "YYYY-MM-DD"
     let serverToday = ymd(new Date());
@@ -58,6 +59,9 @@
       return data;
     }
 
+    const message = (text, isError) =>
+      '<p class="cal__msg' + (isError ? ' cal__msg--error' : '') + '">' + text + '</p>';
+
     /* ---------- vykreslení měsíce ---------- */
     async function render() {
       const monthKey = ym(view);
@@ -69,14 +73,13 @@
       prevBtn.disabled = view.getFullYear() === nowMonth.getFullYear()
                       && view.getMonth() === nowMonth.getMonth();
 
-      grid.innerHTML = '<p class="col-span-7 py-8 text-center text-[15px] text-stone">Načítám dostupnost…</p>';
+      grid.innerHTML = message('Načítám dostupnost…', false);
 
       let data;
       try {
         data = await load(monthKey);
       } catch (err) {
-        grid.innerHTML = '<p class="col-span-7 py-8 text-center text-[15px] text-rose">'
-                       + 'Dostupnost se nepodařilo načíst. Zkuste to prosím znovu.</p>';
+        grid.innerHTML = message('Dostupnost se nepodařilo načíst. Zkuste to prosím znovu.', true);
         return;
       }
 
@@ -116,45 +119,30 @@
           return true;
         });
 
+        const disabled = isPast || free.length === 0;
+
         const btn = document.createElement('button');
         btn.type = 'button';
+        btn.className = 'cal__day' + (isToday && !disabled ? ' cal__day--today' : '');
         btn.dataset.day = key;
         btn.textContent = d;
-
-        const disabled = isPast || free.length === 0;
         btn.disabled = disabled;
-
-        btn.className = 'flex h-11 items-center justify-center rounded-xl text-[15px] transition-colors '
-          + (disabled
-              ? 'cursor-not-allowed text-stone/70 line-through'
-              : 'bg-shell text-cocoa hover:border-rose hover:text-rose border border-[color:var(--line)]');
-
-        if (isToday && !disabled) btn.className += ' font-medium';
-
+        btn.setAttribute('aria-pressed', 'false');
         btn.setAttribute('aria-label',
           dayTitle.format(date) + (disabled ? ' — nedostupné' : ' — volných termínů: ' + free.length));
-        btn.setAttribute('aria-pressed', 'false');
 
         btn.addEventListener('click', () => selectDay(key, date));
         grid.appendChild(btn);
       }
 
-      // Když je vybraný den v jiném měsíci, zvýraznění se ztratí — obnovíme.
-      if (selectedDay && selectedDay.slice(0, 7) === monthKey) {
-        markSelectedDay();
-      }
+      // Když se vrátíme na měsíc s vybraným dnem, zvýraznění obnovíme.
+      if (selectedDay && selectedDay.slice(0, 7) === monthKey) markSelectedDay();
     }
 
     /* ---------- výběr dne ---------- */
     function markSelectedDay() {
       grid.querySelectorAll('button[data-day]').forEach(b => {
-        const on = b.dataset.day === selectedDay;
-        b.setAttribute('aria-pressed', String(on));
-        b.classList.toggle('bg-rose', on);
-        b.classList.toggle('text-white', on);
-        b.classList.toggle('border-rose', on);
-        if (on) b.classList.remove('bg-shell', 'text-cocoa');
-        else if (!b.disabled) b.classList.add('bg-shell', 'text-cocoa');
+        b.setAttribute('aria-pressed', String(b.dataset.day === selectedDay));
       });
     }
 
@@ -180,26 +168,21 @@
 
         const btn = document.createElement('button');
         btn.type = 'button';
+        btn.className = 'cal__slot';
         btn.dataset.slot = start;
         btn.disabled = disabled;
-
-        btn.className = 'flex items-center justify-between gap-2 rounded-xl border px-4 py-3 text-[15px] transition-colors '
-          + (disabled
-              ? 'cursor-not-allowed border-[color:var(--line)] bg-sand text-stone'
-              : 'border-[color:var(--line)] bg-shell text-cocoa hover:border-rose hover:text-rose');
+        btn.setAttribute('aria-pressed', 'false');
 
         const label = document.createElement('span');
         label.textContent = start + ' – ' + end;
         btn.appendChild(label);
 
         if (disabled) {
-          const note = document.createElement('span');
-          note.className = 'text-[13px]';
+          const note = document.createElement('em');
           note.textContent = isBusy ? 'obsazeno' : 'proběhlo';
           btn.appendChild(note);
         }
 
-        btn.setAttribute('aria-pressed', 'false');
         btn.addEventListener('click', () => selectSlot(start));
         slotsBox.appendChild(btn);
       });
@@ -213,18 +196,11 @@
       timeInput.value = start;
 
       slotsBox.querySelectorAll('button[data-slot]').forEach(b => {
-        const on = b.dataset.slot === start;
-        b.setAttribute('aria-pressed', String(on));
-        b.classList.toggle('bg-rose', on);
-        b.classList.toggle('text-white', on);
-        b.classList.toggle('border-rose', on);
-        if (on) b.classList.remove('bg-shell', 'text-cocoa');
-        else if (!b.disabled) b.classList.add('bg-shell', 'text-cocoa');
+        b.setAttribute('aria-pressed', String(b.dataset.slot === start));
       });
 
       updateSummary();
 
-      // Dá se navázat vlastní reakce (schování chybové hlášky ve formuláři).
       root.dispatchEvent(new CustomEvent('calendar:change', {
         bubbles: true,
         detail: { date: dateInput.value, time: timeInput.value },
@@ -236,9 +212,9 @@
         const [y, m, d] = dateInput.value.split('-').map(Number);
         summary.textContent = 'Vybraný termín: ' + dayTitle.format(new Date(y, m - 1, d))
                             + ', ' + timeInput.value + ' – ' + slotEnd(timeInput.value);
-        summary.classList.remove('hidden');
+        summary.hidden = false;
       } else {
-        summary.classList.add('hidden');
+        summary.hidden = true;
       }
     }
 
@@ -259,7 +235,7 @@
       timeInput.value = '';
       slotsWrap.hidden = true;
       hint.hidden = false;
-      summary.classList.add('hidden');
+      summary.hidden = true;
       cache.clear();          // termín právě přibyl, načteme dostupnost znovu
       render();
     };
