@@ -143,7 +143,12 @@ nezávisel na konfiguraci hostingu.
 ### Aktualizace databáze u běžící instalace
 
 Přibyl zámek termínu a tabulka počítadla pokusů. Na pořadí záleží —
-index se musí zakládat až nad dopočítanými hodnotami:
+index se musí zakládat až nad dopočítanými hodnotami.
+
+V SQL editoru TiDB si napřed **vyber databázi**, jinak to skončí
+hláškou *`No database selected`* — buď z rozbalovátka nahoře, nebo
+prvním řádkem `USE nazev-databaze;` (u téhle instalace se databáze
+jmenuje `denisa-hair-db`):
 
 ```sql
 ALTER TABLE `bookings` ADD COLUMN `slot_lock` VARCHAR(30) DEFAULT NULL;
