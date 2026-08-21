@@ -18,13 +18,25 @@ $csrf = csrf_token();
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Denisa Hair — kadeřnictví Záříčí</title>
 <meta name="description" content="Moderní dámské, pánské a dětské kadeřnictví v Záříčí. Objednejte se online u kadeřnice Denisy Hrabalové.">
-<meta name="theme-color" content="#F6F1E8">
+<meta name="theme-color" content="#FAF7F2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#15100C" media="(prefers-color-scheme: dark)">
 
 <meta property="og:title" content="Denisa Hair — kadeřnictví Záříčí">
 <meta property="og:description" content="Moderní dámské, pánské a dětské kadeřnictví v Záříčí.">
 <meta property="og:type" content="website">
 
-<script>document.documentElement.classList.add('js');</script>
+<script>
+(() => {
+  const root = document.documentElement;
+  root.classList.add('js');
+  // Uloženou volbu je nutné nasadit ještě před vykreslením, jinak by
+  // v tmavém režimu na okamžik probliklo světlé pozadí.
+  try {
+    const saved = localStorage.getItem('dh-theme');
+    if (saved === 'dark' || saved === 'light') root.dataset.theme = saved;
+  } catch (err) { /* soukromé okno — zůstane volba podle systému */ }
+})();
+</script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -42,83 +54,110 @@ $fontHref = 'https://fonts.googleapis.com/css2'
 <style>
   /* Styly jen pro tuhle stránku. Zbytek je v app.css. */
 
-  /* ---------- Hlavička ---------- */
+  /* ---------- Hlavička ----------
+     Tři sloupce: značka vlevo, odkazy uprostřed, ovládání vpravo.
+     Odkazy jsou normální velikostí a normálním písmem — drobné
+     verzálky se v navigaci čtou špatně. */
   .site-head {
     position: sticky; top: 0; z-index: 40;
-    background: color-mix(in srgb, var(--bg) 90%, transparent);
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
     backdrop-filter: saturate(1.4) blur(14px);
     border-bottom: 1px solid transparent;
     transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease);
   }
-  .site-head.is-stuck { border-bottom-color: var(--line); background: color-mix(in srgb, var(--bg) 96%, transparent); }
+  .site-head.is-stuck {
+    border-bottom-color: var(--line);
+    background: color-mix(in srgb, var(--bg) 97%, transparent);
+  }
   .site-head__inner {
-    display: flex; align-items: center; justify-content: space-between; gap: var(--s4);
+    display: grid; grid-template-columns: auto 1fr auto;
+    align-items: center; gap: var(--s4);
     padding-block: var(--s3);
     transition: padding-block var(--dur) var(--ease);
   }
-  /* Po odscrollování se lišta o kousek stáhne — méně místa navigaci,
-     víc obsahu. */
   .site-head.is-stuck .site-head__inner { padding-block: var(--s2); }
 
   .brand { display: inline-flex; align-items: center; gap: var(--s3); padding-block: var(--s2); }
   .brand__mark {
     display: grid; place-items: center;
-    width: 36px; height: 36px; border-radius: var(--r-sm);
+    width: 38px; height: 38px; border-radius: var(--r-sm);
     background: var(--ink); color: var(--on-ink);
-    font-family: var(--font-display); font-size: 1.125rem; line-height: 1;
-    transition: width var(--dur) var(--ease), height var(--dur) var(--ease),
-                font-size var(--dur) var(--ease);
+    font-family: var(--font-display); font-size: 1.25rem; line-height: 1;
+    transition: width var(--dur) var(--ease), height var(--dur) var(--ease);
   }
-  .site-head.is-stuck .brand__mark { width: 30px; height: 30px; font-size: 1rem; }
+  .site-head.is-stuck .brand__mark { width: 32px; height: 32px; }
   .brand__name {
     font-family: var(--font-display);
-    font-size: 1.375rem; font-weight: 500; line-height: 1;
-    letter-spacing: .01em;
+    font-size: 1.5rem; font-weight: 500; line-height: 1;
   }
-  .brand__sub {
-    display: none; margin-top: 3px;
-    font-size: var(--t-micro); letter-spacing: var(--track); text-transform: uppercase;
-    color: var(--text-3);
-  }
-  @media (min-width: 640px) { .brand__sub { display: block; } }
 
-  .nav { display: none; align-items: center; gap: var(--s1); }
-  @media (min-width: 900px) { .nav { display: flex; } .nav-toggle { display: none; } }
+  /* Prostřední sloupec — na úzkých displejích se schová celý. */
+  .nav { display: none; justify-content: center; align-items: center; gap: var(--s1); }
   .nav a {
-    position: relative; padding: var(--s3) var(--s4);
-    font-size: var(--t-micro); font-weight: 500;
-    letter-spacing: var(--track); text-transform: uppercase;
+    position: relative;
+    padding: var(--s3) var(--s4);
+    font-size: var(--t-small); font-weight: 400;
     color: var(--text-2);
-    transition: color var(--dur) var(--ease);
+    border-radius: var(--r-sm);
+    transition: color var(--dur) var(--ease), background var(--dur) var(--ease);
   }
   .nav a::after {
-    content: ''; position: absolute; left: var(--s4); right: var(--s4); bottom: 6px;
-    height: 1px; background: var(--gold); transform: scaleX(0); transform-origin: left;
+    content: ''; position: absolute; left: var(--s4); right: var(--s4); bottom: 7px;
+    height: 1px; background: var(--gold);
+    transform: scaleX(0); transform-origin: left;
     transition: transform var(--dur) var(--ease);
   }
   .nav a:hover { color: var(--text); }
   .nav a:hover::after { transform: scaleX(1); }
-  /* Odkaz na sekci, ve které zrovna jsme, zůstane podtržený.
-     Tlačítko „Objednat se“ se vynechává — má vlastní barvy. */
-  .nav a:not(.btn)[aria-current="true"] { color: var(--text); }
-  .nav a:not(.btn)[aria-current="true"]::after { transform: scaleX(1); }
-  .nav .btn { margin-left: var(--s4); min-height: 44px; padding-inline: var(--s5); }
-  .nav .btn::after { display: none; }
+  .nav a[aria-current="true"] { color: var(--text); font-weight: 500; }
+  .nav a[aria-current="true"]::after { transform: scaleX(1); }
 
+  .head__actions { display: flex; align-items: center; gap: var(--s2); justify-self: end; }
+  .head__cta { display: none; }
+
+  /* Otvírák nabídky na telefonu */
   .nav-toggle { display: grid; place-items: center; width: 44px; height: 44px; border-radius: var(--r-sm); color: var(--text); }
-  .nav-toggle span { display: block; width: 20px; height: 1.5px; background: currentColor; transition: transform var(--dur) var(--ease); }
-  .nav-toggle span + span { margin-top: 5px; }
-  .nav-toggle[aria-expanded="true"] span:first-child { transform: translateY(3.25px) rotate(45deg); }
-  .nav-toggle[aria-expanded="true"] span:last-child  { transform: translateY(-3.25px) rotate(-45deg); }
 
-  .nav-drawer { border-top: 1px solid var(--line); background: var(--bg); }
-  .nav-drawer[hidden] { display: none; }
-  @media (min-width: 900px) { .nav-drawer { display: none !important; } }
-  .nav-drawer a {
-    display: block; padding: var(--s4) 0; border-bottom: 1px solid var(--hairline);
-    font-size: var(--t-micro); letter-spacing: var(--track); text-transform: uppercase; color: var(--text-2);
+  .nav-toggle span { display: block; width: 20px; height: 1.5px; background: currentColor; transition: transform var(--dur) var(--ease), opacity var(--dur) var(--ease); }
+  .nav-toggle span + span { margin-top: 6px; }
+  .nav-toggle[aria-expanded="true"] span:first-child { transform: translateY(3.75px) rotate(45deg); }
+  .nav-toggle[aria-expanded="true"] span:last-child  { transform: translateY(-3.75px) rotate(-45deg); }
+
+  /* Přepnutí na desktop. Musí stát AŽ za základními pravidly výše —
+     média dotaz nezvyšuje specifičnost, takže by pozdější deklarace
+     display: grid u .nav-toggle jinak vyhrála a hamburger by svítil
+     i vedle plné navigace. */
+  @media (min-width: 1000px) {
+    .nav { display: flex; }
+    .head__cta { display: inline-flex; }
+    .nav-toggle { display: none; }
   }
-  .nav-drawer .btn { margin-block: var(--s5); }
+
+  /* ---------- Nabídka na telefonu ----------
+     Celá obrazovka a velké cíle. Stará zásuvka byla těsná a odkazy
+     v ní se špatně trefovaly. */
+  .menu {
+    position: fixed; inset: 0; z-index: 45;
+    display: flex; flex-direction: column;
+    background: var(--bg);
+    padding: calc(64px + env(safe-area-inset-top)) var(--s5) calc(var(--s8) + env(safe-area-inset-bottom));
+    overflow-y: auto;
+    animation: menu-in var(--dur) var(--ease);
+  }
+  .menu[hidden] { display: none; }
+  @media (min-width: 1000px) { .menu { display: none !important; } }
+  @keyframes menu-in { from { opacity: 0; transform: translateY(-8px); } }
+
+  .menu a.menu__link {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: var(--s5) 0; border-bottom: 1px solid var(--hairline);
+    font-family: var(--font-display); font-size: 1.75rem; font-weight: 500;
+  }
+  .menu a.menu__link svg { width: 18px; height: 18px; color: var(--gold); }
+  .menu__foot { margin-top: auto; padding-top: var(--s8); }
+  .menu__foot .btn { margin-bottom: var(--s5); }
+  .menu__meta { font-size: var(--t-small); color: var(--text-2); }
+  .menu__meta a { color: var(--gold-ink); }
 
   /* ---------- Hero ---------- */
   .hero { display: grid; gap: var(--s8); padding-block: var(--s10) var(--s12); }
@@ -127,7 +166,7 @@ $fontHref = 'https://fonts.googleapis.com/css2'
   }
   .hero h1 { font-size: clamp(2.5rem, 8vw, 4.25rem); margin-top: var(--s5); }
   .hero h1 em { font-style: italic; color: var(--gold-ink); }
-  .hero__lead { margin-top: var(--s6); max-width: 38ch; color: var(--text-2); font-size: var(--t-lead); font-weight: 300; }
+  .hero__lead { margin-top: var(--s6); max-width: 40ch; color: var(--text-2); font-size: var(--t-lead); font-weight: 400; }
   .hero__cta { margin-top: var(--s8); display: flex; flex-wrap: wrap; gap: var(--s3); }
 
   .hero__figure {
@@ -137,14 +176,14 @@ $fontHref = 'https://fonts.googleapis.com/css2'
   .hero__figure img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; }
   .hero__caption {
     position: absolute; inset-inline: var(--s4); bottom: var(--s4);
-    background: color-mix(in srgb, var(--surface) 94%, transparent);
+    background: color-mix(in srgb, var(--surface) 95%, transparent);
     backdrop-filter: blur(10px);
     border: 1px solid var(--hairline);
     border-radius: var(--r-sm); padding: var(--s4) var(--s5);
   }
-  .hero__caption strong { display: block; font-family: var(--font-display); font-size: 1.25rem; font-weight: 500; line-height: 1.2; }
+  .hero__caption strong { display: block; font-family: var(--font-display); font-size: 1.375rem; font-weight: 500; line-height: 1.2; }
 
-  /* Přehled v kartách — čísla velká a lehká, popisky verzálkami */
+  /* Přehled v kartách */
   .facts { margin-top: var(--s10); display: grid; gap: var(--s3); grid-template-columns: repeat(3, 1fr); }
   @media (max-width: 479.98px) { .facts { grid-template-columns: 1fr; } }
   .fact {
@@ -168,7 +207,7 @@ $fontHref = 'https://fonts.googleapis.com/css2'
   /* ---------- Hlavička sekce ---------- */
   .section-head { max-width: 44rem; margin-bottom: var(--s10); }
   .section-head h2 { margin-top: var(--s4); }
-  .section-head p { margin-top: var(--s5); color: var(--text-2); font-weight: 300; font-size: var(--t-lead); max-width: 52ch; }
+  .section-head p { margin-top: var(--s5); color: var(--text-2); font-size: var(--t-lead); max-width: 54ch; }
   .section--tint { background: var(--bg-2); }
   .section--white { background: var(--surface); }
 
@@ -178,9 +217,25 @@ $fontHref = 'https://fonts.googleapis.com/css2'
   .svc__no { font-size: var(--t-micro); letter-spacing: var(--track); color: var(--text-3); font-variant-numeric: tabular-nums; }
   .svc h3 { margin-top: var(--s6); font-family: var(--font-display); font-size: 1.625rem; font-weight: 500; }
   .svc__tags { margin-top: var(--s4); display: flex; flex-wrap: wrap; gap: 6px; }
-  .svc p { margin-top: var(--s5); flex: 1; color: var(--text-2); font-size: var(--t-small); font-weight: 300; }
-  .svc__foot { margin-top: var(--s6); padding-top: var(--s4); border-top: 1px solid var(--hairline); }
+  .svc p { margin-top: var(--s5); flex: 1; color: var(--text-2); font-size: var(--t-small); }
+  .svc__foot { margin-top: var(--s6); padding-top: var(--s4); border-top: 1px solid var(--hairline); display: flex; align-items: baseline; justify-content: space-between; gap: var(--s3); }
+  .svc__from { font-size: var(--t-small); color: var(--text-2); font-variant-numeric: tabular-nums; }
+  .svc__from strong { font-weight: 500; }
   .svc:hover .ico { background: var(--ink); color: var(--on-ink); }
+
+  /* ---------- Ceník ---------- */
+  .pricing { display: grid; gap: var(--s5); }
+  @media (min-width: 800px) { .pricing { grid-template-columns: repeat(2, 1fr); gap: var(--s6); } }
+  .pricing h3 {
+    font-family: var(--font-display); font-size: 1.5rem; font-weight: 500;
+    padding-bottom: var(--s4); border-bottom: 1px solid var(--line);
+  }
+  .pricing__note {
+    margin-top: var(--s8); padding: var(--s5) var(--s6);
+    background: var(--surface); border: 1px solid var(--line); border-left: 2px solid var(--gold);
+    border-radius: var(--r-md);
+    font-size: var(--t-small); color: var(--text-2);
+  }
 
   /* ---------- O mně ---------- */
   .about { display: grid; gap: var(--s10); }
@@ -188,7 +243,7 @@ $fontHref = 'https://fonts.googleapis.com/css2'
   .about__figure { border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--line); box-shadow: var(--sh-2); }
   .about__figure img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
   @media (min-width: 900px) { .about__figure img { aspect-ratio: 4 / 5; } }
-  .about__body { color: var(--text-2); font-weight: 300; }
+  .about__body { color: var(--text-2); }
   .badge {
     margin-top: var(--s8); display: flex; gap: var(--s4);
     padding: var(--s5) var(--s6); border-radius: var(--r-md);
@@ -208,17 +263,16 @@ $fontHref = 'https://fonts.googleapis.com/css2'
   .gallery figcaption {
     position: absolute; inset-inline: var(--s3); bottom: var(--s3);
     padding: var(--s2) var(--s3); border-radius: var(--r-xs);
-    background: color-mix(in srgb, var(--surface) 94%, transparent);
+    background: color-mix(in srgb, var(--surface) 95%, transparent);
     backdrop-filter: blur(8px);
-    font-size: var(--t-micro); font-weight: 500;
-    letter-spacing: .1em; text-transform: uppercase;
+    font-size: var(--t-caption); font-weight: 500;
   }
 
   /* ---------- Rezervace ---------- */
   .booking { max-width: 48rem; margin-inline: auto; }
   .booking__head { text-align: center; margin-bottom: var(--s8); }
   .booking__head h2 { margin-top: var(--s4); }
-  .booking__head p { margin-top: var(--s5); color: var(--text-2); font-weight: 300; }
+  .booking__head p { margin-top: var(--s5); color: var(--text-2); }
   .booking__grid { display: grid; gap: var(--s5); }
   @media (min-width: 640px) {
     .booking__grid { grid-template-columns: repeat(2, 1fr); column-gap: var(--s6); }
@@ -234,12 +288,12 @@ $fontHref = 'https://fonts.googleapis.com/css2'
   @media (min-width: 640px) { .site-foot__grid { grid-template-columns: 1.4fr 1fr 1fr; gap: var(--s10); } }
   .site-foot h2 { font-size: var(--t-micro); font-weight: 500; letter-spacing: var(--track); text-transform: uppercase; color: var(--text-3); }
   .site-foot li + li { margin-top: 2px; }
-  .site-foot li, .site-foot li a { color: var(--text-2); font-size: var(--t-small); font-weight: 300; }
+  .site-foot li, .site-foot li a { color: var(--text-2); font-size: var(--t-small); }
   .site-foot li a { display: inline-flex; align-items: center; min-height: 40px; transition: color var(--dur) var(--ease); }
   .site-foot li a:hover { color: var(--gold-ink); }
   .site-foot__bottom {
     margin-top: var(--s10); padding-top: var(--s5); border-top: 1px solid var(--line);
-    font-size: var(--t-micro); letter-spacing: .08em; text-transform: uppercase; color: var(--text-3);
+    font-size: var(--t-caption); color: var(--text-3);
     display: flex; flex-wrap: wrap; gap: var(--s2) var(--s6); justify-content: space-between;
   }
 </style>
@@ -253,40 +307,77 @@ $fontHref = 'https://fonts.googleapis.com/css2'
 <div class="progress" id="progress" aria-hidden="true"></div>
 
 <!-- ============================== HLAVIČKA ============================== -->
+<?php
+// Odkazy navigace na jednom místě — vykreslí se dvakrát (lišta a
+// nabídka na telefonu) a nesmí se rozejít.
+$navLinks = [
+    '#sluzby'  => 'Služby',
+    '#cenik'   => 'Ceník',
+    '#galerie' => 'Galerie',
+    '#o-mne'   => 'O mně',
+    '#kontakt' => 'Kontakt',
+];
+
+/** Přepínač světlého a tmavého režimu. Používá ho web i administrace. */
+function theme_toggle(): void { ?>
+  <button type="button" class="theme-toggle" data-theme-toggle
+          aria-label="Přepnout světlý a tmavý režim">
+    <svg data-icon="dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z"/>
+    </svg>
+    <svg data-icon="light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+         stroke-linecap="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="4.2"/>
+      <path d="M12 2.5v2.2M12 19.3v2.2M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"/>
+    </svg>
+  </button>
+<?php }
+?>
 <header class="site-head" id="site-head">
   <div class="wrap site-head__inner">
     <a href="#obsah" class="brand">
       <span class="brand__mark" aria-hidden="true">D</span>
-      <span>
-        <span class="brand__name">Denisa Hair</span>
-        <span class="brand__sub">Kadeřnictví Záříčí</span>
-      </span>
+      <span class="brand__name">Denisa Hair</span>
     </a>
 
     <nav class="nav" aria-label="Hlavní navigace">
-      <a href="#sluzby">Služby</a>
-      <a href="#o-mne">O mně</a>
-      <a href="#galerie">Galerie</a>
-      <a href="#kontakt">Kontakt</a>
-      <a href="#rezervace" class="btn btn--primary">Objednat se</a>
+      <?php foreach ($navLinks as $href => $label): ?>
+        <a href="<?= e($href) ?>"><?= e($label) ?></a>
+      <?php endforeach; ?>
     </nav>
 
-    <button type="button" class="nav-toggle" id="nav-toggle"
-            aria-label="Otevřít menu" aria-expanded="false" aria-controls="nav-drawer">
-      <span aria-hidden="true"></span><span aria-hidden="true"></span>
-    </button>
-  </div>
-
-  <div class="nav-drawer" id="nav-drawer" hidden>
-    <nav class="wrap" aria-label="Mobilní navigace">
-      <a href="#sluzby">Služby</a>
-      <a href="#o-mne">O mně</a>
-      <a href="#galerie">Galerie</a>
-      <a href="#kontakt">Kontakt</a>
-      <a href="#rezervace" class="btn btn--primary btn--block">Objednat se</a>
-    </nav>
+    <div class="head__actions">
+      <?php theme_toggle(); ?>
+      <a href="#rezervace" class="btn btn--primary head__cta">Objednat se</a>
+      <button type="button" class="nav-toggle" id="nav-toggle"
+              aria-label="Otevřít nabídku" aria-expanded="false" aria-controls="menu">
+        <span aria-hidden="true"></span><span aria-hidden="true"></span>
+      </button>
+    </div>
   </div>
 </header>
+
+<!-- Nabídka na telefonu — přes celou obrazovku, velké cíle -->
+<div class="menu" id="menu" hidden>
+  <nav aria-label="Mobilní navigace">
+    <?php foreach ($navLinks as $href => $label): ?>
+      <a href="<?= e($href) ?>" class="menu__link">
+        <?= e($label) ?>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+    <?php endforeach; ?>
+  </nav>
+
+  <div class="menu__foot">
+    <a href="#rezervace" class="btn btn--primary btn--block">Objednat se</a>
+    <p class="menu__meta">
+      Záříčí 192 · otevřeno dle objednávek<br>
+      <a href="https://mapy.cz/zakladni?q=Z%C3%A1%C5%99%C3%AD%C4%8D%C3%AD%20192" target="_blank" rel="noopener">Zobrazit na mapě</a>
+    </p>
+  </div>
+</div>
 
 <main id="obsah">
 
@@ -350,24 +441,28 @@ $fontHref = 'https://fonts.googleapis.com/css2'
       // Karty služeb — obsah v poli, ať se šablona neopakuje.
       $cards = [
           [
+              'key'   => 'damske',
               'title' => 'Dámské kadeřnictví',
               'text'  => 'Střih na míru, mytí, foukaná a styling podle typu vašich vlasů.',
               'items' => ['Střih & foukaná', 'Regenerace', 'Styling'],
               'icon'  => '<path d="M6 4v9m12-9v9"/><circle cx="6" cy="16" r="3"/><circle cx="18" cy="16" r="3"/>',
           ],
           [
+              'key'   => 'panske',
               'title' => 'Pánské kadeřnictví',
               'text'  => 'Klasické i moderní střihy, fade, zastřižení kontur a úprava vousů.',
               'items' => ['Klasický střih', 'Fade', 'Vousy'],
               'icon'  => '<path d="M4 7h16M4 12h10M4 17h16"/>',
           ],
           [
+              'key'   => 'detske',
               'title' => 'Dětské kadeřnictví',
               'text'  => 'Trpělivě a bez slz. Pro kluky i holčičky, včetně prvního stříhání.',
               'items' => ['První střih', 'Kluci', 'Holčičky'],
               'icon'  => '<circle cx="12" cy="12" r="8"/><path d="M9 10h.01M15 10h.01M9 14.5a4 4 0 0 0 6 0"/>',
           ],
           [
+              'key'   => 'barveni',
               'title' => 'Barvení',
               'text'  => 'Celková barva, melír, přeliv i jemné rozjasnění kolem obličeje.',
               'items' => ['Celková barva', 'Melír', 'Přeliv'],
@@ -399,10 +494,52 @@ $fontHref = 'https://fonts.googleapis.com/css2'
               Objednat<span class="sr-only"> — <?= e($c['title']) ?></span>
               <span class="line" aria-hidden="true"></span>
             </a>
+            <?php
+            // Nejnižší cena z ceníku — návštěvník vidí, na čem je,
+            // ještě než se prokliká dolů.
+            $cheapest = min(array_column(PRICES[$c['key']], 1));
+            ?>
+            <span class="svc__from">od <strong><?= e(price_format($cheapest)) ?></strong></span>
           </div>
         </article>
       <?php endforeach; ?>
     </div>
+  </div>
+</section>
+
+<!-- ============================== CENÍK ============================== -->
+<section id="cenik" class="section section--tint" data-io>
+  <div class="wrap">
+    <div class="section-head rv">
+      <p class="eyebrow">Ceník</p>
+      <h2 class="display" data-split>Kolik to stojí</h2>
+      <p>Pevné ceny za jednotlivé úkony. Co je v ceně navíc, píšu rovnou u položky.</p>
+    </div>
+
+    <div class="pricing">
+      <?php foreach (PRICES as $key => $items): ?>
+        <section class="card rv" aria-labelledby="cenik-<?= e($key) ?>">
+          <h3 id="cenik-<?= e($key) ?>"><?= e(SERVICES[$key]) ?></h3>
+          <ul>
+            <?php foreach ($items as [$name, $czk, $note]): ?>
+              <li class="price__row">
+                <span class="price__name">
+                  <?= e($name) ?>
+                  <?php if ($note !== ''): ?><span class="price__note"><?= e($note) ?></span><?php endif; ?>
+                </span>
+                <span class="price__dots" aria-hidden="true"></span>
+                <span class="price__value"><?= e(price_format($czk)) ?></span>
+              </li>
+            <?php endforeach; ?>
+          </ul>
+        </section>
+      <?php endforeach; ?>
+    </div>
+
+    <p class="pricing__note rv">
+      U barvení a velmi dlouhých vlasů se cena může lišit podle spotřeby barvy —
+      řeknu vám ji vždycky předem, než začneme. Platí se hotově na místě.
+    </p>
   </div>
 </section>
 
@@ -605,6 +742,7 @@ $fontHref = 'https://fonts.googleapis.com/css2'
         <h2>Odkazy</h2>
         <ul style="margin-top:var(--s3)">
           <li><a href="#sluzby">Služby</a></li>
+          <li><a href="#cenik">Ceník</a></li>
           <li><a href="#galerie">Galerie</a></li>
           <li><a href="#rezervace">Rezervace</a></li>
           <li><a href="admin/login.php">Administrace</a></li>
@@ -626,17 +764,40 @@ $fontHref = 'https://fonts.googleapis.com/css2'
 
   const head = document.getElementById('site-head');
 
-  /* ---------- Mobilní menu ---------- */
+  /* ---------- Nabídka na telefonu ----------
+     Překrývá celou obrazovku, takže se pod ní musí zamknout scroll
+     stránky — jinak se pozadí posouvá pod prstem. */
   const toggle = document.getElementById('nav-toggle');
-  const drawer = document.getElementById('nav-drawer');
+  const menu   = document.getElementById('menu');
+
   const setMenu = (open) => {
-    drawer.hidden = !open;
+    menu.hidden = !open;
     toggle.setAttribute('aria-expanded', String(open));
-    toggle.setAttribute('aria-label', open ? 'Zavřít menu' : 'Otevřít menu');
+    toggle.setAttribute('aria-label', open ? 'Zavřít nabídku' : 'Otevřít nabídku');
+    document.body.style.overflow = open ? 'hidden' : '';
   };
-  toggle.addEventListener('click', () => setMenu(drawer.hidden));
-  drawer.querySelectorAll('a').forEach(a => a.addEventListener('click', () => setMenu(false)));
+
+  toggle.addEventListener('click', () => setMenu(menu.hidden));
+  menu.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => setMenu(false)));
   addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
+  // Při otočení do šířky nebo na velký displej nabídku zavřeme —
+  // jinak by zůstala viset přes obsah.
+  matchMedia('(min-width: 1000px)').addEventListener('change', (e) => { if (e.matches) setMenu(false); });
+
+  /* ---------- Světlý / tmavý režim ----------
+     Tři stavy: bez volby jede stránka podle systému, po kliknutí se
+     uloží „light` nebo `dark` a ten pak systém přebíjí. */
+  const themeBtns = document.querySelectorAll('[data-theme-toggle]');
+  const root = document.documentElement;
+
+  const currentTheme = () =>
+    root.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+
+  themeBtns.forEach((btn) => btn.addEventListener('click', () => {
+    const next = currentTheme() === 'dark' ? 'light' : 'dark';
+    root.dataset.theme = next;
+    try { localStorage.setItem('dh-theme', next); } catch (err) { /* soukromé okno */ }
+  }));
 
   /* ---------- Dělení nadpisů na slova ----------
      Každé slovo dostane vlastní clonu (.word) a vyjede zpod ní.

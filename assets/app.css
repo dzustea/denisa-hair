@@ -1,9 +1,13 @@
 /* =====================================================================
    Denisa Hair — designový systém „Atelier“
 
-   Světlý luxusní salon: čistá bílá plocha na teplé krémové stránce,
-   hluboce hnědá typografie, tlumené bronzové akcenty. Geometrie je
-   ostrá — jemné poloměry, vlasové linky, hodně vzduchu.
+   Salon ve dvou režimech. Světlý: bílá karta na teplé krémové stránce,
+   hluboce hnědá typografie. Tmavý: teplá hnědočerná plocha, krémový
+   text. Obojí drží stejný bronzový akcent a stejnou geometrii —
+   jemné poloměry, vlasové linky, hodně vzduchu.
+
+   Žádná barva se nepíše natvrdo do komponent. Všechno jde přes tokeny
+   ze sekce 1, jinak by se jeden z režimů rozbil.
 
    Písma:
      • Cormorant Garamond — serif, jen pro velké nadpisy
@@ -15,52 +19,75 @@
 
 /* ---------------------------------------------------------------------
    1. Tokeny
+
+   Dvě palety, jedna sada názvů. Světlá je výchozí; tmavá se zapne
+   buď podle nastavení systému, nebo ručně přepínačem, který dá na
+   <html> atribut data-theme.
+
+   Tři stavy, které musí sedět:
+     • data-theme chybí   → rozhoduje systém (prefers-color-scheme)
+     • data-theme="light" → světlá i v tmavém systému
+     • data-theme="dark"  → tmavá i ve světlém systému
+
+   Kontrast: --text i --text-2 drží nad 7:1 proti své ploše, --text-3
+   nad 4,5:1. Zlatá má dvě varianty — --gold jen na dekoraci,
+   --gold-ink všude, kde nese text.
    ------------------------------------------------------------------ */
 :root {
-  /* Plochy — pouze čistá bílá a teplá krémová/béžová */
-  --bg:        #F6F1E8;   /* stránka — teplý krém */
-  --bg-2:      #EFE7DA;   /* sytější béžový pás */
-  --surface:   #FFFFFF;   /* karty — čistá bílá */
-  --surface-2: #F3ECE0;   /* jemná béžová výplň uvnitř bílé */
-  --line:      #E2D8C8;   /* viditelná linka */
-  --hairline:  #EEE7DA;   /* vlasový předěl */
+  color-scheme: light;
 
-  /* Text — hluboká hnědá/bronz */
-  --text:   #2B1E14;
-  --text-2: #6E5E4E;
-  --text-3: #857562;      /* jen doplňky, stále nad 4.5:1 na bílé */
+  /* Plochy */
+  --bg:        #FAF7F2;   /* stránka */
+  --bg-2:      #F1EBE1;   /* sytější pás sekce */
+  --surface:   #FFFFFF;   /* karty */
+  --surface-2: #F5F0E7;   /* výplň uvnitř karty */
+  --line:      #DBD1C1;
+  --hairline:  #EAE3D7;
 
-  /* Bronz / tlumené zlato */
-  --gold:      #B08D57;   /* dekorativní: ikony, linky, orámování */
-  --gold-ink:  #8C6B3C;   /* zlatá, která smí nést text */
-  --gold-soft: #F1E7D5;   /* výplň pod ikonami a štítky */
+  /* Text */
+  --text:   #241A12;      /* 15,8:1 na bílé */
+  --text-2: #574839;      /* 8,3:1 na bílé */
+  --text-3: #756554;      /* 5,1:1 na bílé */
 
-  /* Plné tlačítko: hluboká hnědá, krémový text */
-  --ink:      #2B1E14;
-  --on-ink:   #FBF8F2;
+  /* Bronz */
+  --gold:      #A67C3D;   /* dekorace: linky, rámečky, ikony */
+  --gold-ink:  #7A5A29;   /* 5,9:1 na bílé — smí nést text */
+  --gold-soft: #F4EAD6;
+
+  /* Plné tlačítko */
+  --ink:    #241A12;
+  --on-ink: #FDFBF7;
+
+  /* Stavy */
+  --ok:        #1F6B47;
+  --ok-bg:     #E6F1EA;
+  --ok-line:   rgba(31,107,71,.3);
+  --warn:      #7A5A29;
+  --danger:    #8C2F26;
+  --danger-bg: #F9ECEA;
+  --danger-line: rgba(140,47,38,.28);
+
+  /* Stíny */
+  --sh-1: 0 1px 2px rgba(36,26,18,.05);
+  --sh-2: 0 10px 30px -18px rgba(36,26,18,.32);
+  --sh-3: 0 30px 70px -30px rgba(36,26,18,.45);
+  --scrim: rgba(28,20,14,.5);
 
   /* Zpětná kompatibilita se staršími třídami */
   --accent:      var(--gold-ink);
   --accent-soft: var(--gold-soft);
   --on-accent:   var(--on-ink);
 
-  /* Stavy — ztlumené, aby nerušily paletu */
-  --ok:        #2F6B4F;
-  --ok-bg:     #E9F1EC;
-  --warn:      #8C6B3C;
-  --danger:    #93342A;
-  --danger-bg: #F7ECEA;
-
   /* Písmo */
   --font:         'Jost', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   --font-display: 'Cormorant Garamond', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
 
-  /* Velikosti */
-  --t-micro:   0.6875rem;   /* 11 — verzálky s prostrkáním */
-  --t-caption: 0.8125rem;   /* 13 */
+  /* Velikosti — o stupeň větší než dřív, kvůli čitelnosti */
+  --t-micro:   0.75rem;     /* 12 — jen verzálkové popisky */
+  --t-caption: 0.875rem;    /* 14 */
   --t-small:   0.9375rem;   /* 15 */
   --t-body:    1.0625rem;   /* 17 */
-  --t-lead:    1.1875rem;   /* 19 */
+  --t-lead:    1.25rem;     /* 20 */
   --t-h3:      1.375rem;    /* 22 */
   --t-h2:      2rem;        /* 32 — serif */
   --t-h1:      2.75rem;     /* 44 — serif */
@@ -70,33 +97,104 @@
   --s5: 1.25rem; --s6: 1.5rem;  --s8: 2rem;    --s10: 2.5rem;
   --s12: 3rem;   --s16: 4rem;   --s20: 5rem;
 
-  /* Zaoblení — geometrie, ne bublina */
-  --r-xs: 2px; --r-sm: 3px; --r-md: 4px; --r-lg: 6px; --r-xl: 10px; --r-full: 999px;
+  /* Zaoblení */
+  --r-xs: 2px; --r-sm: 4px; --r-md: 6px; --r-lg: 10px; --r-xl: 14px; --r-full: 999px;
 
-  /* Stíny — sotva znatelné, jen odsazují bílou od krému */
-  --sh-1: 0 1px 2px rgba(43,30,20,.045);
-  --sh-2: 0 10px 30px -18px rgba(43,30,20,.30);
-  --sh-3: 0 30px 70px -30px rgba(43,30,20,.45);
+  /* Prostrkání verzálkových popisků — mírnější, líp se čte */
+  --track: .1em;
 
-  /* Prostrkání pro verzálkové popisky */
-  --track: .16em;
+  /* Šipka v <select> a prstenec fokusu. Do data URI se proměnná
+     nedostane, takže se celý obrázek drží v tokenu. */
+  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23241A12' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  --focus-ring: rgba(166,124,61,.22);
 
   --ease: cubic-bezier(.22,.61,.36,1);
-  --dur:  .3s;
-
-  color-scheme: light;
+  --dur:  .25s;
 }
 
-/* Administrace: stejná paleta, o odstín sytější pozadí — bílé karty
-   pak i při dlouhém čtení drží tvar. */
-body.admin {
-  --bg:        #F1EADE;
-  --bg-2:      #E9E0D0;
-  --surface:   #FFFFFF;
-  --surface-2: #F4EDE1;
-  --line:      #DFD4C1;
-  --hairline:  #ECE4D5;
+/* Tmavá podle systému — ustoupí ručnímu „light“. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --bg:        #15100C;
+    --bg-2:      #1C1611;
+    --surface:   #201A14;
+    --surface-2: #2A2219;
+    --line:      #3D3226;
+    --hairline:  #2F271E;
+
+    --text:   #F6F0E6;      /* 14,9:1 na --surface */
+    --text-2: #C9BBA8;      /* 8,4:1 */
+    --text-3: #A2937F;      /* 5,2:1 */
+
+    --gold:      #C9A567;
+    --gold-ink:  #DDC08B;   /* 8,7:1 na --surface */
+    --gold-soft: #2F2517;
+
+    --ink:    #EFE6D6;      /* plné tlačítko je ve tmě světlé */
+    --on-ink: #191309;
+
+    --ok:        #6FC195;
+    --ok-bg:     #16281F;
+    --ok-line:   rgba(111,193,149,.32);
+    --warn:      #DDC08B;
+    --danger:    #EE9184;
+    --danger-bg: #2E1A17;
+    --danger-line: rgba(238,145,132,.3);
+
+    --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23F6F0E6' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    --focus-ring: rgba(201,165,103,.3);
+
+    --sh-1: 0 1px 2px rgba(0,0,0,.4);
+    --sh-2: 0 10px 30px -18px rgba(0,0,0,.75);
+    --sh-3: 0 30px 70px -30px rgba(0,0,0,.9);
+    --scrim: rgba(0,0,0,.66);
+  }
 }
+
+/* Tmavá zvolená ručně — musí přebít i světlý systém. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg:        #15100C;
+  --bg-2:      #1C1611;
+  --surface:   #201A14;
+  --surface-2: #2A2219;
+  --line:      #3D3226;
+  --hairline:  #2F271E;
+
+  --text:   #F6F0E6;
+  --text-2: #C9BBA8;
+  --text-3: #A2937F;
+
+  --gold:      #C9A567;
+  --gold-ink:  #DDC08B;
+  --gold-soft: #2F2517;
+
+  --ink:    #EFE6D6;
+  --on-ink: #191309;
+
+  --ok:        #6FC195;
+  --ok-bg:     #16281F;
+  --ok-line:   rgba(111,193,149,.32);
+  --warn:      #DDC08B;
+  --danger:    #EE9184;
+  --danger-bg: #2E1A17;
+  --danger-line: rgba(238,145,132,.3);
+
+  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23F6F0E6' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  --focus-ring: rgba(201,165,103,.3);
+
+  --sh-1: 0 1px 2px rgba(0,0,0,.4);
+  --sh-2: 0 10px 30px -18px rgba(0,0,0,.75);
+  --sh-3: 0 30px 70px -30px rgba(0,0,0,.9);
+  --scrim: rgba(0,0,0,.66);
+}
+
+/* Administrace jede na stejné paletě, jen o odstín sytější pozadí,
+   aby bílé karty držely tvar i při dlouhém čtení. */
+body.admin { --bg: var(--bg-2); }
 
 /* ---------------------------------------------------------------------
    2. Základ
@@ -275,8 +373,8 @@ strong, b { font-weight: 500; color: var(--text); }
 }
 .btn--ghost:hover { color: var(--text); background: var(--surface-2); }
 
-.btn--danger { background: var(--danger); color: #fff; border-color: var(--danger); }
-.btn--danger:hover { background: #7A2A22; border-color: #7A2A22; }
+.btn--danger { background: var(--danger); color: var(--on-ink); border-color: var(--danger); }
+.btn--danger:hover { background: var(--text); border-color: var(--text); color: var(--bg); }
 
 .btn--block { width: 100%; }
 
@@ -304,7 +402,7 @@ strong, b { font-weight: 500; color: var(--text); }
               border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
 }
 .icon-btn:hover { border-color: var(--ink); box-shadow: var(--sh-1); }
-.icon-btn--danger:hover { background: var(--danger-bg); color: var(--danger); border-color: #DDB3AD; }
+.icon-btn--danger:hover { background: var(--danger-bg); color: var(--danger); border-color: var(--danger); }
 .icon-btn svg { width: 18px; height: 18px; }
 
 /* ---------------------------------------------------------------------
@@ -381,16 +479,53 @@ strong, b { font-weight: 500; color: var(--text); }
 .status--dokoncena { color: var(--text-2); }
 .status--zrusena   { color: var(--danger); }
 
+/* Přepínač světlý / tmavý režim.
+   Ikona se přepíná čistě v CSS, aby seděla i ve stavu „podle systému“,
+   kdy na <html> žádný data-theme není. */
+.theme-toggle {
+  display: inline-grid; place-items: center;
+  width: 44px; height: 44px; border-radius: var(--r-sm);
+  color: var(--text-2); background: none; border: 1px solid transparent;
+  transition: color var(--dur) var(--ease), background var(--dur) var(--ease),
+              border-color var(--dur) var(--ease);
+}
+.theme-toggle:hover { color: var(--text); background: var(--surface-2); border-color: var(--line); }
+.theme-toggle svg { width: 19px; height: 19px; }
+.theme-toggle [data-icon="light"] { display: none; }
+:root[data-theme="dark"] .theme-toggle [data-icon="dark"]  { display: none; }
+:root[data-theme="dark"] .theme-toggle [data-icon="light"] { display: block; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .theme-toggle [data-icon="dark"]  { display: none; }
+  :root:not([data-theme="light"]) .theme-toggle [data-icon="light"] { display: block; }
+}
+
+/* Ceník — název vlevo, cena vpravo, mezi nimi vodicí linka.
+   Ceny jsou v tabulkových číslicích, aby šly sloupce srovnat okem. */
+.price__row {
+  display: flex; align-items: baseline; gap: var(--s3);
+  padding-block: var(--s4);
+}
+.price__row + .price__row { border-top: 1px solid var(--hairline); }
+.price__name { font-size: var(--t-body); }
+.price__note { display: block; margin-top: 2px; font-size: var(--t-caption); color: var(--text-2); }
+.price__dots { flex: 1 1 auto; min-width: var(--s5); border-bottom: 1px dotted var(--line); translate: 0 -5px; }
+.price__value {
+  flex: 0 0 auto;
+  font-size: var(--t-body); font-weight: 500;
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+
 /* ---------------------------------------------------------------------
    7. Formuláře
    ------------------------------------------------------------------ */
 .field { display: block; }
 .field + .field { margin-top: var(--s5); }
+/* Popisek pole čte člověk, který zrovna vyplňuje formulář — patří mu
+   normální velikost a normální písmo, ne drobné verzálky. */
 .label {
   display: block; margin-bottom: var(--s2);
-  font-size: var(--t-micro); font-weight: 500;
-  letter-spacing: var(--track); text-transform: uppercase;
-  color: var(--text-2);
+  font-size: var(--t-small); font-weight: 500;
+  color: var(--text);
 }
 .req { color: var(--gold-ink); }
 .hint { margin-top: var(--s2); font-size: var(--t-caption); color: var(--text-3); }
@@ -405,16 +540,16 @@ strong, b { font-weight: 500; color: var(--text); }
   border: 1px solid var(--line); border-radius: var(--r-sm);
   transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
 }
-.input:hover, .select:hover, .textarea:hover { border-color: #CFC1AB; }
+.input:hover, .select:hover, .textarea:hover { border-color: var(--gold); }
 .input::placeholder, .textarea::placeholder { color: var(--text-3); }
 .input:focus, .select:focus, .textarea:focus {
   outline: none;
   border-color: var(--gold-ink);
-  box-shadow: 0 0 0 3px rgba(176,141,87,.16);
+  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 .input[aria-invalid="true"], .select[aria-invalid="true"] {
   border-color: var(--danger);
-  box-shadow: 0 0 0 3px rgba(147,52,42,.12);
+  box-shadow: 0 0 0 3px var(--danger-line);
 }
 .textarea { min-height: 7.5rem; resize: vertical; line-height: 1.65; }
 
@@ -422,7 +557,7 @@ strong, b { font-weight: 500; color: var(--text); }
 .select {
   appearance: none;
   padding-inline-end: var(--s10);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232B1E14' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-image: var(--select-arrow);
   background-repeat: no-repeat;
   background-position: right var(--s4) center;
   background-size: 17px;
@@ -460,8 +595,8 @@ strong, b { font-weight: 500; color: var(--text); }
   padding: var(--s4) var(--s5); border-radius: var(--r-sm);
   font-size: var(--t-small); border: 1px solid; border-left-width: 2px;
 }
-.note--ok    { background: var(--ok-bg);     border-color: rgba(47,107,79,.28);  border-left-color: var(--ok);     color: var(--ok); }
-.note--error { background: var(--danger-bg); border-color: rgba(147,52,42,.24);  border-left-color: var(--danger); color: var(--danger); }
+.note--ok    { background: var(--ok-bg);     border-color: var(--ok-line);     border-left-color: var(--ok);     color: var(--ok); }
+.note--error { background: var(--danger-bg); border-color: var(--danger-line); border-left-color: var(--danger); color: var(--danger); }
 .note[hidden] { display: none; }
 
 /* ---------------------------------------------------------------------
@@ -598,8 +733,13 @@ strong, b { font-weight: 500; color: var(--text); }
   .table tbody tr:hover { background: var(--surface-2); }
 }
 
+.table tr[hidden] { display: none; }
+
 @media (max-width: 1023.98px) {
   .table, .table tbody, .table tr, .table td { display: block; width: 100%; }
+  /* Třída výše přebíjí výchozí display:none atributu hidden —
+     u odfiltrovaných řádků ho musíme vrátit. */
+  .table tr[hidden] { display: none; }
   .table thead { display: none; }
   .table tr {
     background: var(--surface); border: 1px solid var(--line);
@@ -624,7 +764,7 @@ strong, b { font-weight: 500; color: var(--text); }
 .sheet[open], .sheet.is-open { display: flex; align-items: flex-end; justify-content: center; }
 @media (min-width: 640px) { .sheet.is-open { align-items: center; padding: var(--s5); } }
 
-.sheet__scrim { position: absolute; inset: 0; background: rgba(43,30,20,.42); backdrop-filter: blur(4px); }
+.sheet__scrim { position: absolute; inset: 0; background: var(--scrim); backdrop-filter: blur(4px); }
 .sheet__panel {
   position: relative; width: 100%; max-width: 27rem;
   background: var(--surface);
@@ -662,8 +802,8 @@ strong, b { font-weight: 500; color: var(--text); }
   box-shadow: var(--sh-2);
   animation: toast-in var(--dur) var(--ease);
 }
-.toast--ok    { background: var(--ok-bg);     border-color: rgba(47,107,79,.28); border-left-color: var(--ok);     color: var(--ok); }
-.toast--error { background: var(--danger-bg); border-color: rgba(147,52,42,.24); border-left-color: var(--danger); color: var(--danger); }
+.toast--ok    { background: var(--ok-bg);     border-color: var(--ok-line);     border-left-color: var(--ok);     color: var(--ok); }
+.toast--error { background: var(--danger-bg); border-color: var(--danger-line); border-left-color: var(--danger); color: var(--danger); }
 @keyframes toast-in { from { transform: translateY(10px); opacity: 0; } }
 
 /* ---------------------------------------------------------------------

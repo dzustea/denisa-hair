@@ -360,6 +360,49 @@ const STATUSES = [
 ];
 
 /* ------------------------------------------------------------------
+ *  Ceník
+ *
+ *  !!! POZOR: čísla níže jsou ZÁSTUPNÁ. Než web půjde na produkci,
+ *  přepiš je skutečnými cenami salonu. Mění se jen tady — ceník na
+ *  webu se vykreslí sám.
+ *
+ *  Klíč pole odpovídá klíči v SERVICES, ať se ceník dá spárovat
+ *  s nabídkou i s rezervacemi. Položka je [název, cena v Kč, poznámka].
+ *  Poznámka je nepovinná.
+ * ------------------------------------------------------------------ */
+const PRICES = [
+    'damske' => [
+        ['Střih a foukaná',      450, 'mytí a závěrečný styling v ceně'],
+        ['Střih bez foukané',    300, ''],
+        ['Foukaná',              250, ''],
+        ['Regenerace vlasů',     300, 'maska a masáž vlasové pokožky'],
+        ['Společenský účes',     600, ''],
+    ],
+    'panske' => [
+        ['Klasický střih',       250, ''],
+        ['Fade',                 300, ''],
+        ['Úprava vousů',         150, ''],
+        ['Střih a vousy',        350, ''],
+    ],
+    'detske' => [
+        ['Střih do 10 let',      180, ''],
+        ['První střih',          150, 'pamětní pramínek s sebou'],
+    ],
+    'barveni' => [
+        ['Celková barva',        700, 'cena podle délky vlasů'],
+        ['Melír',                900, 'cena podle délky vlasů'],
+        ['Přeliv',               500, ''],
+        ['Rozjasnění kolem obličeje', 400, ''],
+    ],
+];
+
+/** Měna se píše na jednom místě — kdyby se někdy měnila. */
+function price_format(int $czk): string
+{
+    return number_format($czk, 0, ',', ' ') . ' Kč';
+}
+
+/* ------------------------------------------------------------------
  * 8) Časové sloty rezervací
  *
  * Den je rozdělený na hodinové sloty od 9:00 do 17:00 — poslední

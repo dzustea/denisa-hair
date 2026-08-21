@@ -21,9 +21,21 @@ $fontHref = 'https://fonts.googleapis.com/css2'
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title><?= e($pageTitle) ?> — Denisa Hair</title>
 <meta name="robots" content="noindex, nofollow">
-<meta name="theme-color" content="#F1EADE">
+<meta name="theme-color" content="#F1EBE1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#15100C" media="(prefers-color-scheme: dark)">
 
-<script>document.documentElement.classList.add('js');</script>
+<script>
+(() => {
+  const root = document.documentElement;
+  root.classList.add('js');
+  // Volbu je nutné nasadit ještě před vykreslením, jinak v tmavém
+  // režimu probleskne světlé pozadí.
+  try {
+    const saved = localStorage.getItem('dh-theme');
+    if (saved === 'dark' || saved === 'light') root.dataset.theme = saved;
+  } catch (err) { /* soukromé okno — zůstane volba podle systému */ }
+})();
+</script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -119,6 +131,20 @@ $fontHref = 'https://fonts.googleapis.com/css2'
   .panel__body { padding: var(--s6); border-top: 1px solid var(--hairline); }
   .nb-grid { display: grid; gap: var(--s6); }
   @media (min-width: 900px) { .nb-grid { grid-template-columns: 1fr 1fr; gap: var(--s8); } }
+
+  /* ---------- Řazení v hlavičce tabulky ----------
+     Tlačítko, ne odkaz — řadí se na místě. Šipka svítí jen u sloupce,
+     podle kterého se zrovna řadí, a otáčí se podle směru. */
+  .th-sort {
+    display: inline-flex; align-items: center; gap: 5px;
+    font: inherit; color: inherit; letter-spacing: inherit; text-transform: inherit;
+    transition: color var(--dur) var(--ease);
+  }
+  .th-sort:hover { color: var(--text); }
+  .th-sort svg { width: 12px; height: 12px; opacity: 0; transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease); }
+  .th-sort[data-dir="desc"] svg { opacity: 1; }
+  .th-sort[data-dir="asc"]  svg { opacity: 1; transform: rotate(180deg); }
+  [data-sort-head][data-active] { color: var(--text); }
 
   /* ---------- Řádek rezervace ---------- */
   .who { font-size: var(--t-body); font-weight: 500; letter-spacing: -.01em; }

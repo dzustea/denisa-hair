@@ -16,47 +16,39 @@ $pdo  = db();
 $csrf = csrf_token();
 
 /* ------------------------------------------------------------------
- *  Filtry a řazení z URL (vše přes whitelist — nikdy přímo do SQL)
+ *  Rezervace
+ *
+ *  Server pošle VŠECHNY rezervace (do 500) a filtruje se až
+ *  v prohlížeči — přepnutí stavu je pak okamžité, bez znovunačtení
+ *  stránky. Parametry v URL slouží jen k tomu, aby se po obnovení
+ *  stránky obnovil i zvolený filtr; do SQL nevstupují.
+ *
+ *  Administrace bez JavaScriptu stejně nefunguje (změna stavu,
+ *  mazání i zápis rezervace jdou přes fetch na api.php), takže tady
+ *  není co degradovat.
  * ------------------------------------------------------------------ */
 $filterStatus  = (string) ($_GET['status']  ?? 'vse');
 $filterService = (string) ($_GET['service'] ?? 'vse');
 $sortKey       = (string) ($_GET['sort']    ?? 'created_at');
 $sortDir       = strtolower((string) ($_GET['dir'] ?? 'desc')) === 'asc' ? 'ASC' : 'DESC';
 
+// Whitelist — z URL nesmí projít nic, co bychom pak vypsali do HTML
+// nebo poslali do SQL.
+if (!array_key_exists($filterStatus, STATUSES))  { $filterStatus  = 'vse'; }
+if (!array_key_exists($filterService, SERVICES)) { $filterService = 'vse'; }
+
 $sortable   = ['created_at' => 'created_at', 'appointment_date' => 'appointment_date'];
 $sortColumn = $sortable[$sortKey] ?? 'created_at';
 $sortKey    = array_search($sortColumn, $sortable, true);
 
-$where  = [];
-$params = [];
-
-if (array_key_exists($filterStatus, STATUSES)) {
-    $where[] = 'status = :status';
-    $params[':status'] = $filterStatus;
-} else {
-    $filterStatus = 'vse';
-}
-
-if (array_key_exists($filterService, SERVICES)) {
-    $where[] = 'service = :service';
-    $params[':service'] = $filterService;
-} else {
-    $filterService = 'vse';
-}
-
-$sql = 'SELECT * FROM bookings';
-if ($where) {
-    $sql .= ' WHERE ' . implode(' AND ', $where);
-}
 // Sekundární řazení podle času, ať jsou termíny ve stejný den v pořadí
-$sql .= $sortColumn === 'appointment_date'
-    ? " ORDER BY appointment_date $sortDir, appointment_time $sortDir"
-    : " ORDER BY created_at $sortDir";
-$sql .= ' LIMIT 500';
+$sql = 'SELECT * FROM bookings ORDER BY '
+     . ($sortColumn === 'appointment_date'
+        ? "appointment_date $sortDir, appointment_time $sortDir"
+        : "created_at $sortDir")
+     . ' LIMIT 500';
 
-$stmt = $pdo->prepare($sql);
-$stmt->execute($params);
-$bookings = $stmt->fetchAll();
+$bookings = $pdo->query($sql)->fetchAll();
 
 /* ------------------------------------------------------------------
  *  Souhrnná čísla
@@ -75,27 +67,21 @@ $stats = [
     'dokoncena' => (int) ($s['dokoncena'] ?? 0),
 ];
 
-/** Odkaz zachovávající ostatní parametry filtru. */
-function filter_url(array $overrides): string
+/**
+ * Hlavička sloupce, na kterou se dá kliknout kvůli řazení.
+ *
+ * Je to tlačítko, ne odkaz — řadí se v prohlížeči a stránka se
+ * neznovunačítá. Směr šipky přepíná CSS podle atributu data-dir,
+ * který nastavuje skript.
+ */
+function sort_head(string $key, string $label): string
 {
-    $params = array_merge($_GET, $overrides);
-    return '?' . http_build_query(array_filter($params, static fn($v) => $v !== '' && $v !== null));
-}
-
-/** Hlavička sloupce, na kterou se dá kliknout kvůli řazení. */
-function sort_head(string $key, string $label, string $sortKey, string $sortDir): string
-{
-    $active = $sortKey === $key;
-    $next   = ($active && $sortDir === 'ASC') ? 'desc' : 'asc';
-    $arrow  = $active
-        ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"'
-          . ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"'
-          . ($sortDir === 'ASC' ? ' style="transform:rotate(180deg)"' : '')
-          . '><path d="M12 5v14M6 13l6 6 6-6"/></svg>'
-        : '';
-
-    return '<a href="' . e(filter_url(['sort' => $key, 'dir' => $next]))
-         . '" style="display:inline-flex;align-items:center;gap:4px">' . e($label) . $arrow . '</a>';
+    return '<button type="button" class="th-sort" data-sort="' . e($key) . '">'
+         . e($label)
+         . '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"'
+         . ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+         . '<path d="M12 5v14M6 13l6 6 6-6"/></svg>'
+         . '</button>';
 }
 
 $adminName = $_SESSION['admin_name'] ?? 'Administrace';
@@ -119,6 +105,18 @@ $pageTitle = 'Rezervace';
     </span>
 
     <div class="abar__actions">
+      <button type="button" class="theme-toggle" data-theme-toggle
+              aria-label="Přepnout světlý a tmavý režim">
+        <svg data-icon="dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z"/>
+        </svg>
+        <svg data-icon="light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+             stroke-linecap="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="4.2"/>
+          <path d="M12 2.5v2.2M12 19.3v2.2M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"/>
+        </svg>
+      </button>
       <a href="setup.php" class="btn btn--ghost abar__link">Heslo</a>
       <a href="../index.php" target="_blank" rel="noopener" class="btn btn--ghost abar__link">Web</a>
       <a href="logout.php" class="btn btn--soft" style="min-height:40px; padding-inline:var(--s5)">Odhlásit</a>
@@ -219,11 +217,11 @@ $pageTitle = 'Rezervace';
   </section>
 
   <!-- ============================== FILTRY ==============================
-       Stav se přepíná segmentovým přepínačem a filtry se uplatní hned
-       při změně. Tlačítko "Použít" zůstává jen pro vypnutý JavaScript. -->
+       Nic se neodesílá na server — rezervace jsou už všechny v stránce
+       a přepínač jen skrývá řádky. Přepnutí stavu je proto okamžité. -->
   <section style="margin-top:var(--s10)" aria-label="Filtrování a řazení">
     <p class="eyebrow eyebrow--muted" style="margin-bottom:var(--s4)">Filtry</p>
-    <form method="get" id="filters" class="stack">
+    <form id="filters" class="stack" onsubmit="return false">
       <div class="seg" role="group" aria-label="Filtrovat podle stavu">
         <?php
         $statusOptions = ['vse' => 'Vše'] + STATUSES;
@@ -254,18 +252,13 @@ $pageTitle = 'Rezervace';
         <button type="button" class="btn btn--soft" id="dir-toggle" style="min-height:44px"
                 aria-label="Přepnout směr řazení">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
-               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"
-               <?= $sortDir === 'ASC' ? 'style="transform:rotate(180deg)"' : '' ?>>
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-dir-arrow>
             <path d="M12 5v14M6 13l6 6 6-6"/>
           </svg>
-          <?= $sortDir === 'ASC' ? 'Nejstarší' : 'Nejnovější' ?>
+          <span data-dir-label></span>
         </button>
 
-        <button type="submit" class="btn btn--soft no-js" style="min-height:44px">Použít</button>
-
-        <?php if ($filterStatus !== 'vse' || $filterService !== 'vse'): ?>
-          <a href="dashboard.php" class="btn btn--ghost" style="color:var(--accent)">Zrušit filtry</a>
-        <?php endif; ?>
+        <button type="button" class="btn btn--ghost" id="clear-filters" hidden>Zrušit filtry</button>
       </div>
     </form>
   </section>
@@ -273,7 +266,7 @@ $pageTitle = 'Rezervace';
   <!-- ============================== SEZNAM ============================== -->
   <section style="margin-top:var(--s8)" aria-label="Seznam rezervací">
     <p class="eyebrow eyebrow--muted" style="margin-bottom:var(--s4)">
-      Zobrazeno <span class="tnum"><?= count($bookings) ?></span> rezervací
+      Zobrazeno <span class="tnum" id="shown-count"><?= count($bookings) ?></span> rezervací
     </p>
 
     <?php if (!$bookings): ?>
@@ -288,18 +281,22 @@ $pageTitle = 'Rezervace';
       </div>
 
     <?php else: ?>
-      <div class="lg-group">
+      <div class="group empty" id="no-match" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true">
+          <circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>
+        </svg>
+        <h2>Nic neodpovídá filtru</h2>
+        <p>Zkuste vybrat jiný stav nebo službu.</p>
+      </div>
+
+      <div class="lg-group" id="list">
         <table class="table">
           <thead>
             <tr>
               <th scope="col">Klient</th>
               <th scope="col">Služba</th>
-              <th scope="col" <?= $sortKey === 'appointment_date' ? 'aria-sort="' . ($sortDir === 'ASC' ? 'ascending' : 'descending') . '"' : '' ?>>
-                <?= sort_head('appointment_date', 'Termín', $sortKey, $sortDir) ?>
-              </th>
-              <th scope="col" <?= $sortKey === 'created_at' ? 'aria-sort="' . ($sortDir === 'ASC' ? 'ascending' : 'descending') . '"' : '' ?>>
-                <?= sort_head('created_at', 'Vytvořeno', $sortKey, $sortDir) ?>
-              </th>
+              <th scope="col" data-sort-head="appointment_date"><?= sort_head('appointment_date', 'Termín') ?></th>
+              <th scope="col" data-sort-head="created_at"><?= sort_head('created_at', 'Vytvořeno') ?></th>
               <th scope="col">Stav</th>
               <th scope="col" style="text-align:right">Akce</th>
             </tr>
@@ -312,7 +309,11 @@ $pageTitle = 'Rezervace';
                 $telNo = preg_replace('/[^\d+]/', '', $b['phone']);
                 $end   = is_valid_slot($b['appointment_time']) ? ' – ' . slot_end($d->format('H:i')) : '';
             ?>
-              <tr id="row-<?= (int) $b['id'] ?>">
+              <tr id="row-<?= (int) $b['id'] ?>"
+                  data-status="<?= e($b['status']) ?>"
+                  data-service="<?= e($b['service']) ?>"
+                  data-created="<?= $c->getTimestamp() ?>"
+                  data-appointment="<?= $d->getTimestamp() ?>">
                 <td data-label="Klient">
                   <p class="who"><?= e($b['name']) ?></p>
                   <p><a class="contact tnum" href="tel:<?= e($telNo) ?>"><?= e($b['phone']) ?></a></p>
@@ -455,17 +456,131 @@ $pageTitle = 'Rezervace';
     });
   };
 
-  /* ---------- Filtry: uplatní se hned při změně ---------- */
-  const filters = document.getElementById('filters');
-  filters.addEventListener('change', (e) => {
-    if (e.target.matches('input[name="status"], select')) filters.requestSubmit();
+  /* ---------- Světlý / tmavý režim ----------
+     Bez uložené volby jede administrace podle systému; kliknutím se
+     volba uloží a systém přebíjí. */
+  const root = document.documentElement;
+  document.querySelectorAll('[data-theme-toggle]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const dark = root.dataset.theme
+        ? root.dataset.theme === 'dark'
+        : matchMedia('(prefers-color-scheme: dark)').matches;
+      root.dataset.theme = dark ? 'light' : 'dark';
+      try { localStorage.setItem('dh-theme', root.dataset.theme); } catch (err) { /* soukromé okno */ }
+    });
   });
 
-  const dirInput = document.getElementById('f-dir');
-  document.getElementById('dir-toggle').addEventListener('click', () => {
-    dirInput.value = dirInput.value === 'asc' ? 'desc' : 'asc';
-    filters.requestSubmit();
+  /* ---------- Filtrování a řazení ----------
+     Všechny rezervace jsou už ve stránce. Filtr jen skrývá řádky
+     a řazení je přeskládá — nic se nenačítá znovu, přepnutí stavu
+     je okamžité. Volba se zapíše do URL přes replaceState, aby ji
+     obnovení stránky nezahodilo. */
+  const filters   = document.getElementById('filters');
+  const serviceEl = document.getElementById('f-service');
+  const sortEl    = document.getElementById('f-sort');
+  const dirEl     = document.getElementById('f-dir');
+  const dirBtn    = document.getElementById('dir-toggle');
+  const dirArrow  = dirBtn.querySelector('[data-dir-arrow]');
+  const dirLabel  = dirBtn.querySelector('[data-dir-label]');
+  const clearBtn  = document.getElementById('clear-filters');
+  const countEl   = document.getElementById('shown-count');
+  const noMatch   = document.getElementById('no-match');
+  const list      = document.getElementById('list');
+  const tbody     = list ? list.querySelector('tbody') : null;
+  const rows      = tbody ? [...tbody.querySelectorAll('tr[data-status]')] : [];
+
+  // Klíč filtru → jméno data atributu na řádku
+  const SORT_FIELD = { created_at: 'created', appointment_date: 'appointment' };
+
+  const statusValue = () => {
+    const checked = filters.querySelector('input[name="status"]:checked');
+    return checked ? checked.value : 'vse';
+  };
+
+  const apply = () => {
+    const status  = statusValue();
+    const service = serviceEl.value;
+    const sort    = sortEl.value;
+    const dir     = dirEl.value;
+
+    // 1) řazení — řádky se přeskládají na místě
+    const field = SORT_FIELD[sort] || 'created';
+    rows.slice()
+      .sort((a, b) => {
+        const diff = Number(a.dataset[field]) - Number(b.dataset[field]);
+        return dir === 'asc' ? diff : -diff;
+      })
+      .forEach((row) => tbody.appendChild(row));
+
+    // 2) filtrování
+    let shown = 0;
+    rows.forEach((row) => {
+      const ok = (status === 'vse'  || row.dataset.status  === status)
+              && (service === 'vse' || row.dataset.service === service);
+      row.hidden = !ok;
+      if (ok) shown++;
+    });
+
+    // 3) doprovodné texty a stavy
+    if (countEl) countEl.textContent = shown;
+    if (noMatch) noMatch.hidden = shown > 0 || rows.length === 0;
+    if (list)    list.hidden    = shown === 0 && rows.length > 0;
+
+    const filtered = status !== 'vse' || service !== 'vse';
+    if (clearBtn) clearBtn.hidden = !filtered;
+
+    dirArrow.style.transform = dir === 'asc' ? 'rotate(180deg)' : '';
+    dirLabel.textContent = dir === 'asc' ? 'Nejstarší' : 'Nejnovější';
+
+    document.querySelectorAll('[data-sort-head]').forEach((th) => {
+      const active = th.dataset.sortHead === sort;
+      th.toggleAttribute('data-active', active);
+      if (active) th.setAttribute('aria-sort', dir === 'asc' ? 'ascending' : 'descending');
+      else th.removeAttribute('aria-sort');
+      const btn = th.querySelector('.th-sort');
+      if (btn) btn.dataset.dir = active ? dir : '';
+    });
+
+    // 4) URL bez skoku na server, ať obnovení stránky zachová výběr
+    const params = new URLSearchParams();
+    if (status !== 'vse')  params.set('status', status);
+    if (service !== 'vse') params.set('service', service);
+    if (sort !== 'created_at') params.set('sort', sort);
+    if (dir !== 'desc') params.set('dir', dir);
+    // Zápis do URL je jen pohodlí navíc — kdyby ho prohlížeč odmítl,
+    // filtrování to nesmí shodit.
+    try {
+      const query = params.toString();
+      history.replaceState(null, '', query ? '?' + query : location.pathname);
+    } catch (err) { /* nezapisovatelná adresa */ }
+  };
+
+  filters.addEventListener('change', apply);
+
+  dirBtn.addEventListener('click', () => {
+    dirEl.value = dirEl.value === 'asc' ? 'desc' : 'asc';
+    apply();
   });
+
+  if (clearBtn) clearBtn.addEventListener('click', () => {
+    const all = filters.querySelector('input[name="status"][value="vse"]');
+    if (all) all.checked = true;
+    serviceEl.value = 'vse';
+    apply();
+  });
+
+  // Kliknutí do hlavičky sloupce: stejný sloupec otočí směr, jiný
+  // sloupec začne od nejnovějšího.
+  document.querySelectorAll('.th-sort').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const key = btn.dataset.sort;
+      if (sortEl.value === key) dirEl.value = dirEl.value === 'asc' ? 'desc' : 'asc';
+      else { sortEl.value = key; dirEl.value = 'desc'; }
+      apply();
+    });
+  });
+
+  apply();
 
   /* ---------- Rychlá změna stavu ---------- */
   document.querySelectorAll('[data-status-select]').forEach(select => {

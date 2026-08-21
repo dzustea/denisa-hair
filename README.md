@@ -148,54 +148,93 @@ pro nadpisy a Jost pro zbytek.
 
 ## Designový systém
 
-Vše je v `assets/app.css` jako CSS proměnné. Vzhled je **světlý luxusní
-salon**: čistá bílá karta na teplé krémové stránce, hluboce hnědá typografie
-a tlumené bronzové akcenty. Žádný tmavý režim — paleta má jen odstíny bílé
-a béžové. Administrace přepíná paletu třídou `admin` na `<body>` — stejné
-odstíny, o stupeň sytější pozadí, protože je to pracovní nástroj, kde se čte
-hodně údajů.
+Vše je v `assets/app.css` jako CSS proměnné. Stránka má **dva režimy** —
+světlý a tmavý. Bez zásahu se řídí nastavením systému
+(`prefers-color-scheme`); přepínač v hlavičce volbu uloží do
+`localStorage` pod klíčem `dh-theme` a ta pak systém přebíjí.
 
-| Token | Web | Administrace | Použití |
+Tři stavy, které musí sedět:
+
+| Na `<html>` | Co platí |
+|---|---|
+| bez `data-theme` | rozhoduje systém |
+| `data-theme="light"` | světlá i v tmavém systému |
+| `data-theme="dark"` | tmavá i ve světlém systému |
+
+Volba se nasazuje malým skriptem v `<head>`, ještě před vykreslením —
+jinak by v tmavém režimu na okamžik probliklo světlé pozadí.
+
+**Žádná barva se nepíše natvrdo do komponent.** Všechno jde přes tokeny,
+jinak by se jeden z režimů rozbil. Týká se to i věcí, na které se
+zapomíná: šipky v `<select>` (je v tokenu `--select-arrow` jako celé
+data URI, protože proměnná se dovnitř nedostane), prstence fokusu,
+zákrytu pod dialogem a barev okrajů u hlášek.
+
+| Token | Světlá | Tmavá | Použití |
 |---|---|---|---|
-| `--bg` | `#F6F1E8` | `#F1EADE` | pozadí stránky (teplý krém) |
-| `--bg-2` | `#EFE7DA` | `#E9E0D0` | sytější béžový pás sekce |
-| `--surface` | `#FFFFFF` | `#FFFFFF` | karty a řádky (čistá bílá) |
-| `--surface-2` | `#F3ECE0` | `#F4EDE1` | béžová výplň uvnitř bílé |
-| `--line` | `#E2D8C8` | `#DFD4C1` | viditelná linka |
-| `--hairline` | `#EEE7DA` | `#ECE4D5` | vlasový předěl |
-| `--text` | `#2B1E14` | ↑ | hlavní text (hluboká hnědá) |
-| `--text-2` | `#6E5E4E` | ↑ | vedlejší text |
-| `--text-3` | `#857562` | ↑ | doplňky, stále nad 4,5:1 na bílé |
-| `--gold` | `#B08D57` | ↑ | dekorace: ikony, linky, orámování |
-| `--gold-ink` | `#8C6B3C` | ↑ | bronzová, která smí nést text |
-| `--gold-soft` | `#F1E7D5` | ↑ | výplň pod ikonami a štítky |
-| `--ink` | `#2B1E14` | ↑ | plné tlačítko (krémový text) |
+| `--bg` | `#FAF7F2` | `#15100C` | pozadí stránky |
+| `--bg-2` | `#F1EBE1` | `#1C1611` | sytější pás sekce |
+| `--surface` | `#FFFFFF` | `#201A14` | karty |
+| `--surface-2` | `#F5F0E7` | `#2A2219` | výplň uvnitř karty |
+| `--line` | `#DBD1C1` | `#3D3226` | viditelná linka |
+| `--hairline` | `#EAE3D7` | `#2F271E` | vlasový předěl |
+| `--text` | `#241A12` | `#F6F0E6` | hlavní text |
+| `--text-2` | `#574839` | `#C9BBA8` | vedlejší text |
+| `--text-3` | `#756554` | `#A2937F` | doplňky |
+| `--gold` | `#A67C3D` | `#C9A567` | jen dekorace |
+| `--gold-ink` | `#7A5A29` | `#DDC08B` | zlatá, která smí nést text |
+| `--ink` / `--on-ink` | `#241A12` / `#FDFBF7` | `#EFE6D6` / `#191309` | plné tlačítko |
+
+Kontrast: `--text` i `--text-2` drží nad 7:1 proti své ploše, `--text-3`
+nad 4,5:1. Zlatá má schválně dvě varianty — `--gold` je na dekoraci a na
+text by neprošla, `--gold-ink` ano.
 
 **Písmo** dvojice: *Cormorant Garamond* (serif) jen na velké nadpisy —
-zapíná se třídou `.display` — a *Jost* (geometrický bezpatkový) na všechen
-ostatní text, data a čísla. Základ 17 px, stupnice 11 / 13 / 15 / 17 / 19 /
-22 / 32 / 44. Malé popisky jsou verzálky s prostrkáním `--track` (.16em).
-**Rozestupy** po 4 px. **Zaoblení** 2 / 3 / 4 / 6 / 10 px — geometrie, ne
-bublina. **Stíny** jsou sotva znatelné, jen odsazují bílou od krému.
+zapíná se třídou `.display` — a *Jost* (geometrický bezpatkový) na
+všechen ostatní text, data a čísla. Základ 17 px, stupnice 12 / 14 / 15 /
+17 / 20 / 22 / 32 / 44. Verzálkové popisky zůstaly jen tam, kde nesou
+málo textu (`.eyebrow`, hlavičky tabulky, štítky); popisky formulářových
+polí a odkazy v navigaci jsou normální velikostí a normálním písmem,
+protože drobné prostrkané verzálky se čtou špatně.
 
-Psáno **mobile-first**: základní pravidla platí pro telefon, media query je
-rozšiřuje. Většina návštěv i správy rezervací je z mobilu.
+**Rozestupy** po 4 px. **Zaoblení** 2 / 4 / 6 / 10 / 14 px.
+**Stíny** jsou sotva znatelné, jen odsazují kartu od pozadí.
+
+Psáno **mobile-first**: základní pravidla platí pro telefon, media query
+je rozšiřuje. Většina návštěv i správy rezervací je z mobilu.
 
 ### Klíčové komponenty
 
 | Třída | K čemu |
 |---|---|
 | `.display` | serifový nadpis (jen h1/h2 v hero a hlavičkách sekcí) |
-| `.eyebrow` | verzálkový popisek nad nadpisem — nosný prvek vzhledu |
-| `.card` / `.card--lift` | bílá karta; `--lift` reaguje na najetí |
+| `.eyebrow` | verzálkový popisek nad nadpisem |
+| `.card` / `.card--lift` | karta; `--lift` reaguje na najetí |
 | `.group` | seskupený seznam — jedna plocha s vlasovými předěly |
-| `.ico` / `.tag` | ikona v béžovém rámečku / malý štítek pod nadpisem |
+| `.theme-toggle` | přepínač režimu; ikonu přepíná čistě CSS |
+| `.price__row` | řádek ceníku — název, vodicí linka, cena vpravo |
+| `.ico` / `.tag` | ikona v rámečku / štítek pod nadpisem |
 | `.link-underline` | odkaz s bronzovou linkou, která při hoveru dojede |
 | `.seg` | segmentový přepínač (filtr stavu) |
 | `.sheet` | dialog — na telefonu vyjede zdola, na desktopu je uprostřed |
 | `.table` | seznam rezervací; pod 1024 px se řádky překlopí do karet |
 | `.cal__*` | kalendář — béžová plocha s bílými dlaždicemi dnů |
 | `.status` | stav jako tečka + text, barva není jediný nositel informace |
+
+---
+
+## Ceník
+
+Ceny jsou v `config.php` v konstantě `PRICES`, klíčované stejně jako
+`SERVICES`. Položka je `[název, cena v Kč, poznámka]`; poznámka může být
+prázdná. Vykresluje se z toho sekce „Ceník“ na webu i údaj „od X Kč“
+v patičce karty služby (bere nejnižší cenu dané skupiny).
+
+> **Ceny v repozitáři jsou zástupné.** Než web půjde na produkci, přepiš
+> je skutečnými. Mění se jen na tomhle jednom místě.
+
+Měna se formátuje funkcí `price_format()`, ať se dá případně změnit
+najednou.
 
 Seznam rezervací zůstává `<table>` — jsou to tabulková data, čtečky je přečtou
 po sloupcích a řazení hlásí `aria-sort`. Změnil se jen vzhled: žádné
@@ -284,8 +323,10 @@ i kdyby `IntersectionObserver` nezabral.
 | Chci změnit | Kde |
 |---|---|
 | Barvy, písmo, rozestupy | `:root` v `assets/app.css` |
-| Paletu administrace | `body.admin` v `assets/app.css` |
+| Tmavou paletu | `:root[data-theme="dark"]` **a** blok `prefers-color-scheme` v `assets/app.css` (obojí, jinak se režimy rozejdou) |
+| Ceny | konstanta `PRICES` v `config.php` |
 | Texty webu | `index.php` |
+| Odkazy v navigaci | pole `$navLinks` v `index.php` (vykreslí lištu i mobilní nabídku) |
 | Nabídku služeb | pole `$cards` v `index.php` |
 | Rozsah a délku slotů | `SLOT_FIRST_HOUR`, `SLOT_LAST_HOUR` v `config.php` |
 | Položky „Služba“ | konstanta `SERVICES` v `config.php` **+** `ENUM` v DB |
