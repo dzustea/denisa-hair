@@ -57,8 +57,8 @@ $csrf = csrf_token();
 <!-- Písmo je na naší doméně, ne u Googlu. Odpadá tím DNS, TLS
      a jeden požadavek navíc, než se vůbec začne stahovat. Dvě nejvíc
      viditelná řezy se předepisují dopředu. -->
-<link rel="preload" href="assets/fonts/jost-400-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="assets/fonts/cormorant-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/heebo-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/unbounded-latin.woff2" as="font" type="font/woff2" crossorigin>
 
 <!-- Styly jdou rovnou v HTML — první vykreslení tak nečeká na žádný
      další požadavek. Zdroj je assets/app.css a assets/fonts.css. -->
@@ -104,16 +104,17 @@ $csrf = csrf_token();
     display: grid; place-items: center;
     width: 38px; height: 38px; border-radius: var(--r-sm);
     background: var(--ink); color: var(--on-ink);
-    font-family: var(--font-display); font-size: 1.25rem; line-height: 1;
+    font-family: var(--font-display); font-size: 1rem; line-height: 1;
     transition: width var(--dur) var(--ease), height var(--dur) var(--ease);
   }
   .site-head.is-stuck .brand__mark { width: 32px; height: 32px; }
   .brand__name {
     font-family: var(--font-display);
-    font-size: 1.5rem; font-weight: 500; line-height: 1;
+    font-size: 1.0625rem; font-weight: 500; line-height: 1;
+    letter-spacing: -.03em;
     white-space: nowrap;          /* „Denisa Hair“ se nesmí zalomit */
   }
-  @media (max-width: 359.98px) { .brand__name { font-size: 1.25rem; } }
+  @media (max-width: 359.98px) { .brand__name { font-size: .9375rem; } }
 
   /* Prostřední sloupec — na úzkých displejích se schová celý. */
   .nav { display: none; justify-content: center; align-items: center; gap: var(--s1); }
@@ -188,7 +189,7 @@ $csrf = csrf_token();
     display: flex; align-items: center; justify-content: space-between; gap: var(--s4);
     min-height: 60px; padding: var(--s4) 0;
     border-bottom: 1px solid var(--hairline);
-    font-family: var(--font-display); font-size: 1.625rem; font-weight: 500;
+    font-family: var(--font-display); font-size: 1.25rem; font-weight: 500; letter-spacing: -.03em;
   }
   .menu a.menu__link svg { flex: 0 0 auto; width: 18px; height: 18px; color: var(--gold); }
   .menu a.menu__link:active { color: var(--gold-ink); }
@@ -206,8 +207,10 @@ $csrf = csrf_token();
   @media (min-width: 900px) {
     .hero { grid-template-columns: 1.05fr 1fr; align-items: center; gap: var(--s16); padding-block: var(--s16) var(--s20); }
   }
-  .hero h1 { font-size: clamp(2.5rem, 8vw, 4.25rem); margin-top: var(--s5); }
-  .hero h1 em { font-style: italic; color: var(--gold-ink); }
+  .hero h1 { font-size: clamp(1.625rem, 5vw, 2.75rem); margin-top: var(--s5); }
+  /* Unbounded nemá kurzívu — prohlížeč by ji jen zkosil a u geometrického
+     displeje to vypadá špatně. Zvýraznění nese barva. */
+  .hero h1 em { font-style: normal; color: var(--gold-ink); }
   .hero__lead { margin-top: var(--s6); max-width: 40ch; color: var(--text-2); font-size: var(--t-lead); font-weight: 400; }
   .hero__cta { margin-top: var(--s8); display: flex; flex-wrap: wrap; gap: var(--s3); }
 
@@ -223,7 +226,7 @@ $csrf = csrf_token();
     border: 1px solid var(--hairline);
     border-radius: var(--r-sm); padding: var(--s4) var(--s5);
   }
-  .hero__caption strong { display: block; font-family: var(--font-display); font-size: 1.375rem; font-weight: 500; line-height: 1.2; }
+  .hero__caption strong { display: block; font-family: var(--font-display); font-size: 1rem; font-weight: 500; line-height: 1.3; letter-spacing: -.03em; }
 
   /* Přehled v kartách */
   .facts { margin-top: var(--s10); display: grid; gap: var(--s3); grid-template-columns: repeat(3, 1fr); }
@@ -257,7 +260,7 @@ $csrf = csrf_token();
   .svc { display: flex; flex-direction: column; height: 100%; }
   .svc__top { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s4); }
   .svc__no { font-size: var(--t-micro); letter-spacing: var(--track); color: var(--text-3); font-variant-numeric: tabular-nums; }
-  .svc h3 { margin-top: var(--s6); font-family: var(--font-display); font-size: 1.625rem; font-weight: 500; }
+  .svc h3 { margin-top: var(--s6); font-family: var(--font-display); font-size: 1.125rem; font-weight: 500; letter-spacing: -.03em; line-height: 1.3; }
   .svc__tags { margin-top: var(--s4); display: flex; flex-wrap: wrap; gap: 6px; }
   .svc p { margin-top: var(--s5); flex: 1; color: var(--text-2); font-size: var(--t-small); }
   .svc__foot { margin-top: var(--s6); padding-top: var(--s4); border-top: 1px solid var(--hairline); display: flex; align-items: baseline; justify-content: space-between; gap: var(--s3); }
@@ -269,7 +272,8 @@ $csrf = csrf_token();
   .pricing { display: grid; gap: var(--s5); }
   @media (min-width: 800px) { .pricing { grid-template-columns: repeat(2, 1fr); gap: var(--s6); } }
   .pricing h3 {
-    font-family: var(--font-display); font-size: 1.5rem; font-weight: 500;
+    font-family: var(--font-display); font-size: 1.0625rem; font-weight: 500;
+    letter-spacing: -.03em; line-height: 1.3;
     padding-bottom: var(--s4); border-bottom: 1px solid var(--line);
   }
   .pricing__note {
@@ -293,22 +297,100 @@ $csrf = csrf_token();
   }
   .badge svg { width: 22px; height: 22px; flex: 0 0 auto; color: var(--gold-ink); }
 
-  /* ---------- Galerie ---------- */
+  /* ---------- Galerie ----------
+     Na tři sloupce se přepíná až od 900 px. Na tabletu byly dlaždice
+     ve třech sloupcích zbytečně malé. */
   .gallery { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--s3); }
-  @media (min-width: 768px) { .gallery { grid-template-columns: repeat(3, 1fr); gap: var(--s4); } }
-  .gallery figure {
-    position: relative; border-radius: var(--r-md); overflow: hidden;
+  @media (min-width: 900px) { .gallery { grid-template-columns: repeat(3, 1fr); gap: var(--s4); } }
+
+  /* Dlaždice je tlačítko — otevírá prohlížeč obrázku. */
+  .gallery__item {
+    position: relative; display: block; width: 100%;
+    border-radius: var(--r-md); overflow: hidden;
     border: 1px solid var(--line);
+    background: var(--surface-2);
+    cursor: zoom-in;
+    transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
   }
-  .gallery img { width: 100%; aspect-ratio: 1; object-fit: cover; transition: transform .9s var(--ease); }
-  .gallery figure:hover img { transform: scale(1.05); }
-  .gallery figcaption {
+  .gallery__item:hover { border-color: var(--gold); box-shadow: var(--sh-2); }
+  .gallery__item img { width: 100%; aspect-ratio: 1; object-fit: cover; transition: transform .9s var(--ease); }
+  .gallery__item:hover img { transform: scale(1.05); }
+  .gallery__cap {
     position: absolute; inset-inline: var(--s3); bottom: var(--s3);
+    display: flex; align-items: center; justify-content: space-between; gap: var(--s2);
     padding: var(--s2) var(--s3); border-radius: var(--r-xs);
     background: color-mix(in srgb, var(--surface) 95%, transparent);
     backdrop-filter: blur(8px);
-    font-size: var(--t-caption); font-weight: 500;
+    font-size: var(--t-caption); font-weight: 500; text-align: left;
   }
+  .gallery__cap svg { flex: 0 0 auto; width: 15px; height: 15px; color: var(--gold-ink); }
+
+  /* ---------- Prohlížeč obrázku ----------
+     Nativní <dialog>: zamkne fokus, Escape zavírá a ::backdrop se dá
+     ostylovat — nic z toho se nemusí psát ručně. */
+  .lightbox {
+    width: min(100vw, 1100px); max-width: 100vw;
+    height: 100dvh; max-height: 100dvh;
+    margin: auto; padding: 0; border: 0; background: transparent;
+    color: var(--text); overflow: hidden;
+  }
+  .lightbox::backdrop { background: var(--scrim); backdrop-filter: blur(6px); }
+  .lightbox[open] { display: flex; flex-direction: column; }
+
+  .lightbox__bar {
+    display: flex; align-items: center; justify-content: space-between; gap: var(--s4);
+    padding: calc(var(--s4) + env(safe-area-inset-top)) var(--s5) var(--s4);
+  }
+  .lightbox__count {
+    font-size: var(--t-micro); font-weight: 500;
+    letter-spacing: var(--track); text-transform: uppercase;
+    color: var(--on-ink); font-variant-numeric: tabular-nums;
+    text-shadow: 0 1px 3px rgba(0,0,0,.6);
+  }
+  :root[data-theme="dark"] .lightbox__count { color: var(--text); }
+
+  .lightbox__stage {
+    flex: 1; min-height: 0;
+    display: flex; align-items: center; justify-content: center; gap: var(--s3);
+    padding-inline: var(--s3);
+  }
+  .lightbox__stage img {
+    max-width: 100%; max-height: 100%;
+    width: auto; height: auto;
+    border-radius: var(--r-md);
+    background: var(--surface);
+    box-shadow: var(--sh-3);
+  }
+
+  .lightbox__foot {
+    padding: var(--s4) var(--s5) calc(var(--s6) + env(safe-area-inset-bottom));
+    text-align: center;
+  }
+  .lightbox__title {
+    display: inline-block;
+    padding: var(--s2) var(--s5); border-radius: var(--r-sm);
+    background: var(--surface); border: 1px solid var(--line);
+    font-size: var(--t-small); font-weight: 500;
+  }
+
+  /* Kulatá tlačítka nad snímkem. Na telefonu jsou šipky dole v patičce,
+     aby se palcem daly trefit. */
+  .lightbox__btn {
+    display: grid; place-items: center;
+    width: 48px; height: 48px; flex: 0 0 auto;
+    border-radius: var(--r-full);
+    background: var(--surface); border: 1px solid var(--line); color: var(--text);
+    box-shadow: var(--sh-2);
+    transition: border-color var(--dur) var(--ease), transform var(--dur) var(--ease);
+  }
+  .lightbox__btn:hover { border-color: var(--gold); }
+  .lightbox__btn:active { transform: scale(.94); }
+  .lightbox__btn svg { width: 20px; height: 20px; }
+  .lightbox__nav { display: none; }
+  @media (min-width: 700px) { .lightbox__nav { display: grid; } }
+
+  .lightbox__thumbs { display: flex; justify-content: center; gap: var(--s2); margin-top: var(--s4); }
+  @media (min-width: 700px) { .lightbox__thumbs { display: none; } }
 
   /* ---------- Rezervace ---------- */
   .booking { max-width: 48rem; margin-inline: auto; }
@@ -453,7 +535,7 @@ function theme_toggle(): void { ?>
       </div>
       <div class="fact">
         <dt>Objednání</dt>
-        <dd><span class="fact__v" style="font-family:var(--font-display); font-size:2rem; font-weight:500">Online</span>
+        <dd><span class="fact__v" style="font-family:var(--font-display); font-size:1.375rem; font-weight:500; letter-spacing:-.03em">Online</span>
             <span class="fact__u">kdykoliv</span>
             <span class="fact__rule draw" aria-hidden="true"></span></dd>
       </div>
@@ -658,13 +740,62 @@ function theme_toggle(): void { ?>
           ['prace-6.svg', 'Dětský střih'],
       ];
       foreach ($gallery as $i => [$file, $label]): ?>
-        <figure class="rv rv--mask" style="--d: <?= $i * 50 ?>ms">
+        <button type="button" class="gallery__item rv rv--mask" style="--d: <?= $i * 50 ?>ms"
+                data-gallery="<?= $i ?>"
+                data-src="assets/img/<?= e($file) ?>"
+                data-title="<?= e($label) ?>"
+                aria-label="Zvětšit obrázek: <?= e($label) ?>">
           <img src="assets/img/<?= e($file) ?>" width="800" height="800" loading="lazy"
                alt="<?= e($label) ?> — zkušební obrázek">
-          <figcaption><?= e($label) ?></figcaption>
-        </figure>
+          <span class="gallery__cap">
+            <?= e($label) ?>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5M11 8.5v5M8.5 11h5"/>
+            </svg>
+          </span>
+        </button>
       <?php endforeach; ?>
     </div>
+
+    <!-- Prohlížeč obrázku. Obsah doplní skript podle toho, na co se klikne. -->
+    <dialog class="lightbox" id="lightbox" aria-label="Prohlížeč obrázků">
+      <div class="lightbox__bar">
+        <span class="lightbox__count" data-lb-count></span>
+        <button type="button" class="lightbox__btn" data-lb-close aria-label="Zavřít">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+               stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+
+      <div class="lightbox__stage">
+        <button type="button" class="lightbox__btn lightbox__nav" data-lb-prev aria-label="Předchozí obrázek">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+        </button>
+
+        <img data-lb-img src="" alt="">
+
+        <button type="button" class="lightbox__btn lightbox__nav" data-lb-next aria-label="Další obrázek">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+        </button>
+      </div>
+
+      <div class="lightbox__foot">
+        <span class="lightbox__title" data-lb-title></span>
+        <div class="lightbox__thumbs">
+          <button type="button" class="lightbox__btn" data-lb-prev aria-label="Předchozí obrázek">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+          </button>
+          <button type="button" class="lightbox__btn" data-lb-next aria-label="Další obrázek">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+          </button>
+        </div>
+      </div>
+    </dialog>
   </div>
 </section>
 
@@ -1012,6 +1143,81 @@ function theme_toggle(): void { ?>
     }, { threshold: [0, .2, .45, .7] });
 
     navLinks.forEach((a) => spy.observe(document.querySelector(a.getAttribute('href'))));
+  }
+
+  /* ---------- Prohlížeč obrázků z galerie ----------
+     Stojí na nativním <dialog>: zamkne fokus uvnitř, Escape zavírá
+     a po zavření vrátí fokus na dlaždici, ze které se otevřel. */
+  const lightbox = document.getElementById('lightbox');
+  const tiles = [...document.querySelectorAll('[data-gallery]')];
+
+  if (lightbox && tiles.length && typeof lightbox.showModal === 'function') {
+    const lbImg   = lightbox.querySelector('[data-lb-img]');
+    const lbTitle = lightbox.querySelector('[data-lb-title]');
+    const lbCount = lightbox.querySelector('[data-lb-count]');
+    let current = 0;
+
+    const show = (index) => {
+      // Modulo dopředu i dozadu, ať se dá listovat dokola.
+      current = (index + tiles.length) % tiles.length;
+      const tile = tiles[current];
+      lbImg.src = tile.dataset.src;
+      lbImg.alt = tile.dataset.title;
+      lbTitle.textContent = tile.dataset.title;
+      lbCount.textContent = (current + 1) + ' / ' + tiles.length;
+    };
+
+    const open = (index) => {
+      show(index);
+      lightbox.showModal();
+      document.body.style.overflow = 'hidden';
+    };
+
+    tiles.forEach((tile, i) => tile.addEventListener('click', () => open(i)));
+
+    lightbox.querySelectorAll('[data-lb-prev]').forEach((b) =>
+      b.addEventListener('click', () => show(current - 1)));
+    lightbox.querySelectorAll('[data-lb-next]').forEach((b) =>
+      b.addEventListener('click', () => show(current + 1)));
+    lightbox.querySelectorAll('[data-lb-close]').forEach((b) =>
+      b.addEventListener('click', () => lightbox.close()));
+
+    // Kliknutí mimo snímek zavírá. Cíl je samotný <dialog> jen tehdy,
+    // když se trefíme do plochy okolo obsahu.
+    lightbox.addEventListener('click', (event) => {
+      if (event.target === lightbox) lightbox.close();
+    });
+
+    lightbox.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowLeft')  { event.preventDefault(); show(current - 1); }
+      if (event.key === 'ArrowRight') { event.preventDefault(); show(current + 1); }
+    });
+
+    /*
+     * Úklid po zavření: odemknout scroll a vrátit fokus na dlaždici.
+     *
+     * Nabízí se navázat to na událost `close`, jenže na tu není
+     * spolehnutí — v některých prohlížečích po volání close() vůbec
+     * nedorazí a stránka by zůstala zamčená. Sledujeme proto přímo
+     * atribut `open`, který se mění při každém způsobu zavření:
+     * tlačítkem, klepnutím vedle i klávesou Escape.
+     */
+    new MutationObserver(() => {
+      if (lightbox.open) return;
+      document.body.style.overflow = '';
+      const tile = tiles[current];
+      if (tile && document.contains(tile)) tile.focus();
+    }).observe(lightbox, { attributes: true, attributeFilter: ['open'] });
+
+    // Přejetí prstem do stran přepíná snímky.
+    let touchX = null;
+    lightbox.addEventListener('touchstart', (e) => { touchX = e.changedTouches[0].clientX; }, { passive: true });
+    lightbox.addEventListener('touchend', (e) => {
+      if (touchX === null) return;
+      const dx = e.changedTouches[0].clientX - touchX;
+      if (Math.abs(dx) > 50) show(current + (dx < 0 ? 1 : -1));
+      touchX = null;
+    }, { passive: true });
   }
 
   /* ---------- Rezervační formulář ---------- */

@@ -285,10 +285,15 @@ Kontrast: `--text` i `--text-2` drží nad 7:1 proti své ploše, `--text-3`
 nad 4,5:1. Zlatá má schválně dvě varianty — `--gold` je na dekoraci a na
 text by neprošla, `--gold-ink` ano.
 
-**Písmo** dvojice: *Cormorant Garamond* (serif) jen na velké nadpisy —
-zapíná se třídou `.display` — a *Jost* (geometrický bezpatkový) na
-všechen ostatní text, data a čísla. Základ 17 px, stupnice 12 / 14 / 15 /
-17 / 20 / 22 / 32 / 44. Verzálkové popisky zůstaly jen tam, kde nesou
+**Písmo** dvojice: *Unbounded* (displejové) jen na velké nadpisy —
+zapíná se třídou `.display` — a *Heebo* na všechen ostatní text, data
+a čísla. Obě jsou variabilní, takže jeden soubor pokryje celý rozsah
+tloušťek. Základ 17 px, stupnice 12 / 14 / 15 / 17 / 20 / 18 / 24 / 32.
+
+Nadpisové stupně jsou schválně nižší, než by se čekalo: Unbounded je
+výrazně širší než běžné písmo a při obvyklých velikostech by nadpisy
+přetekly. Ze stejného důvodu má `.display` stažené prostrkání
+(`letter-spacing: -.03em`) a volnější proklad. Verzálkové popisky zůstaly jen tam, kde nesou
 málo textu (`.eyebrow`, hlavičky tabulky, štítky); popisky formulářových
 polí a odkazy v navigaci jsou normální velikostí a normálním písmem,
 protože drobné prostrkané verzálky se čtou špatně.
@@ -303,7 +308,7 @@ je rozšiřuje. Většina návštěv i správy rezervací je z mobilu.
 
 | Třída | K čemu |
 |---|---|
-| `.display` | serifový nadpis (jen h1/h2 v hero a hlavičkách sekcí) |
+| `.display` | displejový nadpis v Unbounded (jen h1/h2 v hero a hlavičkách sekcí) |
 | `.eyebrow` | verzálkový popisek nad nadpisem |
 | `.card` / `.card--lift` | karta; `--lift` reaguje na najetí |
 | `.group` | seskupený seznam — jedna plocha s vlasovými předěly |
@@ -315,6 +320,8 @@ je rozšiřuje. Většina návštěv i správy rezervací je z mobilu.
 | `.sheet` | dialog — na telefonu vyjede zdola, na desktopu je uprostřed |
 | `.table` | seznam rezervací; pod 1024 px se řádky překlopí do karet |
 | `.cal__*` | kalendář — béžová plocha s bílými dlaždicemi dnů |
+| `.gallery__item` | dlaždice galerie; je to tlačítko, otevírá prohlížeč obrázku |
+| `.lightbox` | prohlížeč obrázku nad nativním `<dialog>` |
 | `.status` | stav jako tečka + text, barva není jediný nositel informace |
 
 ---

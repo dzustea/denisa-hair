@@ -137,7 +137,7 @@ $pageTitle = 'Přihlášení';
   <div class="auth__box">
 
     <div class="auth__head">
-      <a href="../index.php" class="brand__mark" style="width:48px;height:48px;font-size:1.375rem" aria-hidden="true">D</a>
+      <a href="../index.php" class="brand__mark" style="width:48px;height:48px;font-size:1.125rem" aria-hidden="true">D</a>
       <h1>Denisa Hair</h1>
       <p class="caption" style="margin-top:var(--s2)">Administrace rezervací</p>
     </div>

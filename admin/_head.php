@@ -38,8 +38,8 @@ $pageTitle = $pageTitle ?? 'Administrace';
 })();
 </script>
 
-<link rel="preload" href="../assets/fonts/jost-400-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="../assets/fonts/cormorant-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/heebo-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/unbounded-latin.woff2" as="font" type="font/woff2" crossorigin>
 
 <!-- Styly rovnou v HTML, ať se administrace otevře bez čekání. -->
 <style><?= inline_css('fonts.css', '../assets') ?><?= inline_css('app.css') ?></style>
@@ -60,9 +60,9 @@ $pageTitle = $pageTitle ?? 'Administrace';
     display: grid; place-items: center;
     width: 30px; height: 30px; border-radius: var(--r-sm);
     background: var(--ink); color: var(--on-ink);
-    font-family: var(--font-display); font-size: 1rem; line-height: 1;
+    font-family: var(--font-display); font-size: .875rem; line-height: 1;
   }
-  .abar__name { font-family: var(--font-display); font-size: 1.25rem; font-weight: 500; line-height: 1; }
+  .abar__name { font-family: var(--font-display); font-size: 1rem; font-weight: 500; line-height: 1; letter-spacing: -.03em; }
   .abar__who {
     display: none; margin-left: var(--s3); padding-left: var(--s3);
     border-left: 1px solid var(--line);
@@ -75,8 +75,8 @@ $pageTitle = $pageTitle ?? 'Administrace';
 
   /* ---------- Titulek stránky ---------- */
   .ahead { padding-block: var(--s10) var(--s8); }
-  .ahead h1 { font-family: var(--font-display); font-weight: 500; font-size: 2.5rem; letter-spacing: -.01em; }
-  @media (min-width: 768px) { .ahead h1 { font-size: 3rem; } }
+  .ahead h1 { font-family: var(--font-display); font-weight: 500; font-size: 1.75rem; letter-spacing: -.03em; line-height: 1.2; }
+  @media (min-width: 768px) { .ahead h1 { font-size: 2.25rem; } }
   .ahead__meta {
     margin-top: var(--s4); display: flex; flex-wrap: wrap; gap: var(--s2) var(--s4);
     font-size: var(--t-micro); letter-spacing: var(--track); text-transform: uppercase; color: var(--text-3);
@@ -193,15 +193,15 @@ $pageTitle = $pageTitle ?? 'Administrace';
   /* ---------- Prázdný stav ---------- */
   .empty { padding: var(--s16) var(--s6); text-align: center; }
   .empty svg { width: 34px; height: 34px; margin-inline: auto; color: var(--gold); }
-  .empty h2 { margin-top: var(--s5); font-family: var(--font-display); font-size: 1.75rem; font-weight: 500; }
+  .empty h2 { margin-top: var(--s5); font-family: var(--font-display); font-size: 1.25rem; font-weight: 500; letter-spacing: -.03em; }
   .empty p { margin-top: var(--s3); color: var(--text-2); font-size: var(--t-small); font-weight: 300; }
 
   /* ---------- Přihlášení / změna hesla ---------- */
   .auth { min-height: 100dvh; display: grid; place-items: center; padding: var(--s8) var(--s5) calc(var(--s8) + env(safe-area-inset-bottom)); }
   .auth__box { width: 100%; max-width: 26rem; }
   .auth__head { text-align: center; margin-bottom: var(--s8); }
-  .auth__head .brand__mark { margin-inline: auto; width: 48px; height: 48px; font-size: 1.375rem; }
-  .auth__head h1 { margin-top: var(--s5); font-family: var(--font-display); font-size: 2.25rem; font-weight: 500; }
+  .auth__head .brand__mark { margin-inline: auto; width: 48px; height: 48px; font-size: 1.125rem; }
+  .auth__head h1 { margin-top: var(--s5); font-family: var(--font-display); font-size: 1.5rem; font-weight: 500; letter-spacing: -.03em; }
   .brand__mark {
     display: grid; place-items: center; border-radius: var(--r-sm);
     background: var(--ink); color: var(--on-ink);

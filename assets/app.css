@@ -9,9 +9,9 @@
    Žádná barva se nepíše natvrdo do komponent. Všechno jde přes tokeny
    ze sekce 1, jinak by se jeden z režimů rozbil.
 
-   Písma:
-     • Cormorant Garamond — serif, jen pro velké nadpisy
-     • Jost — geometrický bezpatkový, veškerý ostatní text a čísla
+   Písma (obě variabilní, servírovaná z vlastní domény):
+     • Unbounded — displejové, jen pro velké nadpisy (třída .display)
+     • Heebo — veškerý ostatní text, čísla a formuláře
 
    Ručně psané CSS místo frameworku: pár kilobajtů, prohlížeč je
    použije okamžitě. Psáno mobile-first.
@@ -78,9 +78,11 @@
   --accent-soft: var(--gold-soft);
   --on-accent:   var(--on-ink);
 
-  /* Písmo */
-  --font:         'Jost', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-  --font-display: 'Cormorant Garamond', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
+  /* Písmo — obě rodiny jsou variabilní, jeden soubor pokryje celý
+     rozsah tloušťek. Náhradní písma musí být taky bezpatková, jinak by
+     stránka do načtení probleskla patkovým. */
+  --font:         'Heebo', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-display: 'Unbounded', 'Segoe UI', system-ui, sans-serif;
 
   /* Velikosti — o stupeň větší než dřív, kvůli čitelnosti */
   --t-micro:   0.75rem;     /* 12 — jen verzálkové popisky */
@@ -88,9 +90,12 @@
   --t-small:   0.9375rem;   /* 15 */
   --t-body:    1.0625rem;   /* 17 */
   --t-lead:    1.25rem;     /* 20 */
-  --t-h3:      1.375rem;    /* 22 */
-  --t-h2:      2rem;        /* 32 — serif */
-  --t-h1:      2.75rem;     /* 44 — serif */
+  /* Nadpisové stupně jsou proti dřívějšku menší: Unbounded je výrazně
+     širší než patkové písmo, které tu bylo, a při stejné velikosti by
+     nadpisy přetekly. */
+  --t-h3:      1.125rem;    /* 18 */
+  --t-h2:      1.5rem;      /* 24 — Unbounded */
+  --t-h1:      2rem;        /* 32 — Unbounded */
 
   /* Rozestupy — násobky 4 */
   --s1: .25rem;  --s2: .5rem;   --s3: .75rem;  --s4: 1rem;
@@ -231,17 +236,19 @@ h1, h2, h3, h4 {
 h3 { font-size: var(--t-h3); }
 h4 { font-size: var(--t-lead); }
 
-/* Serifový displej — jen velké nadpisy, jak si žádá vzor */
+/* Displejové písmo — jen velké nadpisy.
+   Unbounded je široké a má vysokou střední výšku: potřebuje stažené
+   prostrkání a naopak volnější proklad, jinak se řádky slepí. */
 .display, h1.display, h2.display {
   font-family: var(--font-display);
   font-weight: 400;
-  letter-spacing: -.005em;
-  line-height: 1.08;
+  letter-spacing: -.03em;
+  line-height: 1.2;
 }
 h1.display { font-size: var(--t-h1); }
 h2.display { font-size: var(--t-h2); }
 @media (min-width: 768px) {
-  h2.display { font-size: 2.375rem; }
+  h2.display { font-size: 1.75rem; }
 }
 
 p  { margin: 0; text-wrap: pretty; }
