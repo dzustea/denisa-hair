@@ -170,7 +170,12 @@ CREATE TABLE `rate_limits` (
 ALTER TABLE `users` ADD COLUMN `seed_fingerprint` CHAR(64) DEFAULT NULL;
 ```
 
-Kdyby poslední `ALTER` na `uniq_slot` neprošel, jsou v datech dvě
+Příkazy jsou samostatné a editor se na první chybě zastaví. Když
+některý zahlásí *`already exists`*, je to v pořádku — ta část už
+proběhla dřív. Přeskoč ji a pusť zbytek, jinak by se na ni zaseklo
+všechno za ní.
+
+Kdyby `ALTER` na `uniq_slot` neprošel, jsou v datech dvě
 nezrušené rezervace na stejný termín. Najdeš je takhle a jednu zrušíš:
 
 ```sql
