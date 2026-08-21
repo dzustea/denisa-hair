@@ -667,15 +667,71 @@ strong, b { font-weight: 500; color: var(--text); }
 @keyframes toast-in { from { transform: translateY(10px); opacity: 0; } }
 
 /* ---------------------------------------------------------------------
-   12. Odkrývání při scrollu
-   Schovává se jen když běží JavaScript — bez něj je obsah vidět.
+   12. Pohyb
+   Celá vrstva se zapíná až tehdy, když běží JavaScript (třída `js` na
+   <html>). Bez něj je obsah normálně vidět — animace nikdy nesmí být
+   podmínkou pro přečtení stránky. Vypnout jde v klidovém režimu (13).
    ------------------------------------------------------------------ */
+
+/* Základ: prvek povyjede zdola a rozsvítí se. Zpoždění řídí --d,
+   takže se dá stejnou třídou udělat kaskáda. */
 .js .rv {
-  opacity: 0; transform: translateY(16px);
+  opacity: 0; transform: translateY(18px);
   transition: opacity .8s ease-out, transform .9s var(--ease);
   transition-delay: var(--d, 0ms);
+  will-change: opacity, transform;
 }
 .js .is-in .rv, .js .rv.is-in { opacity: 1; transform: none; }
+.js .is-in .rv, .js .rv.is-in { will-change: auto; }
+
+/* Varianty — směr podle toho, odkud prvek do rozvržení patří. */
+.js .rv--left  { transform: translateX(-24px); }
+.js .rv--right { transform: translateX(24px); }
+.js .rv--scale { transform: scale(.97); }
+
+/* Clona: obrázek se odkryje shora dolů, jako když se rozhrne roleta.
+   Nechává opacity na 1 — jinak by clona a prolnutí bojovaly. */
+.js .rv--mask {
+  opacity: 1; transform: none;
+  clip-path: inset(0 0 100% 0);
+  transition: clip-path 1.15s var(--ease);
+  transition-delay: var(--d, 0ms);
+}
+.js .is-in .rv--mask, .js .rv--mask.is-in { clip-path: inset(0 0 0 0); }
+
+/* Doplněk ke cloně: obrázek uvnitř se zároveň dosadí z mírného
+   nadměřítka. Jen tam, kde se s obrázkem nehýbe při najetí. */
+/* Používá samostatnou vlastnost scale, ne transform — parallax pak může
+   nezávisle sahat na translate, aniž by si navzájem přepsaly hodnotu. */
+.js .rv--zoom > img { scale: 1.07; transition: scale 1.8s var(--ease); transition-delay: var(--d, 0ms); }
+.js .is-in .rv--zoom > img, .js .rv--zoom.is-in > img { scale: 1; }
+
+/* Nadpis po slovech: každé slovo vyjede zpod vlastní clony.
+   Odsazení a záporný okraj zvětšují ořezovou plochu, aby se
+   neuřízly háčky, čárky ani dolní dotažnice. */
+.word {
+  display: inline-block; overflow: hidden; vertical-align: bottom;
+  padding: .16em .05em .22em; margin: -.16em -.05em -.22em;
+}
+.js .word > span {
+  display: inline-block;
+  transform: translateY(115%);
+  transition: transform 1s var(--ease);
+  transition-delay: var(--wd, 0ms);
+}
+.js .is-in .word > span, .js .word.is-in > span { transform: none; }
+
+/* Vlasová linka se dokreslí zleva doprava. */
+.js .draw { transform: scaleX(0); transform-origin: left; transition: transform .9s var(--ease); transition-delay: var(--d, 0ms); }
+.js .is-in .draw, .js .draw.is-in { transform: none; }
+
+/* Ukazatel postupu — bronzová vlasová linka úplně nahoře. */
+.progress {
+  position: fixed; inset-block-start: 0; inset-inline: 0; z-index: 50;
+  height: 2px; background: var(--gold);
+  transform: scaleX(var(--p, 0)); transform-origin: left;
+  pointer-events: none;
+}
 
 /* Záložní ovládání pro vypnutý JavaScript (např. tlačítko „Použít“
    u filtrů) — když skript běží, jen by zavazelo. */
@@ -683,10 +739,20 @@ strong, b { font-weight: 500; color: var(--text); }
 
 /* ---------------------------------------------------------------------
    13. Klidový režim
+   Kdo si vypne animace v systému, dostane statickou stránku. Nic se
+   neschovává, nic nejezdí.
    ------------------------------------------------------------------ */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .js .rv { opacity: 1 !important; transform: none !important; transition: none !important; }
+  .js .rv, .js .rv--mask {
+    opacity: 1 !important; transform: none !important;
+    clip-path: none !important; transition: none !important;
+  }
+  .js .rv--zoom > img { scale: none !important; translate: none !important; transition: none !important; }
+  .js .word > span,
+  .js .draw { transform: none !important; transition: none !important; }
+  [data-parallax] { translate: none !important; }
+  .progress { display: none; }
   *, *::before, *::after {
     animation-duration: .01ms !important;
     transition-duration: .01ms !important;

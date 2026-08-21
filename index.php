@@ -51,7 +51,14 @@ $fontHref = 'https://fonts.googleapis.com/css2'
     transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease);
   }
   .site-head.is-stuck { border-bottom-color: var(--line); background: color-mix(in srgb, var(--bg) 96%, transparent); }
-  .site-head__inner { display: flex; align-items: center; justify-content: space-between; gap: var(--s4); padding-block: var(--s3); }
+  .site-head__inner {
+    display: flex; align-items: center; justify-content: space-between; gap: var(--s4);
+    padding-block: var(--s3);
+    transition: padding-block var(--dur) var(--ease);
+  }
+  /* Po odscrollování se lišta o kousek stáhne — méně místa navigaci,
+     víc obsahu. */
+  .site-head.is-stuck .site-head__inner { padding-block: var(--s2); }
 
   .brand { display: inline-flex; align-items: center; gap: var(--s3); padding-block: var(--s2); }
   .brand__mark {
@@ -59,7 +66,10 @@ $fontHref = 'https://fonts.googleapis.com/css2'
     width: 36px; height: 36px; border-radius: var(--r-sm);
     background: var(--ink); color: var(--on-ink);
     font-family: var(--font-display); font-size: 1.125rem; line-height: 1;
+    transition: width var(--dur) var(--ease), height var(--dur) var(--ease),
+                font-size var(--dur) var(--ease);
   }
+  .site-head.is-stuck .brand__mark { width: 30px; height: 30px; font-size: 1rem; }
   .brand__name {
     font-family: var(--font-display);
     font-size: 1.375rem; font-weight: 500; line-height: 1;
@@ -88,6 +98,10 @@ $fontHref = 'https://fonts.googleapis.com/css2'
   }
   .nav a:hover { color: var(--text); }
   .nav a:hover::after { transform: scaleX(1); }
+  /* Odkaz na sekci, ve které zrovna jsme, zůstane podtržený.
+     Tlačítko „Objednat se“ se vynechává — má vlastní barvy. */
+  .nav a:not(.btn)[aria-current="true"] { color: var(--text); }
+  .nav a:not(.btn)[aria-current="true"]::after { transform: scaleX(1); }
   .nav .btn { margin-left: var(--s4); min-height: 44px; padding-inline: var(--s5); }
   .nav .btn::after { display: none; }
 
@@ -235,6 +249,9 @@ $fontHref = 'https://fonts.googleapis.com/css2'
 
 <a href="#obsah" class="sr-only skip">Přeskočit na obsah</a>
 
+<!-- Ukazatel postupu stránky — doplní ho skript dole. -->
+<div class="progress" id="progress" aria-hidden="true"></div>
+
 <!-- ============================== HLAVIČKA ============================== -->
 <header class="site-head" id="site-head">
   <div class="wrap site-head__inner">
@@ -277,7 +294,7 @@ $fontHref = 'https://fonts.googleapis.com/css2'
 <section class="wrap hero" data-io>
   <div>
     <p class="eyebrow rv">Kadeřnictví v Záříčí</p>
-    <h1 class="display rv" style="--d:60ms">Účes, ve kterém se&nbsp;budete cítit <em>dobře</em></h1>
+    <h1 class="display" data-split>Účes, ve kterém se&nbsp;budete cítit <em>dobře</em></h1>
     <p class="hero__lead rv" style="--d:120ms">
       Dámské, pánské i dětské kadeřnictví. Stříhám v klidném tempu, poradím
       s barvou i péčí doma — a nikdy nenutím službu, kterou nepotřebujete.
@@ -293,25 +310,25 @@ $fontHref = 'https://fonts.googleapis.com/css2'
         <dt>Praxe</dt>
         <dd><span class="fact__v"><span data-count="3">0</span>.</span>
             <span class="fact__u">ročník</span>
-            <span class="fact__rule" aria-hidden="true"></span></dd>
+            <span class="fact__rule draw" aria-hidden="true"></span></dd>
       </div>
       <div class="fact">
         <dt>Služby</dt>
         <dd><span class="fact__v"><span data-count="4">0</span></span>
             <span class="fact__u">druhy</span>
-            <span class="fact__rule" aria-hidden="true"></span></dd>
+            <span class="fact__rule draw" aria-hidden="true"></span></dd>
       </div>
       <div class="fact">
         <dt>Objednání</dt>
         <dd><span class="fact__v" style="font-family:var(--font-display); font-size:2rem; font-weight:500">Online</span>
             <span class="fact__u">kdykoliv</span>
-            <span class="fact__rule" aria-hidden="true"></span></dd>
+            <span class="fact__rule draw" aria-hidden="true"></span></dd>
       </div>
     </dl>
   </div>
 
-  <figure class="hero__figure rv" style="--d:120ms">
-    <img src="assets/img/hero.svg" width="1200" height="1500" alt="Salon Denisa Hair — zkušební obrázek">
+  <figure class="hero__figure rv rv--mask rv--zoom" style="--d:120ms">
+    <img src="assets/img/hero.svg" data-parallax="36" width="1200" height="1500" alt="Salon Denisa Hair — zkušební obrázek">
     <figcaption class="hero__caption">
       <strong>Denisa Hrabalová</strong>
       <p class="caption" style="margin-top:4px">Záříčí 192 · otevřeno dle objednávek</p>
@@ -324,7 +341,7 @@ $fontHref = 'https://fonts.googleapis.com/css2'
   <div class="wrap">
     <div class="section-head rv">
       <p class="eyebrow">Nabídka</p>
-      <h2 class="display">Co pro vás udělám</h2>
+      <h2 class="display" data-split>Co pro vás udělám</h2>
       <p>Ceny se odvíjejí od délky vlasů a náročnosti — ráda je řeknu po telefonu nebo v odpovědi na rezervaci.</p>
     </div>
 
@@ -392,14 +409,14 @@ $fontHref = 'https://fonts.googleapis.com/css2'
 <!-- ============================== O MNĚ ============================== -->
 <section id="o-mne" class="section" data-io>
   <div class="wrap about">
-    <figure class="about__figure rv">
-      <img src="assets/img/portret.svg" width="900" height="1125" loading="lazy"
+    <figure class="about__figure rv rv--mask rv--zoom">
+      <img src="assets/img/portret.svg" data-parallax="28" width="900" height="1125" loading="lazy"
            alt="Pracoviště kadeřnice — zkušební obrázek">
     </figure>
 
     <div class="rv" style="--d:80ms">
       <p class="eyebrow">O mně</p>
-      <h2 class="display" style="margin-top:var(--s4)">Ráda vás poznám</h2>
+      <h2 class="display" data-split style="margin-top:var(--s4)">Ráda vás poznám</h2>
 
       <div class="stack about__body" style="margin-top:var(--s6)">
         <p>
@@ -447,7 +464,7 @@ $fontHref = 'https://fonts.googleapis.com/css2'
   <div class="wrap">
     <div class="section-head rv">
       <p class="eyebrow">Portfolio</p>
-      <h2 class="display">Moje práce</h2>
+      <h2 class="display" data-split>Moje práce</h2>
       <p>Pár účesů z poslední doby. Klidně si vyberte a přiložte k rezervaci.</p>
     </div>
 
@@ -462,7 +479,7 @@ $fontHref = 'https://fonts.googleapis.com/css2'
           ['prace-6.svg', 'Dětský střih'],
       ];
       foreach ($gallery as $i => [$file, $label]): ?>
-        <figure class="rv" style="--d: <?= $i * 50 ?>ms">
+        <figure class="rv rv--mask" style="--d: <?= $i * 50 ?>ms">
           <img src="assets/img/<?= e($file) ?>" width="800" height="800" loading="lazy"
                alt="<?= e($label) ?> — zkušební obrázek">
           <figcaption><?= e($label) ?></figcaption>
@@ -477,7 +494,7 @@ $fontHref = 'https://fonts.googleapis.com/css2'
   <div class="wrap booking">
     <div class="booking__head rv">
       <p class="eyebrow">Rezervace</p>
-      <h2 class="display">Objednat se</h2>
+      <h2 class="display" data-split>Objednat se</h2>
       <p>
         Vyplňte formulář a co nejdřív se vám ozvu s potvrzením termínu.
         Rezervace je nezávazná — platí až po mém potvrzení.
@@ -607,9 +624,7 @@ $fontHref = 'https://fonts.googleapis.com/css2'
   'use strict';
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  /* ---------- Hlavička ---------- */
   const head = document.getElementById('site-head');
-  addEventListener('scroll', () => head.classList.toggle('is-stuck', scrollY > 4), { passive: true });
 
   /* ---------- Mobilní menu ---------- */
   const toggle = document.getElementById('nav-toggle');
@@ -622,6 +637,40 @@ $fontHref = 'https://fonts.googleapis.com/css2'
   toggle.addEventListener('click', () => setMenu(drawer.hidden));
   drawer.querySelectorAll('a').forEach(a => a.addEventListener('click', () => setMenu(false)));
   addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
+
+  /* ---------- Dělení nadpisů na slova ----------
+     Každé slovo dostane vlastní clonu (.word) a vyjede zpod ní.
+     Prochází se rekurzivně, aby uvnitř nadpisu přežilo <em> i jiné
+     značky. Musí proběhnout dřív, než se sekce odkryje. */
+  const splitWords = (root) => {
+    const walk = (node) => {
+      [...node.childNodes].forEach((child) => {
+        if (child.nodeType === 3) {
+          if (!child.textContent.trim()) return;
+          const frag = document.createDocumentFragment();
+          child.textContent.split(/(\s+)/).forEach((part) => {
+            if (part === '') return;
+            if (!part.trim()) { frag.appendChild(document.createTextNode(part)); return; }
+            const mask  = document.createElement('span');
+            const inner = document.createElement('span');
+            mask.className = 'word';
+            inner.textContent = part;
+            mask.appendChild(inner);
+            frag.appendChild(mask);
+          });
+          node.replaceChild(frag, child);
+        } else if (child.nodeType === 1) {
+          walk(child);
+        }
+      });
+    };
+    walk(root);
+    root.querySelectorAll('.word > span').forEach((el, i) => {
+      el.style.setProperty('--wd', (i * 55) + 'ms');
+    });
+  };
+
+  if (!reduce) document.querySelectorAll('[data-split]').forEach(splitWords);
 
   /* ---------- Odkrývání sekcí ---------- */
   const sections = document.querySelectorAll('[data-io]');
@@ -654,6 +703,63 @@ $fontHref = 'https://fonts.googleapis.com/css2'
       };
       requestAnimationFrame(step);
     });
+  }
+
+  /* ---------- Pohyb navázaný na scroll ----------
+     Jeden posluchač na všechno a práce odložená do rAF — scrollování
+     se pak nekouše ani na slabším telefonu. */
+  const progress = document.getElementById('progress');
+  const layers   = reduce ? [] : [...document.querySelectorAll('[data-parallax]')];
+  let ticking = false;
+
+  const onScroll = () => {
+    ticking = false;
+    head.classList.toggle('is-stuck', scrollY > 4);
+
+    const max = document.documentElement.scrollHeight - innerHeight;
+    progress.style.setProperty('--p', max > 0 ? Math.min(1, scrollY / max) : 0);
+
+    // Parallax jen na širokých obrazovkách. Na telefonu je sotva vidět
+    // a zbytečně stojí výkon.
+    if (innerWidth < 900) return;
+    layers.forEach((el) => {
+      const r = el.getBoundingClientRect();
+      if (r.bottom < 0 || r.top > innerHeight) return;
+      const amount = Number(el.dataset.parallax) || 24;
+      const mid = (r.top + r.height / 2 - innerHeight / 2) / (innerHeight + r.height);
+      el.style.translate = '0 ' + (mid * amount).toFixed(1) + 'px';
+    });
+  };
+
+  const queueScroll = () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(onScroll);
+  };
+
+  addEventListener('scroll', queueScroll, { passive: true });
+  addEventListener('resize', queueScroll, { passive: true });
+  onScroll();
+
+  /* ---------- Zvýraznění odkazu na aktuální sekci ---------- */
+  const navLinks = [...document.querySelectorAll('.nav a[href^="#"]:not(.btn)')]
+    .filter((a) => a.getAttribute('href').length > 1 && document.querySelector(a.getAttribute('href')));
+
+  if (navLinks.length && 'IntersectionObserver' in window) {
+    const seen = new Map();
+    const spy = new IntersectionObserver((entries) => {
+      entries.forEach((en) => seen.set(en.target.id, en.isIntersecting ? en.intersectionRatio : 0));
+
+      let best = '', ratio = 0;
+      seen.forEach((value, id) => { if (value > ratio) { ratio = value; best = id; } });
+
+      navLinks.forEach((a) => {
+        if (ratio > 0 && a.getAttribute('href') === '#' + best) a.setAttribute('aria-current', 'true');
+        else a.removeAttribute('aria-current');
+      });
+    }, { threshold: [0, .2, .45, .7] });
+
+    navLinks.forEach((a) => spy.observe(document.querySelector(a.getAttribute('href'))));
   }
 
   /* ---------- Rezervační formulář ---------- */
