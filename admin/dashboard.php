@@ -120,7 +120,7 @@ $pageTitle = 'Rezervace';
           <path d="M12 2.5v2.2M12 19.3v2.2M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"/>
         </svg>
       </button>
-      <a href="../index.php" target="_blank" rel="noopener" class="btn btn--ghost abar__link">Web</a>
+      <a href="../index.php" class="btn btn--ghost abar__link">Web</a>
       <a href="logout.php" class="btn btn--soft" style="min-height:40px; padding-inline:var(--s5)">Odhlásit</a>
     </div>
   </div>
@@ -388,7 +388,7 @@ $pageTitle = 'Rezervace';
 
   <!-- Odkazy, které se na úzké liště nevešly -->
   <nav class="row-wrap" style="margin-top:var(--s8)" aria-label="Další odkazy">
-    <a href="../index.php" target="_blank" rel="noopener" class="btn btn--soft" style="min-height:44px">Zobrazit web</a>
+    <a href="../index.php" class="btn btn--soft" style="min-height:44px">Zobrazit web</a>
   </nav>
 </main>
 
