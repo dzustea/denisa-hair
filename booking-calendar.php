@@ -89,5 +89,6 @@ function render_calendar_script(): void
         return;
     }
 
-    echo "\n<script>\n", $js, "\n</script>\n";
+    // Nonce musí sedět s hlavičkou CSP, jinak prohlížeč skript nespustí.
+    printf("\n<script nonce=\"%s\">\n%s\n</script>\n", e(csp_nonce()), $js);
 }

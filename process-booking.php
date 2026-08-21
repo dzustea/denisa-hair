@@ -27,6 +27,22 @@ if (!csrf_verify($input['csrf_token'] ?? null)) {
 }
 
 /* ---------------------------------------------------------------
+ * 1b) Kolik rezervací smí přijít z jedné adresy
+ *
+ * Honeypot níž chytí hloupého robota, ale ne někoho, kdo si formulář
+ * prohlédl. Tohle je strop, který platí vždycky.
+ * --------------------------------------------------------------- */
+$limit = rate_limit('booking:' . client_ip(), 8, 3600);
+if (!$limit['allowed']) {
+    header('Retry-After: ' . $limit['retry_after']);
+    json_response([
+        'success' => false,
+        'message' => 'Z tohoto zařízení přišlo hodně rezervací za sebou. '
+                   . 'Zkuste to prosím za chvíli, nebo mi rovnou zavolejte.',
+    ], 429);
+}
+
+/* ---------------------------------------------------------------
  * 2) Honeypot — roboti vyplní skryté pole, lidé ne
  * --------------------------------------------------------------- */
 if (trim((string) ($input['website'] ?? '')) !== '') {
@@ -167,6 +183,17 @@ try {
     ]);
 
 } catch (PDOException $e) {
+    // Souběh: dva požadavky ve stejnou chvíli projdou kontrolou volnosti
+    // oba, ale zapsat se povede jen jednomu — druhý spadne na unikátním
+    // indexu uniq_slot. Kontrola v aplikaci tuhle mezeru uzavřít neumí.
+    if (($e->errorInfo[1] ?? 0) === 1062) {
+        json_response([
+            'success' => false,
+            'message' => 'Tento termín právě někdo zabral. Vyberte prosím jiný čas.',
+            'errors'  => ['appointment_time' => 'Termín je obsazený.'],
+        ], 409);
+    }
+
     error_log('[booking] ' . $e->getMessage());
     json_response([
         'success' => false,

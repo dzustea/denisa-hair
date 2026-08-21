@@ -9,6 +9,9 @@ declare(strict_types=1);
 require __DIR__ . '/../config.php';
 require_once __DIR__ . '/../booking-calendar.php';
 
+// Musí odejít dřív, než se vypíše první bajt.
+security_headers(true);
+
 start_session();
 require_login();
 
@@ -224,7 +227,7 @@ $pageTitle = 'Rezervace';
        a přepínač jen skrývá řádky. Přepnutí stavu je proto okamžité. -->
   <section style="margin-top:var(--s10)" aria-label="Filtrování a řazení">
     <p class="eyebrow eyebrow--muted" style="margin-bottom:var(--s4)">Filtry</p>
-    <form id="filters" class="stack" onsubmit="return false">
+    <form id="filters" class="stack">
       <div class="seg" role="group" aria-label="Filtrovat podle stavu">
         <?php
         $statusOptions = ['vse' => 'Vše'] + STATUSES;
@@ -416,12 +419,14 @@ $pageTitle = 'Rezervace';
   }
 </style>
 
-<script>
+<script nonce="<?= e(csp_nonce()) ?>">
 (() => {
   'use strict';
 
-  const CSRF = <?= json_encode($csrf, JSON_UNESCAPED_UNICODE) ?>;
-  const LABELS = <?= json_encode(STATUSES, JSON_UNESCAPED_UNICODE) ?>;
+  // JSON_HEX_TAG a spol.: kdyby se do dat kdy dostalo </script>,
+  // neukončí to blok a nevystoupí z řetězce.
+  const CSRF   = <?= json_encode($csrf, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+  const LABELS = <?= json_encode(STATUSES, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
 
   /* ---------- Volání API ---------- */
   const api = async (payload) => {
@@ -557,6 +562,9 @@ $pageTitle = 'Rezervace';
     } catch (err) { /* nezapisovatelná adresa */ }
   };
 
+  // Formulář se nikdy neodesílá — filtruje se na místě. Dřív to řešil
+  // atribut onsubmit, ten ale pod CSP bez 'unsafe-inline' neběží.
+  filters.addEventListener('submit', (event) => event.preventDefault());
   filters.addEventListener('change', apply);
 
   dirBtn.addEventListener('click', () => {

@@ -9,6 +9,9 @@ declare(strict_types=1);
 require __DIR__ . '/config.php';
 require_once __DIR__ . '/booking-calendar.php';
 
+// Musí odejít dřív, než se vypíše první bajt stránky.
+security_headers();
+
 $csrf = csrf_token();
 ?>
 <!DOCTYPE html>
@@ -38,7 +41,7 @@ $csrf = csrf_token();
 <meta property="og:image:alt" content="Denisa Hair — kadeřnictví v Záříčí">
 <meta name="twitter:card" content="summary_large_image">
 
-<script>
+<script nonce="<?= e(csp_nonce()) ?>">
 (() => {
   const root = document.documentElement;
   root.classList.add('js');
@@ -796,7 +799,7 @@ function theme_toggle(): void { ?>
   </div>
 </footer>
 
-<script>
+<script nonce="<?= e(csp_nonce()) ?>">
 (() => {
   'use strict';
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;

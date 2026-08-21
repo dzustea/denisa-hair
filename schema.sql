@@ -60,6 +60,25 @@ CREATE TABLE `users` (
 --
 --    ALTER TABLE `users` ADD COLUMN `seed_fingerprint` CHAR(64) DEFAULT NULL;
 --    DELETE FROM `users` WHERE `username` = 'denisa';
+--
+--  Zámek termínu a počítadlo pokusů (přidáno kvůli souběhu a brute-force):
+--
+--    ALTER TABLE `bookings`
+--      ADD COLUMN `slot_lock` VARCHAR(30)
+--        GENERATED ALWAYS AS (
+--          IF(`status` = 'zrusena', NULL, CONCAT(`appointment_date`, ' ', `appointment_time`))
+--        ) STORED,
+--      ADD UNIQUE KEY `uniq_slot` (`slot_lock`);
+--
+--    CREATE TABLE `rate_limits` (
+--      `bucket` VARCHAR(64) NOT NULL,
+--      `hits` INT UNSIGNED NOT NULL DEFAULT 0,
+--      `expires_at` DATETIME NOT NULL,
+--      PRIMARY KEY (`bucket`), KEY `idx_expires` (`expires_at`)
+--    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+--
+--  Pozor: kdyby v databázi už byly dvě nezrušené rezervace na stejný
+--  termín, ALTER na uniq_slot neprojde. Nejdřív duplicity vyřeš.
 -- ------------------------------------------------------------
 
 -- ------------------------------------------------------------
@@ -76,6 +95,19 @@ CREATE TABLE `bookings` (
     `appointment_time` TIME         NOT NULL,
     `note`             TEXT         DEFAULT NULL,
     `status`           ENUM('nova','potvrzena','dokoncena','zrusena') NOT NULL DEFAULT 'nova',
+    -- Zámek termínu proti souběhu.
+    --
+    -- Dva požadavky poslané ve stejnou milisekundu obě projdou kontrolou
+    -- „je slot volný?“ a obě se zapíšou. Kontrola v aplikaci to uhlídat
+    -- nedokáže, protože mezi čtením a zápisem je mezera. Jediné, co to
+    -- utne spolehlivě, je unikátní index přímo v databázi.
+    --
+    -- Zrušené rezervace mají NULL a ty se v unikátním indexu neperou,
+    -- takže se uvolněný termín dá obsadit znovu.
+    `slot_lock`        VARCHAR(30)
+        GENERATED ALWAYS AS (
+            IF(`status` = 'zrusena', NULL, CONCAT(`appointment_date`, ' ', `appointment_time`))
+        ) STORED,
     `ip_address`       VARCHAR(45)  DEFAULT NULL,
     `created_at`       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -83,7 +115,8 @@ CREATE TABLE `bookings` (
     KEY `idx_status`      (`status`),
     KEY `idx_service`     (`service`),
     KEY `idx_appointment` (`appointment_date`, `appointment_time`),
-    KEY `idx_created`     (`created_at`)
+    KEY `idx_created`     (`created_at`),
+    UNIQUE KEY `uniq_slot` (`slot_lock`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ------------------------------------------------------------
@@ -100,6 +133,22 @@ CREATE TABLE `sessions` (
     `payload`    TEXT         NOT NULL,
     `expires_at` DATETIME     NOT NULL,
     PRIMARY KEY (`id`),
+    KEY `idx_expires` (`expires_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------
+--  Tabulka: rate_limits (omezování počtu pokusů)
+--
+--  Počítání pokusů v session je k ničemu — útočník zahodí cookie
+--  a začne od nuly. Proto se počítá tady: jeden řádek na „kbelík“
+--  (např. login-ip:1.2.3.4), který po uplynutí okna sám začne znovu.
+-- ------------------------------------------------------------
+DROP TABLE IF EXISTS `rate_limits`;
+CREATE TABLE `rate_limits` (
+    `bucket`     VARCHAR(64)  NOT NULL,
+    `hits`       INT UNSIGNED NOT NULL DEFAULT 0,
+    `expires_at` DATETIME     NOT NULL,
+    PRIMARY KEY (`bucket`),
     KEY `idx_expires` (`expires_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

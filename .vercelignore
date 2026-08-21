@@ -1,0 +1,13 @@
+# Co se nemá vůbec dostat na hosting.
+#
+# Sestavení bere jen **/*.php a assets/**, takže zbytek by se nenasadil
+# ani bez tohohle souboru. Je to druhá pojistka — kdyby někdo builds
+# rozšířil, tyhle věci ať zůstanou doma.
+.git
+.github
+.env
+.env.*
+!.env.example
+*.sql
+README.md
+node_modules

@@ -10,6 +10,10 @@ declare(strict_types=1);
 
 $pageTitle = $pageTitle ?? 'Administrace';
 
+// Pozor: security_headers() se tady volat NEDÁ. Tenhle soubor se vkládá
+// až uvnitř <head>, takže výstup už běží a hlavičky by se zahodily.
+// Volá se proto na začátku každé stránky administrace.
+
 ?>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -21,7 +25,7 @@ $pageTitle = $pageTitle ?? 'Administrace';
 <meta name="theme-color" content="#F1EBE1" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#15100C" media="(prefers-color-scheme: dark)">
 
-<script>
+<script nonce="<?= e(csp_nonce()) ?>">
 (() => {
   const root = document.documentElement;
   root.classList.add('js');

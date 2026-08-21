@@ -14,6 +14,10 @@ require __DIR__ . '/../config.php';
 
 start_session();
 
+// Odpověď je JSON a nikdy se nesmí interpretovat jako něco jiného.
+header('X-Content-Type-Options: nosniff');
+header('Cache-Control: no-store, private');
+
 /* Pouze přihlášený admin */
 if (!is_logged_in()) {
     json_response(['success' => false, 'message' => 'Nejste přihlášeni.'], 401);
@@ -184,6 +188,15 @@ try {
     }
 
 } catch (PDOException $e) {
+    // Stejný zámek jako na webu — termín mezitím někdo zabral.
+    if (($e->errorInfo[1] ?? 0) === 1062) {
+        json_response([
+            'success' => false,
+            'message' => 'Tento termín je už obsazený.',
+            'errors'  => ['appointment_time' => 'Termín je obsazený.'],
+        ], 409);
+    }
+
     error_log('[admin/api] ' . $e->getMessage());
     json_response(['success' => false, 'message' => 'Chyba databáze. Zkuste to prosím znovu.'], 500);
 }

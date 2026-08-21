@@ -404,13 +404,77 @@ Pro fotky použij WebP nebo JPEG kolem 1200 px na šířku.
 
 ## Bezpečnost
 
-- Všechny dotazy přes **PDO prepared statements** (`ATTR_EMULATE_PREPARES = false`).
-- Formuláře i AJAX endpointy chrání **CSRF token**.
-- Hesla jako **bcrypt hash** (`password_hash` / `password_verify`).
-- Session cookie `HttpOnly`, `SameSite=Lax`, `Secure` při HTTPS;
-  po přihlášení `session_regenerate_id()`.
-- Přihlášení má **limit pokusů** (5 / 10 min).
-- Rezervační formulář má **honeypot** a blokuje duplicity.
-- Veškerý výstup přes `e()` (`htmlspecialchars`).
+Co je proti čemu udělané. Všechno níž je odzkoušené proti běžící
+databázi, ne jen napsané — postup je v poznámce na konci sekce.
 
-Na produkci nech `APP_DEBUG` prázdné a provozuj přes HTTPS.
+### Přístup a přihlášení
+
+| Hrozba | Opatření |
+|---|---|
+| Přímé otevření `/admin/…` bez přihlášení | `require_login()` na nástěnce, `is_logged_in()` v `api.php` (vrací 401) |
+| Hádání hesla, zkoušení uniklých dvojic | počítadlo v tabulce `rate_limits` — 15 pokusů / 15 min na IP **a** 6 pokusů / 15 min na jméno |
+| Obcházení limitu zahozením cookie | limit je v databázi, ne v session — nová relace nepomůže |
+| Výčet jmen podle hlášky | u neznámého jména i špatného hesla stejná věta |
+| Výčet jmen podle času odpovědi | u neznámého jména se bcrypt počítá proti návnadě, takže odpověď netrvá kratší dobu |
+| Podvržení ID relace před přihlášením | `session.use_strict_mode` + výměna ID při přihlášení |
+| Ukradená cookie | přihlášená relace je svázaná s otiskem prohlížeče; jinde přestane platit. K tomu nečinnost 2 h, nejzazší stáří 12 h a výměna ID po 15 min |
+| CSRF | token u přihlášení, rezervace i všech akcí v `api.php`; porovnává se přes `hash_equals`, cookie má `SameSite=Lax` |
+
+Limit na jméno je tam schválně vedle limitu na IP: útok z jedné adresy
+utne limit na IP, ale zkoušení uniklých hesel z tisíce adres by na něj
+nikdy nedosáhlo — na to je limit na jméno.
+
+### Vstupy a výstupy
+
+| Hrozba | Opatření |
+|---|---|
+| SQL injection | výhradně prepared statements s vypnutou emulací; co do SQL nejde svázat (řazení, stav, služba) prochází whitelistem |
+| Stored XSS z rezervačního formuláře | veškerý výstup přes `e()` (`htmlspecialchars`) |
+| XSS obecně | CSP se `script-src 'self' 'nonce-…'` — vstříknutý `<script>` ani `onclick=` se nespustí, protože nonce mít nebude |
+| Únik dat do `<script>` | `json_encode` s `JSON_HEX_TAG` a spol., takže `</script>` v datech blok neukončí |
+| Podvržení skrytých polí | zapisují se jen jmenovitě vyjmenované sloupce; `status`, `ip_address` i `created_at` si určuje server |
+
+CSP je vázaná na nonce, protože styly a skripty jdou kvůli rychlosti
+přímo ve stránce a nejde je povolit podle adresy. U stylů zůstává
+`'unsafe-inline'` — šablony používají atribut `style="…"`, CSS samo
+skript spustit nemůže a odsávání dat blokuje `img-src 'self'`.
+
+### Logika rezervací
+
+| Hrozba | Opatření |
+|---|---|
+| Dvě rezervace na stejný termín (souběh) | unikátní index `uniq_slot` nad generovaným sloupcem `slot_lock`; zrušené mají `NULL`, takže se termín dá obsadit znovu |
+| Zahlcení formuláře boty | honeypot + 8 rezervací / hodinu na IP (HTTP 429) + kontrola duplicity na telefon |
+| Obejití kontrol v prohlížeči | server validuje všechno znovu: formát, povolený slot, minulost, obsazenost, existenci služby |
+
+Kontrola „je slot volný?" v aplikaci souběh uhlídat **nedokáže** —
+mezi čtením a zápisem je vždycky mezera, do které se vejde druhý
+požadavek. Utne to až unikátní index v databázi; aplikace pak chybu
+1062 překládá na hlášku „termín právě někdo zabral".
+
+### Přenos a hosting
+
+| Hrozba | Opatření |
+|---|---|
+| Odposlech přihlášení | `Strict-Transport-Security` na rok (posílá se jen po HTTPS); cookie s `Secure`, `HttpOnly`, `SameSite=Lax` |
+| Clickjacking | `frame-ancestors 'none'` + `X-Frame-Options: DENY` |
+| Únik přes výpis chyb | `display_errors` vypnuté, chyby jen do logu, uživatel vidí obecnou hlášku |
+| Přístup k `.git`, `.env` | do nasazení se dostanou jen `**/*.php` a `assets/**`; navíc `.vercelignore` a pravidlo v `vercel.json`, které tyhle cesty vrací 404 |
+| Hádání typu obsahu | `X-Content-Type-Options: nosniff` |
+| Administrace ve vyhledávačích | `X-Robots-Tag: noindex` a `Cache-Control: no-store` |
+
+`security_headers()` se musí volat **na začátku stránky, před prvním
+výstupem**. V `admin/_head.php` to nejde — ten se vkládá až uvnitř
+`<head>`, kdy už hlavičky odešly a PHP je zahodí.
+
+### Jak se to ověřovalo
+
+Proti opravdové databázi (MariaDB) a běžícímu PHP se pouštěl průchod,
+který každý útok skutečně provede: otevře nástěnku bez přihlášení,
+pošle rezervaci bez CSRF tokenu, zkouší `' OR '1'='1`, uloží
+`<script>` do jména a hledá ho v nástěnce, posílá termín v minulosti
+přes cURL, hádá heslo dokola, přenese cookie do jiného prohlížeče
+a nechá pět požadavků zabrat jeden termín naráz.
+
+Právě tenhle průchod odhalil, že administrace hlavičky vůbec
+neposílala.

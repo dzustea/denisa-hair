@@ -161,6 +161,15 @@ function db_fail(string $message, ?Throwable $e = null): never
 const SESSION_TTL = 7200;   // 2 hodiny
 
 /**
+ * Nejzazší stáří přihlášené relace, i když se pořád pracuje.
+ * Ukradená relace tak nevydrží donekonečna.
+ */
+const SESSION_MAX_LIFETIME = 43200;   // 12 hodin
+
+/** Jak často se přihlášené relaci vymění ID (ztěžuje zneužití uniklého). */
+const SESSION_ROTATE = 900;   // 15 minut
+
+/**
  * Ukládání session do tabulky `sessions`.
  */
 final class DbSessionHandler implements SessionHandlerInterface, SessionUpdateTimestampHandlerInterface
@@ -261,15 +270,12 @@ function start_session(): void
         return;
     }
 
-    $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-        || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
-
     session_set_cookie_params([
         'lifetime' => 0,
         'path'     => '/',
-        'secure'   => $secure,
-        'httponly' => true,
-        'samesite' => 'Lax',
+        'secure'   => is_https(),
+        'httponly' => true,   // cookie je pro JavaScript neviditelná
+        'samesite' => 'Lax',  // nepošle se při požadavku z cizího webu
     ]);
 
     ini_set('session.gc_maxlifetime', (string) SESSION_TTL);
@@ -278,6 +284,63 @@ function start_session(): void
     session_set_save_handler(new DbSessionHandler(), true);
     session_name('denisahair_sid');
     session_start();
+
+    session_guard();
+}
+
+/**
+ * Hlídá už běžící relaci.
+ *
+ * Řeší tři věci:
+ *   • nečinnost — relace se po SESSION_TTL zahodí
+ *   • nejzazší stáří přihlášení — po SESSION_MAX_LIFETIME se musí znovu přihlásit
+ *   • únos — přihlášená relace je svázaná s otiskem prohlížeče; když
+ *     se cookie objeví jinde, relace padá
+ *
+ * Otisk se kontroluje jen u přihlášených. Anonymní návštěvník na webu
+ * drží v relaci pouze CSRF token a zahazovat mu ji kvůli aktualizaci
+ * prohlížeče by znamenalo jen bezdůvodné „platnost formuláře vypršela“.
+ */
+function session_guard(): void
+{
+    $now = time();
+    $fingerprint = substr(hash('sha256', (string) ($_SERVER['HTTP_USER_AGENT'] ?? '')), 0, 32);
+
+    // Čerstvá relace — jen si zapíšeme výchozí hodnoty.
+    if (!isset($_SESSION['started_at'])) {
+        $_SESSION['started_at']  = $now;
+        $_SESSION['last_seen']   = $now;
+        $_SESSION['fingerprint'] = $fingerprint;
+        return;
+    }
+
+    $loggedIn = !empty($_SESSION['admin_id']);
+    $idle     = $now - (int) ($_SESSION['last_seen'] ?? $now);
+    $age      = $now - (int) ($_SESSION['started_at'] ?? $now);
+
+    $expired = $idle > SESSION_TTL
+        || ($loggedIn && $age > SESSION_MAX_LIFETIME)
+        || ($loggedIn && !hash_equals((string) ($_SESSION['fingerprint'] ?? ''), $fingerprint));
+
+    if ($expired) {
+        $_SESSION = [];
+        session_regenerate_id(true);
+        $_SESSION['started_at']  = $now;
+        $_SESSION['last_seen']   = $now;
+        $_SESSION['fingerprint'] = $fingerprint;
+        return;
+    }
+
+    $_SESSION['last_seen'] = $now;
+
+    // Pravidelná výměna ID: kdyby někomu uniklo, platí jen chvíli.
+    if ($loggedIn) {
+        $rotated = (int) ($_SESSION['rotated_at'] ?? $_SESSION['started_at']);
+        if ($now - $rotated > SESSION_ROTATE) {
+            session_regenerate_id(true);
+            $_SESSION['rotated_at'] = $now;
+        }
+    }
 }
 
 /* ------------------------------------------------------------------
@@ -318,12 +381,157 @@ function inline_css(string $file, string $assets = 'assets'): string
  */
 function site_url(string $path = ''): string
 {
-    $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-        || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
-
     $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 
-    return ($https ? 'https://' : 'http://') . $host . '/' . ltrim($path, '/');
+    return (is_https() ? 'https://' : 'http://') . $host . '/' . ltrim($path, '/');
+}
+
+/* ------------------------------------------------------------------
+ * 4c) Adresa klienta, omezování pokusů a bezpečnostní hlavičky
+ * ------------------------------------------------------------------ */
+
+/**
+ * IP adresa klienta.
+ *
+ * Za reverzní proxy (Vercel) je v REMOTE_ADDR adresa proxy. Vercel
+ * plní vlastní hlavičku, které se dá věřit — X-Forwarded-For si může
+ * podvrhnout kdokoli, takže z ní bereme až první položku a jen jako
+ * náhradu. Omezování pokusů proto nikdy nestojí jen na IP.
+ */
+function client_ip(): string
+{
+    $vercel = $_SERVER['HTTP_X_VERCEL_FORWARDED_FOR'] ?? null;
+    if (is_string($vercel) && $vercel !== '') {
+        return mb_substr(trim(explode(',', $vercel)[0]), 0, 45);
+    }
+
+    $forwarded = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? null;
+    if (is_string($forwarded) && $forwarded !== '') {
+        return mb_substr(trim(explode(',', $forwarded)[0]), 0, 45);
+    }
+
+    return mb_substr((string) ($_SERVER['REMOTE_ADDR'] ?? ''), 0, 45);
+}
+
+/**
+ * Počítadlo pokusů v databázi.
+ *
+ * Do relace se počítat nedá — útočník prostě zahodí cookie a začne od
+ * nuly. Proto tabulka rate_limits: jeden řádek na kbelík, který po
+ * uplynutí okna sám začne znovu.
+ *
+ * @param  string $bucket  co se počítá, např. "login-ip:1.2.3.4"
+ * @param  int    $max     kolik pokusů se v okně smí
+ * @param  int    $window  délka okna v sekundách
+ * @return array{allowed:bool, retry_after:int}
+ */
+function rate_limit(string $bucket, int $max, int $window): array
+{
+    $key = mb_substr($bucket, 0, 64);
+
+    try {
+        $pdo = db();
+
+        // Placeholdery se nesmí opakovat — emulace je vypnutá.
+        $pdo->prepare(
+            'INSERT INTO rate_limits (bucket, hits, expires_at)
+             VALUES (:b, 1, DATE_ADD(NOW(), INTERVAL :w SECOND))
+             ON DUPLICATE KEY UPDATE
+                hits       = IF(expires_at < NOW(), 1, hits + 1),
+                expires_at = IF(expires_at < NOW(), DATE_ADD(NOW(), INTERVAL :w2 SECOND), expires_at)'
+        )->execute([':b' => $key, ':w' => $window, ':w2' => $window]);
+
+        $stmt = $pdo->prepare(
+            'SELECT hits, GREATEST(TIMESTAMPDIFF(SECOND, NOW(), expires_at), 0) AS retry_after
+             FROM rate_limits WHERE bucket = :b'
+        );
+        $stmt->execute([':b' => $key]);
+        $row = $stmt->fetch() ?: ['hits' => 1, 'retry_after' => $window];
+
+        // Občasný úklid prošlých řádků, ať tabulka neroste donekonečna.
+        if (random_int(1, 50) === 1) {
+            $pdo->exec('DELETE FROM rate_limits WHERE expires_at < NOW()');
+        }
+
+        return [
+            'allowed'     => (int) $row['hits'] <= $max,
+            'retry_after' => (int) $row['retry_after'],
+        ];
+    } catch (PDOException $e) {
+        // Když počítadlo selže, nesmí to shodit celou stránku. Pustíme
+        // požadavek dál — ostatní kontroly (CSRF, validace) platí pořád.
+        error_log('[rate_limit] ' . $e->getMessage());
+        return ['allowed' => true, 'retry_after' => 0];
+    }
+}
+
+/** Jede požadavek po HTTPS? Za proxy to pozná jen podle hlavičky. */
+function is_https(): bool
+{
+    return (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
+}
+
+/**
+ * Náhodná jednorázová hodnota pro CSP.
+ *
+ * Styly a skripty jsou vložené přímo ve stránce kvůli rychlosti, takže
+ * je nejde povolit podle adresy. Nonce je povolí jmenovitě — a cokoli
+ * vstříknutého do stránky ho mít nebude, takže se to nespustí.
+ */
+function csp_nonce(): string
+{
+    static $nonce = null;
+    if ($nonce === null) {
+        $nonce = base64_encode(random_bytes(16));
+    }
+    return $nonce;
+}
+
+/**
+ * Bezpečnostní hlavičky. Volá se na začátku každé stránky, před
+ * jakýmkoli výstupem.
+ */
+function security_headers(bool $isAdmin = false): void
+{
+    if (headers_sent()) {
+        return;
+    }
+
+    $nonce = csp_nonce();
+
+    // script-src je vázaný na nonce — vstříknutý <script> ani obsluha
+    // v atributu (onclick=…) se nespustí. U stylů zůstává 'unsafe-inline',
+    // protože šablony používají atribut style="…"; CSS samo skript
+    // spustit nemůže a odsávání dat blokuje img-src 'self'.
+    $csp = [
+        "default-src 'self'",
+        "base-uri 'self'",
+        "object-src 'none'",
+        "frame-ancestors 'none'",
+        "form-action 'self'",
+        "img-src 'self' data:",
+        "font-src 'self'",
+        "connect-src 'self'",
+        "script-src 'self' 'nonce-$nonce'",
+        "style-src 'self' 'unsafe-inline'",
+    ];
+
+    header('Content-Security-Policy: ' . implode('; ', $csp));
+    header('X-Content-Type-Options: nosniff');
+    header('X-Frame-Options: DENY');            // pro prohlížeče bez frame-ancestors
+    header('Referrer-Policy: strict-origin-when-cross-origin');
+    header('Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=()');
+    header_remove('X-Powered-By');
+
+    if (is_https()) {
+        header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+    }
+
+    if ($isAdmin) {
+        header('X-Robots-Tag: noindex, nofollow, noarchive');
+        header('Cache-Control: no-store, private');
+    }
 }
 
 /** Je aktuální návštěvník přihlášený administrátor? */

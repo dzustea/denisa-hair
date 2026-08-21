@@ -13,6 +13,9 @@
 declare(strict_types=1);
 require __DIR__ . '/../config.php';
 
+// Musí odejít dřív, než se vypíše první bajt.
+security_headers(true);
+
 start_session();
 
 // Už přihlášen? Rovnou na dashboard.
@@ -41,11 +44,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $newPass2 = (string) ($_POST['new_password2'] ?? '');
     $wantsChange = $newPass !== '' || $newPass2 !== '';
 
-    // Jednoduché omezení počtu pokusů (5 pokusů / 10 minut na session)
-    $attempts = $_SESSION['login_attempts'] ?? ['count' => 0, 'until' => 0];
+    /*
+     * Omezení pokusů. Počítá se v databázi, ne v session — do session
+     * to nemá smysl psát, protože útočník prostě zahodí cookie.
+     *
+     * Kbelíky jsou dva:
+     *   • podle adresy — chytí hádání hesla z jednoho místa
+     *   • podle jména  — chytí zkoušení uniklých dvojic z mnoha adres,
+     *     kde by limit na IP nikdy nedosáhl stropu
+     */
+    $byIp   = rate_limit('login-ip:' . client_ip(), 15, 900);
+    $byUser = $username !== ''
+        ? rate_limit('login-user:' . mb_strtolower($username), 6, 900)
+        : ['allowed' => true, 'retry_after' => 0];
 
-    if ($attempts['count'] >= 5 && time() < $attempts['until']) {
-        $error = 'Příliš mnoho pokusů. Zkuste to prosím za pár minut.';
+    if (!$byIp['allowed'] || !$byUser['allowed']) {
+        $wait = max($byIp['retry_after'], $byUser['retry_after']);
+        $error = 'Příliš mnoho pokusů. Zkuste to prosím za '
+               . max(1, (int) ceil($wait / 60)) . ' min.';
     } elseif (!csrf_verify($_POST['csrf_token'] ?? null)) {
         $error = 'Platnost formuláře vypršela. Zkuste to prosím znovu.';
     } elseif ($username === '' || $password === '') {
@@ -61,7 +77,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute([':u' => $username]);
         $user = $stmt->fetch();
 
-        if ($user && password_verify($password, $user['password_hash'])) {
+        /*
+         * Když účet neexistuje, ověříme heslo proti návnadě.
+         *
+         * Bez toho by se odpověď u neznámého jména vrátila znatelně dřív
+         * (nepočítá se bcrypt) a z toho rozdílu by šlo vyčíst, která
+         * jména v systému jsou. Hláška je stejná v obou případech, takže
+         * jinak se to poznat nedá.
+         */
+        $hash = $user['password_hash']
+            ?? '$2y$12$usermissingusermissingusermissingusermissingusermissingu';
+        $ok = password_verify($password, $hash) && $user !== false;
+
+        if ($ok) {
             // Heslo měníme až po ověření toho stávajícího — jinak by šlo
             // cizí heslo přepsat pouhou znalostí jména.
             if ($wantsChange) {
@@ -76,7 +104,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             session_regenerate_id(true);
             $_SESSION['admin_id']   = (int) $user['id'];
             $_SESSION['admin_name'] = $user['full_name'] ?: $user['username'];
-            unset($_SESSION['login_attempts']);
+            // Od přihlášení běží nejzazší životnost relace a otisk
+            // prohlížeče, na který je relace navázaná.
+            $_SESSION['started_at']  = time();
+            $_SESSION['rotated_at']  = time();
+            $_SESSION['fingerprint'] = substr(hash('sha256', (string) ($_SERVER['HTTP_USER_AGENT'] ?? '')), 0, 32);
 
             db()->prepare('UPDATE users SET last_login = NOW() WHERE id = :id')
                 ->execute([':id' => $user['id']]);
@@ -85,11 +117,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
-        // Neúspěch — započítáme pokus (stejná hláška pro neznámé jméno i špatné heslo)
-        $_SESSION['login_attempts'] = [
-            'count' => ($attempts['count'] ?? 0) + 1,
-            'until' => time() + 600,
-        ];
+        // Neúspěch. Hláška je schválně stejná pro neznámé jméno
+        // i pro špatné heslo — jinak by šlo zjišťovat, kdo v systému je.
         $error = 'Nesprávné přihlašovací jméno nebo heslo.';
     }
 }
@@ -162,7 +191,7 @@ $pageTitle = 'Přihlášení';
   </div>
 </main>
 
-<script>
+<script nonce="<?= e(csp_nonce()) ?>">
 (() => {
   'use strict';
 
